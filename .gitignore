@@ -1,21 +1,113 @@
-# Secrets & tokens — never
+# ─────────────────────────────────────────────────────────────
+# audio-lab .gitignore
+# Root is the source of truth; pipeline/ and spotify/ keep their own too
+# (git applies all of them cumulatively).
+# Intent: track source, lockfiles, transcripts, notes, and cover/chapter
+# art; NEVER track secrets, personal data, virtualenvs, or heavy media.
+# ─────────────────────────────────────────────────────────────
+
+# ── Secrets, tokens & credentials — never ────────────────────
 .env
 .env.*
+.envrc                       # direnv (often holds exported keys)
 *.key
+*.pem
+*.p12
+*.pfx
 token.json
-# Generated audio & data
+*token*.json
+*secret*
+*credential*
+# Spotify / spotipy OAuth caches — plain AND username-suffixed (.cache-jared)
+.cache
+.cache-*
+.spotify_cache
+# Google / GCP service-account keys (common Google-TTS / STT leak vector)
+*service-account*.json
+*service_account*.json
+application_default_credentials.json
+gcloud-*.json
+# Cloud / TTS provider creds you may add later
+.aws/
+azure.json
+elevenlabs.json
+
+# ── Personal data exports (PII) ──────────────────────────────
 data/
+MyData/
+# Spotify "download your data" dumps (classic + extended formats)
+StreamingHistory*.json
+Streaming_History*.json
+endsong*.json
+Payments.json
+Identifiers.json
+Userdata.json
+Inferences.json
+
+# ── Generated audio, video & data ────────────────────────────
 output/
+# Audio
 *.mp3
 *.m4a
 *.wav
-# Streaming history exports (personal data)
-MyData/
-StreamingHistory*.json
+*.flac
+*.ogg
+*.opus
+*.aac
+*.aiff
+*.aif
+*.wma
+# Video (edge-tts / yt-dlp / quick-cut byproducts)
+*.mp4
+*.mov
+*.webm
+*.mkv
+# Archives (data dumps, model bundles)
 *.zip
-# Python
+*.tar
+*.tar.gz
+*.tgz
+
+# NOTE: episode deliverables are intentionally TRACKED — cover/chapter art
+# (*.png), transcripts (*.md/*.txt/*.vtt/*.html), captions, and show notes.
+# Only the heavy source audio (*.mp3 etc. above) is ignored.
+
+# ── ML / transcription model blobs (e.g. local Whisper) ──────
+*.pt
+*.ckpt
+*.safetensors
+*.onnx
+*.gguf
+models/
+
+# ── Python ───────────────────────────────────────────────────
 .venv/
+venv/
 __pycache__/
-*.pyc
-# macOS
+*.py[cod]
+*.egg-info/
+build/
+dist/
+wheels/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ── Logs & temp ──────────────────────────────────────────────
+*.log
+tmp/
+*.tmp
+
+# ── Editors / OS ─────────────────────────────────────────────
 .DS_Store
+._*                          # macOS resource forks
+.idea/
+*.swp
+.vscode/
+
+# ── Claude Code ──────────────────────────────────────────────
+# Ignore machine-local settings, but allow the shared, committed
+# settings.json (your cross-repo permission-continuity practice).
+.claude/*
+!.claude/settings.json
