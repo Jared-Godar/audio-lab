@@ -1,0 +1,128 @@
+ Membership Has Requirements: Adult ADHD, Told Straight
+Transcript - Told Straight, Episode 01 - host bmfable (British) & expert Emma (British)
+
+ Content note: this episode discusses ADHD candidly, including elevated mortality and accident risk in untreated ADHD, and substance-use statistics. It is orientation, not medical advice. If you are in crisis, contact your local emergency or crisis line.
+
+TL;DR. In plain terms: adult ADHD is real, highly genetic (about 74% heritable), and documented in medicine since 1775. It is missed for years - especially in women and the inattentive type. Untreated, it carries serious risks; treated, it is one of the most treatable conditions in psychiatry. You are not lazy. Every claim here is from a named, peer-reviewed source.
+
+---
+
+ [0:00] Welcome to the club
+
+HOST (bmfable): So. You got the diagnosis. Adult ADHD. Welcome to the club. There's no newsletter - we'd never finish writing it - and your membership card is already in a drawer you swear you'll organise someday. But you're in. And to run your orientation, I've got someone who studies this for a living and also, full disclosure, has it himself. So you're getting the data and the lived experience from the same bloke.
+
+EXPERT (Emma): That's right. I read the meta-analyses, and I still lost my keys twice getting here. Both things are true.
+
+HOST (bmfable): Let's clear up the big one straight away. Did our listener catch this off TikTok?
+
+EXPERT (Emma): No. That's the first thing I want to kill. ADHD is not a modern invention. The first medical textbook description of it was written in 1775, by a German physician named Melchior Adam Weikard. That's documented in the 2021 World Federation of ADHD consensus statement - eighty-odd authors, twenty-seven countries.
+
+HOST (bmfable): Seventeen seventy-five. So it's -
+
+EXPERT (Emma): Older than the United States. Yes. When someone tells you this is a phone-era fad, you may inform them the diagnosis predates the Declaration of Independence.
+
+HOST (bmfable): Okay. And the other one: our listener is not lazy.
+
+EXPERT (Emma): No. They've been running a rigged trial against themselves for years, and the verdict was bullshit. This is a neurodevelopmental condition. That's what the rest of this is about - no crystals, no "it's a superpower," just what the evidence actually says. And some of it is dark, so we are not going to lie to you.
+
+ [1:30] It's real, and it's in your DNA
+
+HOST (bmfable): Start with where it comes from. Because a lot of people carry this quiet guilt, like they did this to themselves.
+
+EXPERT (Emma): They didn't. Mostly, they can blame their parents. The twin-study heritability of ADHD is about seventy-four percent. That's Faraone and Larsson, 2019, in Molecular Psychiatry - and it has barely moved in twenty years. The 2005 review in Biological Psychiatry pooled twenty twin studies and got point seven six.
+
+HOST (bmfable): Put seventy-four percent in perspective for me.
+
+EXPERT (Emma): It makes ADHD one of the most heritable conditions in all of psychiatry - more genetically driven than plenty of traits people happily call "just genetic." You didn't will this into being. You inherited it. Like a nose, or a family talent for starting projects.
+
+HOST (bmfable): Guilty. But it's not just behaviour - you can actually see it?
+
+EXPERT (Emma): You can. A landmark 2007 study, Shaw and colleagues, in the journal PNAS - over eight hundred MRI scans. In kids with ADHD, the cortex reached peak thickness about three years later than their peers. Roughly age ten and a half, versus seven and a half. And the delay was largest in the prefrontal cortex - the part that runs attention and planning.
+
+HOST (bmfable): So the brain wasn't broken -
+
+EXPERT (Emma): It was behind schedule. On precisely the hardware everyone kept yelling at you for not using. And the circuitry runs heavily through dopamine - the genes most consistently tied to ADHD are dopamine and catecholamine genes. So the motivation-and-reward system was drawn to a different blueprint. Not defective. Different.
+
+ [3:06] Why nobody caught it until now
+
+HOST (bmfable): Here's what I don't get. If it's genetic, visible on a scan, and two hundred and fifty years old - how does someone reach forty before anyone notices?
+
+EXPERT (Emma): Because the diagnosis - which is reliable and valid, that's the 2015 Nature Reviews Disease Primers - shows up differently depending on your age, your context, and crucially, how much trouble you're causing other people.
+
+HOST (bmfable): Ah.
+
+EXPERT (Emma): If you were the kid bouncing off the walls, you got flagged. If you were the kid quietly staring out the window, technically compliant, completely gone - you got "she's a daydreamer" and a seat by the glass. The inattentive presentation doesn't disrupt the class, so it doesn't get referred.
+
+HOST (bmfable): And that misses women especially.
+
+EXPERT (Emma): Brutally. And here's a grim proxy for how badly. In a Danish study we're about to get into, the excess mortality risk was actually higher for women with ADHD than for men - and higher for people diagnosed as adults than as children. The ones who slip through are the ones who learned to white-knuckle it. Masking. Over-preparing. Running twice the effort to look half as effortless.
+
+HOST (bmfable): Which is exhausting as hell.
+
+EXPERT (Emma): For decades. So if that's you - you're not new to ADHD. You just finally got the paperwork for the marathon you've been running without shoes.
+
+ [4:22] The dark stuff, told straight
+
+HOST (bmfable): Okay. You keep teasing this Danish study. Deep breath. This is the part where you don't sugar-coat it.
+
+EXPERT (Emma): You asked for truth first, so - untreated ADHD is not a quirky garnish on your personality. Dalsgaard and colleagues, 2015, in The Lancet. Nearly two million Danes. Twenty-five million person-years of data. ADHD was associated with roughly double the all-cause mortality rate - a mortality rate ratio of two point zero seven. And the leading cause of those deaths was accidents.
+
+HOST (bmfable): Double.
+
+EXPERT (Emma): And if you were diagnosed as an adult, the ratio was over four. That is the measurable cost of a brain that struggles with attention, operating heavy machinery. Like a car. Or a life.
+
+HOST (bmfable): That's genuinely grim.
+
+EXPERT (Emma): It is. Now here's where you breathe out - because the same body of research has a plot twist, and it's a big one. Being on medication doesn't just help you answer emails. Chang and colleagues, 2017, JAMA Psychiatry, over two million people: during the months patients were on their ADHD medication, car-crash risk dropped by about thirty-eight percent in men, and forty-two percent in women.
+
+HOST (bmfable): From the medication.
+
+EXPERT (Emma): A 2012 study in the New England Journal of Medicine found criminal conviction rates fell by roughly a third during medicated periods. And a 2017 paper in the American Journal of Psychiatry found substance-abuse emergencies dropped by about a third on medication too - which quietly torches the myth that these drugs are a gateway. The scary stuff is real. It is also, to a striking degree, treatable. Those are the same sentence.
+
+ [5:58] What actually works
+
+HOST (bmfable): So let's talk treatment. And I want to be careful here - we are not telling anyone what to put in their body.
+
+EXPERT (Emma): Correct. Your body, your clinician, your call. This is an orientation, not a prescription - the actual next move is a conversation with someone who can write one. I'm just going to hand you the numbers.
+
+HOST (bmfable): Hit me.
+
+EXPERT (Emma): In psychiatry, we measure how well a treatment works with an effect size. Antidepressants for depression - genuinely useful drugs - tend to post fairly modest ones. ADHD stimulants? The definitive 2018 network meta-analysis in Lancet Psychiatry - Cortese and colleagues, a hundred and thirty-three randomised controlled trials - put amphetamines around an effect size of one point oh in kids, and just under point eight in adults.
+
+HOST (bmfable): Translate "one point oh" for me.
+
+EXPERT (Emma): On the entire list of things psychiatry can actually do, treating ADHD sits near the top. It is one of the strongest signals we have. That's the stimulants - amphetamines and methylphenidate - plus non-stimulant options like atomoxetine that also work, just less dramatically.
+
+HOST (bmfable): And the honesty clause. Because you insisted.
+
+EXPERT (Emma): The same study found stimulants were less tolerable than placebo - more people quit over side effects. Effective is not the same as free. There are real trade-offs, and they are worth an actual conversation. And the unsexy part: the foundational MTA trial, 1999 - medication beat behavioural therapy alone for core symptoms, but the combination helped most with the wreckage around them. The relationships. The daily function. Pills plus skills. The pills aren't a moral failing, and the skills aren't optional.
+
+ [7:38] Membership benefits
+
+HOST (bmfable): Alright. Land the plane. What's in the welcome packet?
+
+EXPERT (Emma): Three things. One: this is real. It's in your genes, it's on your scan, and it has a longer résumé than most countries. Two: you've got a couple of core features nobody warned you about. Your sense of time is genuinely, measurably off - there's a 2020 meta-analysis showing people with ADHD perceive time less accurately. "Time blindness" isn't an excuse; it is a documented perceptual difference.
+
+HOST (bmfable): And the emotional side. Because that one blindsides people.
+
+EXPERT (Emma): A 2020 meta-analysis in BMC Psychiatry found emotional dysregulation is a core feature of adult ADHD - one of the largest effect sizes in the whole literature. That thing where a small slight hits like a truck? Not you being dramatic. Part of the wiring.
+
+HOST (bmfable): And three?
+
+EXPERT (Emma): It's treatable - with some of the best odds in all of psychiatry - if and when you decide that's your road.
+
+HOST (bmfable): Can I editorialise for a second?
+
+EXPERT (Emma): You're the host.
+
+HOST (bmfable): For however many years, you had a reason and no name for it. And when you don't have a name, you pick one yourself - and it's always something cruel. Lazy. Flaky. Too much. You can retire that now. You didn't have a character defect. You had an undiagnosed neurodevelopmental condition - and you got this far anyway. Running the marathon without the shoes.
+
+EXPERT (Emma): The shoes exist now. That is the whole point of the paperwork.
+
+HOST (bmfable): And - I'm not going to hand you a poster that says it's a gift - but is it fair to say some things come with this wiring that genuinely work in your favour?
+
+EXPERT (Emma): Sometimes, yes. When something actually grabs you, the same attention system that couldn't care less about your tax return can lock on for hours. That part is real. Just don't build your self-worth on a feature you can't summon on command. It's a footnote, not the headline.
+
+HOST (bmfable): A footnote. I'll take it. Welcome to the club. Try not to lose the card.
+
+EXPERT (Emma): You will. It's fine. We made spares.
