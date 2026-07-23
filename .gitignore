@@ -1,0 +1,21 @@
+# Secrets & tokens — never
+.env
+.env.*
+*.key
+token.json
+# Generated audio & data
+data/
+output/
+*.mp3
+*.m4a
+*.wav
+# Streaming history exports (personal data)
+MyData/
+StreamingHistory*.json
+*.zip
+# Python
+.venv/
+__pycache__/
+*.pyc
+# macOS
+.DS_Store
