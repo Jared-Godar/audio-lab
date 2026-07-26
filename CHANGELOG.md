@@ -48,6 +48,13 @@ visible in the diff and would otherwise evaporate.
 - `CLAUDE.md` gains PM/executor session modes and the requirement that executor
   specs open by reading the durable contracts.
 
+- `ROADMAP.md` — milestones M1–M6, plus a "Decisions and what they constrain"
+  section recording how settled choices reach forward into later work (e.g. Route 53
+  auto-creating the hosted zone means CloudFormation manages records, not zones).
+  GitHub milestones mirror it.
+- Registered `toldstraight.com` (2026-07-26, $16/yr, auto-renew, privacy on).
+  `toldstraight.fm` skipped at $122/yr; `vote.toldstraight.com` will be a subdomain.
+
 ### Fixed
 
 - **Rendered samples were named by hash.** A three-way model comparison landed as
