@@ -57,6 +57,12 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **`pre-commit` was never installed as a git hook**, so every local guard was inert
+  — `gitleaks`, `detect-private-key`, and the `no-commit-to-branch` protection on
+  `main` all silently did nothing on `git commit`. Found when a commit landed on
+  local `main` despite the config forbidding it. A tracked config does not install
+  the hook. README now carries the setup step and a both-directions verification.
+  Server-side branch protection was the only real guard in the meantime, and it held.
 - **Rendered samples were named by hash.** A three-way model comparison landed as
   `76a676a12824.mp3` / `facf0b2fbe0a.mp3` / `a7a79bffe119.mp3`, which is unusable
   for a human asked to listen to them. Filenames are now
