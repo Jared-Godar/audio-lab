@@ -8,8 +8,10 @@ name: Quality gates
 #   - full-history secret re-scan (the pre-commit gitleaks hook scans the
 #     working tree, so a secret added AND removed inside one PR would slip past)
 #   - JS/TS lint + build once the community voting app exists
-#   - pytest once there are tests worth gating on
-# The `environments` matrix already picks up new uv subprojects by name.
+#   - pytest gating (pipeline/tests/ exists now; wire it in once the suite is
+#     load-bearing enough that a red run should block merge)
+# The `environments` matrix is an explicit list, not a glob — add each new uv
+# subproject to it by name or its lockfile drift goes unchecked.
 
 on:
   pull_request:
@@ -57,7 +59,7 @@ jobs:
       matrix:
         # Each subproject carries its own pyproject + uv.lock and resolves
         # independently. Add new ones here.
-        project: [pipeline, spotify]
+        project: [pipeline, spotify, archive/audition-v1]
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

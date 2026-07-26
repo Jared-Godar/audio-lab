@@ -11,6 +11,30 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`pipeline/core/` — the ElevenLabs-only tooling foundation (#6).** A new package
+  (`net`, `models`, `voice`, `naming`, `client`, `cli`) replacing the retired
+  multi-engine audition tool. The structural win: `Voice` now carries a `VoiceSettings`
+  (`stability`, `similarity_boost`, `style`, `use_speaker_boost`, `speed`; each optional,
+  `None` = "don't send" so an unset value never overrides an account default), which the
+  engine-agnostic v1 `Voice` could not hold. Every model records its `/v1/models`
+  capability flags, and synthesising with a setting the model does not honour (e.g.
+  `style` on `eleven_v3`) emits an explicit warning naming the setting and model — a 200
+  is not proof the setting applied. New CLI `voicelab` (`models [--live]`, `rates`,
+  `account`, `browse`); synthesis stays a library call, never a one-shot flag, so a
+  credit spend is always deliberate. Carried forward from v1 intact: the tier system,
+  the measured `ACCOUNT_RATE_FACTOR = 0.55`, bounded retry with the transient/permanent
+  split, `attempts=2` on synthesis (a retry can re-bill), the descriptive-filename +
+  digest-manifest cache keyed on model **and** bitrate, and `/v1/history` rate
+  derivation. Covered by `pipeline/tests/` (11 tests, all network stubbed — zero credits).
+- **Shared-library browsing (`GET /v1/shared-voices`) in `core` (#7).** Paginated
+  through the retry wrapper (follows `page`/`has_more`, does not stop at page one),
+  filterable by gender/accent/age/category/search/language with a client-side
+  minimum-adopter floor, sorted by adopter count. Free previews download to
+  `output/shared-previews/` with a mandatory `purpose` argument and self-describing
+  names, writing a sibling `manifest.json` whose schema exactly matches the authoritative
+  12-candidate sweep in `artifacts/voice-previews/` (which this tool never writes to).
+  Auditioning a library voice costs no credits and no account slot.
+
 - **Label integrity.** `.github/labels.json` now declares all 23 live labels — the 9
   GitHub stock labels are **retained by decision** (issue #21) and declared so the file
   matches the live set. `scripts/sync_labels.py` syncs the manifest to GitHub (`sync`,
@@ -155,6 +179,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **The multi-engine audition tool was archived by folder move (#6).**
+  `pipeline/audition/` → `archive/audition-v1/audition/` via `git mv`, given its own
+  `pyproject.toml` (deps it actually uses: `edge-tts`, `questionary`, `requests`,
+  `rich`), `uv.lock`, and README; still runs (`uv run --project archive/audition-v1
+  audition --list-models`). Archived first so there was never a window with no working
+  tool. The source is frozen — nothing under `audition/` was edited.
+- **`pipeline` is ElevenLabs-only.** `edge-tts` dropped from `pipeline/pyproject.toml`
+  (#6), and with it `questionary` (only the archived interactive loop used it) and
+  `spotipy` (belongs to the `spotify/` subproject; never imported in `pipeline/`) —
+  verified by grep before removal. The `audition` script entry is replaced by
+  `voicelab = "core.cli:main"`; a `dev` group adds `pytest`.
+- **CI locked-env matrix covers the archive.** `.github/workflows/quality.yml` lists
+  `archive/audition-v1` explicitly, and the stale comment claiming the matrix "picks up
+  new uv subprojects by name" is corrected — it is a literal list, not a glob, so an
+  unlisted subproject's lockfile drift would go unchecked.
 - Per-call cost estimates now reflect the measured account rate rather than the
   advertised multiplier, so the spend confirmation prompt is trustworthy.
 - `AGENTS.md` gains a **GUI navigation** rule: direct the maintainer by the click path
@@ -183,6 +222,23 @@ visible in the diff and would otherwise evaporate.
   been stranded in a gitignored M1 spec. Closes #20.
 
 ### Findings
+
+- **`/v1/models` reports per-model capability flags — `can_use_style` and
+  `can_use_speaker_boost` — and they are the authoritative source for which
+  `voice_settings` a model honours.** Verified live 2026-07-26: only
+  `eleven_multilingual_v2` reports both `true`; `eleven_v3`, `eleven_turbo_v2_5` and
+  `eleven_flash_v2` report both `false`. This confirms the "v3 silently ignores style
+  and speaker_boost" rule from the API side rather than by folklore, and `voicelab
+  models --live` reconciles the hardcoded flags against the live endpoint so a future
+  change is caught, not assumed.
+- **`GET /v1/shared-voices` is page-based and filterable, and it is free.** Response
+  carries `voices`, `has_more`, `total_count`; paginate with `page`/`page_size` until
+  `has_more` is false (verified: page 0 and page 1 return disjoint sets). Server-side
+  filters include `gender`, `accent`, `age`, `category`, `search`, `language`, and
+  `sort=cloned_by_count` returns descending adopter counts (top voices in the millions).
+  There is **no** minimum-adopter parameter — that floor is client-side. Each row ships
+  a free `preview_url` and a `cloned_by_count`; browsing and previewing spend zero
+  credits and touch no account slot.
 
 - **`gitleaks-action` scopes its scan to the triggering event's commits even with
   `fetch-depth: 0`** — it is not a full-history re-scan, despite the deep checkout
