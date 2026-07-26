@@ -62,6 +62,12 @@ standard": a briefing with measured evidence (pasted command output), maintainer
 resolution options, non-goals, and checkbox acceptance criteria ending in a CHANGELOG
 entry — not a to-do line.
 
+## Licensing of contributions
+
+Code, tooling, and configuration in this repo are MIT-licensed (`LICENSE`); any code
+contribution is offered under MIT. Episode **content** under `episodes/` is all rights
+reserved (`episodes/LICENSE`) — this project does not invite content contributions.
+
 ## What never gets committed
 
 Secrets (`ELEVENLABS_API_KEY` lives in the shell environment only), heavy media, and

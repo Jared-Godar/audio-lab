@@ -1,3 +1,12 @@
+## Scope
+
+The MIT License below covers the **software, tooling, and configuration** in this
+repository. It does **not** cover content under `episodes/` — the transcripts, show
+notes, artwork, captions, and alt text for the "Told Straight" podcast — which is
+licensed separately and restrictively. See `episodes/LICENSE`.
+
+## MIT License
+
 MIT License
 
 Copyright (c) 2026 Jared Godar

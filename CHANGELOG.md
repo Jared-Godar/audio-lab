@@ -21,6 +21,14 @@ visible in the diff and would otherwise evaporate.
 - **Hygiene files for the public repo:** `LICENSE` (MIT), `SECURITY.md` (private
   vulnerability reporting; the `ELEVENLABS_API_KEY`-in-shell threat surface),
   `CONTRIBUTING.md` (the PM/executor workflow and merge gates), and `.github/CODEOWNERS`.
+- **Split the licence so episode content is not MIT.** A bare root MIT `LICENSE` covers
+  every tracked file — it would have licensed the 16 tracked `episodes/` files (both
+  episodes' transcripts in `.md`/`.txt`/`.html`/`.vtt`, show notes, alt text, captions,
+  cover art, and chapter PNGs) for commercial redistribution with attribution alone.
+  The root `LICENSE` now scopes MIT to software/tooling/config only; `episodes/LICENSE`
+  is **all rights reserved**; and `README.md` states the split. The maintainer chose
+  all-rights-reserved over CC BY-NC-ND. Effectively irreversible once published, since a
+  taken copy keeps the grant — hence fixed before merge.
 - Tiered model selection for ElevenLabs: `--tier {draft,cast,production}`,
   with `--model` to override a tier's model at equal cost.
   - `draft` — Turbo v2.5 @ 128 kbps, ~half price, for read-throughs and timing.
