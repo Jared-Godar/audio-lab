@@ -72,3 +72,15 @@ for rates, budget math, and account constraints.
 ## Stack
 
 save-to-spotify CLI · ElevenLabs · edge-tts · Kokoro (local) · ffmpeg · uv · fish
+
+## Licensing
+
+Two licences, split by what the file is:
+
+- **Software, tooling, configuration** — MIT (`LICENSE`). Reuse freely with attribution.
+- **Episode content** under `episodes/` (transcripts, show notes, artwork, captions,
+  alt text for "Told Straight") — **all rights reserved** (`episodes/LICENSE`). Not
+  licensed for reuse, redistribution, or modification.
+
+A bare root MIT would have licensed the show's content for commercial redistribution;
+the split prevents that.
