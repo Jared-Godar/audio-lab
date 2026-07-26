@@ -68,7 +68,7 @@ Rewrite Ep01/Ep02 into the hybrid format, record host lines, render, republish.
 AWS Identity Center, DNS, static site at `toldstraight.com`, all IaC after
 registration.
 
-- Blocked by: the free-tier credit check (see Open decisions).
+- Blocked by: nothing. Unblocked 2026-07-26 — no Free Tier credits exist to lose.
 - `toldstraight.com` registered 2026-07-26, $16/yr, auto-renew on.
 
 ### M6 — Community applet
@@ -141,6 +141,24 @@ in Settings → Branches. Deliberate, but know the escape hatch exists.
 key, never the filename, and never fall back to a hash. Folders too:
 `samples/<vendor>/<voice>-<short-id>/`.
 
+### No Free Tier credits exist — Identity Center is free to enable
+
+Checked 2026-07-26 as root: Billing → Credits shows $0.00 remaining, $0.00 used, zero
+active credits. AWS's warning that creating an Organization expires Free Tier credits
+**permanently** is real but has nothing to consume here. Billing is already live —
+the domain purchase transacts on pay-as-you-go — so the Free Plan → Paid Plan upgrade
+is a no-op.
+
+**Unblocks M5.** The surviving constraint is not financial: Identity Center is
+**Region-locked per organization**. Set the console to `us-east-1` before enabling —
+changing it later means deleting the instance and losing every user, group, permission
+set, and assignment. `route53domains` and CloudFront certificates both require
+us-east-1 anyway.
+
+Note also that IAM users cannot see Billing at all until the root user activates
+**IAM user and role access to Billing information** (Billing → Account). That is an
+account-level switch, not a policy — `AdministratorAccess` does not bypass it.
+
 ### `.fm` costs $122/yr
 
 Route 53 does sell it — the earlier uncertainty is resolved.
@@ -168,17 +186,6 @@ at v3; the imagined slider UI points at multilingual_v2.
 
 **To resolve:** listen to the two renders already sitting in
 `output/auditions/samples/elevenlabs/daniel-onwK4e9Z/`.
-
-### Free-tier credits vs IAM Identity Center — blocks M5
-
-Enabling Identity Center on a standalone account creates an AWS Organization, and
-AWS's FAQ is explicit: joining or creating an Organization expires Free Tier credits
-**immediately** and makes the account **permanently ineligible** for more.
-
-Could not be checked from here — every billing and Organizations API is denied.
-**Check Billing → Credits before enabling.** If ~$200 is sitting there, that's
-plausibly two-plus years of this project's infrastructure, against an Identity
-Center setup that can wait until credits lapse.
 
 ### Label taxonomy refinements
 
