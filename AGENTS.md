@@ -163,6 +163,25 @@ Run unprompted by the session that owns the item, after the merge is confirmed:
   `samples/<vendor>/<voice>-<short-id>/`. Content-addressed caching belongs in a
   sibling `manifest.json`, not in the filename. See `CLAUDE.md`.
 
+## Directing the maintainer through a GUI
+
+Give **the route a human actually clicks** — which menu, which item, what the section
+heading reads, what the button is labelled. **Never a bare deep-link URL.** Deep links
+rot the moment a vendor reorganizes, fail silently by landing on a redirect or a
+generic page, and teach nothing about where the setting lives next time. A URL may
+accompany the click path; it must not replace it.
+
+**Verify the elements exist before naming them.** Check the vendor's current
+documentation rather than reciting from memory. Prefer anchoring on UI elements
+visible in screenshots already provided — those are observed, not assumed.
+
+Where the path differs by sign-in identity (root vs IAM user, admin vs member), say so
+explicitly: "the section isn't there" and "you are signed in as the wrong principal"
+look identical from the other side of the screen.
+
+If a path cannot be verified, say so and ask what is on screen. A wrong click path
+costs a round trip and the credibility of the next one.
+
 ## Local environment
 
 - Host is macOS; the maintainer's interactive shell is **Fish**.
