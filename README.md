@@ -3,6 +3,29 @@
 Personal audio tooling: TTS voice auditioning, podcast generation via the Save to
 Spotify CLI, and Spotify listening-data analysis.
 
+## Setup (do this first in a fresh clone)
+
+```fish
+uvx --from pre-commit==4.6.0 pre-commit install
+```
+
+**Required, and easy to miss.** `.pre-commit-config.yaml` being tracked does *not*
+install anything — without this command every local hook is inert, including
+`gitleaks`, `detect-private-key`, and the `no-commit-to-branch` guard on `main`.
+CI still runs them, but only after a secret has already entered local history.
+
+Verify it took, in both directions:
+
+```fish
+test -f .git/hooks/pre-commit; and echo installed; or echo MISSING
+git switch main; and git commit --allow-empty -m "should be blocked"   # must refuse
+```
+
+The second command should fail with `don't commit to branch ... Failed`. A hook that
+is installed but not proven to block is a hook you have not tested.
+
+`ELEVENLABS_API_KEY` is read from the environment — never a file, never in code.
+
 ## Structure
 
 - `pipeline/` — uv-managed Python project; the `audition` CLI and spotipy analysis
