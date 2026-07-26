@@ -94,6 +94,11 @@ wheels/
 .mypy_cache/
 .ipynb_checkpoints/
 
+# ── Working artifacts (never tracked) ────────────────────────
+# Session handoffs, walkthroughs, research notes, scratch guides.
+# Durable findings belong in docs/ and CHANGELOG.md instead.
+artifacts/
+
 # ── Logs & temp ──────────────────────────────────────────────
 *.log
 tmp/
