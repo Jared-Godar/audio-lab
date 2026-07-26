@@ -12,6 +12,16 @@ updates:
       default-days: 7
     commit-message:
       prefix: "ci"
+    # Group every github-actions bump into ONE PR per cycle instead of one PR
+    # per action (issue #28). Without this, #26 and #27 arrived as two separate
+    # blocked PRs where a single grouped PR was intended.
+    groups:
+      github-actions:
+        patterns: ["*"]
     labels:
       - "type: automation"
       - "area: governance"
+    # The PR-metadata gate (scripts/check_pr_metadata.py) requires an assignee;
+    # Dependabot silently skips unknown assignees, so this must be a real login.
+    assignees:
+      - "Jared-Godar"

@@ -191,6 +191,29 @@ visible in the diff and would otherwise evaporate.
 - **Library voices were hidden.** `list_voices()` dropped everything except
   `category == "premade"` — a free-tier workaround that would have concealed every
   voice added from the shared library.
+- **The PM-lane guard blocked read-only verification and let the long-form DELETE
+  through (#35).** `.claude/hooks/pm-lane-guard.sh` substring-matched the whole Bash
+  line, so `git merge-base` (read-only, the correct pre-delete ancestry check) was
+  denied because `merge` had no word boundary, a `grep` whose *pattern* named a `gh`
+  subcommand was refused, yet a ref-deleting `gh api --method DELETE` passed cleanly
+  because the mutation clause matched only the short `-X` form. Now the matcher strips
+  quoted spans first (a quoted verb can't execute, so a search pattern or an issue
+  body can't trip it), anchors each simple verb on a trailing word boundary (so the
+  `merge-*` family is read-only again), and matches both `-X` and `--method`. Verified
+  two-directionally: 27 simulated PM payloads, every permit and every deny asserted,
+  including the long-`--method` DELETE now **denied**. Known hole left open and stated
+  in the hook header: a deliberate `bash -c "git push"` wrapper still evades, exactly
+  like the printf/tee in-repo write hole — the guard is a lane marker, not a sandbox.
+- **Dependabot was configured as a label list only, so every bot PR was dead on
+  arrival (#28).** `dependabot.yml` carried labels but no `assignees` (the PR-metadata
+  gate requires one) and no `groups` (so #26 and #27 arrived as two blocked PRs where
+  one grouped PR was intended), and nothing satisfied the changelog gate for an author
+  that writes no changelog. Added `assignees: ["Jared-Godar"]` and a `github-actions`
+  group, and exempted `dependabot[bot]` **in the changelog gate's `if:`** rather than
+  pinning `skip-changelog` onto every bot PR — which keeps that label meaning an
+  explicit per-PR human judgement. The `user.login` check is spoof-safe on the
+  `pull_request` trigger. Deliberately **not** ported: ECG's `dependabot-autofill.yml`
+  (see Findings).
 
 ### Changed
 
@@ -238,6 +261,24 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **ECG's `dependabot-autofill.yml` cannot be "ported, not varied" into this repo —
+  the instruction was impossible, not merely hard (#28).** The workflow is inseparable
+  from ECG-specific machinery absent here: it calls `scripts/github/`
+  `autofill_dependabot_changelog.py` (895 lines), `sync_dependabot_pr_metadata.py`
+  (384 lines) and a shared `github_api.py` (943 lines) — 2,222 lines, no `scripts/github/`
+  exists here; it needs a classic-PAT `PROJECT_METADATA_TOKEN` secret (none present,
+  `gh secret list` empty) which cannot be created programmatically; it hardcodes ECG's
+  "Project #5" (audio-lab's board is #8); and it runs `uv sync` at the repo root where
+  audio-lab's uv project lives under `pipeline/`. Crucially, **over half of it exists to
+  satisfy ECG's Project-membership metadata check, which this repo's
+  `scripts/check_pr_metadata.py` does not perform** — it validates only `type:`/`area:`
+  labels and an assignee (milestone and `Closes` deliberately not required). A verbatim
+  port would have guaranteed the opposite of the acceptance criterion: the autofill job
+  would error and no changelog entry would be written. The right fix for *this* repo is
+  config (`assignees` + `groups`) plus a two-line author exemption in the changelog gate.
+  Origin: the executor spec said "port, do not vary" without reading what the workflow
+  imports; caught by an executor 2026-07-26 before writing anything, superseding #28 §4
+  option 1.
 - **`/v1/models` reports per-model capability flags — `can_use_style` and
   `can_use_speaker_boost` — and they are the authoritative source for which
   `voice_settings` a model honours.** Verified live 2026-07-26: only
