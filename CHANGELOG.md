@@ -11,6 +11,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`infra/` — CloudFormation DNS for `toldstraight.com` (#13).** `infra/dns.yaml`
+  manages RecordSets **inside** the existing Route 53 hosted zone: `HostedZoneId` is a
+  `Parameter` and the template never creates or owns the zone — an owned zone is
+  destroyed on `delete-stack`, and recreation mints four new NS records that no longer
+  match the registrar, darking the domain until nameservers are repointed by hand.
+  Initial scope is a hard mail lockdown (SPF `v=spf1 -all`, null MX `0 .` per RFC 7505,
+  DMARC `p=reject`) and a CAA record restricting certificate issuance to `amazon.com`
+  (ACM); apex + `vote` site records are authored but held behind a `Condition`
+  defaulting **false**, so the stack deploys today with security records only and the
+  site switches on later without a rewrite — no IP or CloudFront distribution invented.
+  Authored and validated, **not deployed**: `uvx cfn-lint infra/*.yaml` exit 0 and
+  `aws cloudformation validate-template` exit 0 (creds present this session);
+  no `create-stack`/`deploy`/`change-set`. `infra/README.md` carries the
+  zone-as-parameter rule and *why*, the Fish deploy command, and the verified Route 53
+  console click path for finding the zone id.
 - **`pipeline/core/` — the ElevenLabs-only tooling foundation (#6).** A new package
   (`net`, `models`, `voice`, `naming`, `client`, `cli`) replacing the retired
   multi-engine audition tool. The structural win: `Voice` now carries a `VoiceSettings`

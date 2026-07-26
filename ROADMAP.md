@@ -35,8 +35,9 @@ Extract a shared `core/` (ElevenLabs-native, since edge-tts and Kokoro are out),
 archive the v1 applet to `archive/audition-v1/` by folder move, and add shared voice
 library browsing.
 
-- Blocked by: nothing. This is next.
-- Archive happens as step one of the extraction, so there is never a window with no
+- **Complete** — landed in PR #29 (on `main` @ `befb3e2`): `pipeline/core/` extracted,
+  `audition-v1` archived by folder move, shared-library browsing added.
+- Archive happened as step one of the extraction, so there was never a window with no
   working tool.
 
 ### M2 — Casting (Round I)
@@ -200,9 +201,10 @@ document `type: task` as the null default; add `type: research`; rename
 Asked for and not delivered:
 
 1. Domain registration guide (Route 53 + CloudFormation walkthrough).
-2. `infra/` CloudFormation templates.
+2. ~~`infra/` CloudFormation templates.~~ Delivered — `infra/dns.yaml` + `infra/README.md`
+   (#13), authored and validated but not deployed.
 3. TUI vs local-web decision brief for the casting and tuning apps.
-4. The `archive/audition-v1/` move — folded into M1.
+4. ~~The `archive/audition-v1/` move — folded into M1.~~ Done — landed in PR #29.
 5. The four label changes above.
 
 ## Housekeeping

@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# NOTE: this template uses CloudFormation's LONG-FORM intrinsic functions
+# (Ref:, Fn::Sub, Fn::Equals, Fn::If) rather than the !Ref / !Sub short tags.
+# Long form is plain YAML, so the repo's generic check-yaml pre-commit hook can
+# parse it; the short-tag form uses custom YAML tags (!Equals, ...) that a safe
+# YAML loader cannot construct. Both forms are equally valid CloudFormation.
+
+Description: >-
+  DNS RecordSets for toldstraight.com, managed INSIDE a pre-existing Route 53
+  hosted zone. This stack never creates or owns the hosted zone: the zone was
+  auto-created when the domain was registered through Route 53 (2026-07-26) and
+  is wired to the registrar's nameservers. If a stack owned the zone,
+  delete-stack would destroy it, and recreating it mints four NEW NS records
+  that no longer match what the registrar publishes -- taking the domain dark
+  until the nameservers are repointed by hand. The zone is therefore an INPUT
+  (HostedZoneId parameter), never a Resource. See infra/README.md.
+
+  Initial scope is security records that cost nothing to get wrong-then-fix:
+  a hard mail lockdown (nothing sends mail from this domain yet) and a
+  certificate-issuer restriction. Site records (apex + vote) are authored but
+  gated OFF by default, so this template deploys today with security records
+  only and the site switches on later without a rewrite.
+
+Parameters:
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: >-
+      The id of the EXISTING hosted zone for the domain (auto-created at
+      registration). Console: Route 53 -> Hosted zones -> select the domain ->
+      View details -> the Hosted zone details panel shows Hosted zone ID. This
+      template manages records inside this zone and must never create the zone.
+
+  DomainName:
+    Type: String
+    Default: toldstraight.com
+    AllowedPattern: "^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\\.[A-Za-z0-9-]{1,63})+$"
+    Description: The apex domain name, without a trailing dot.
+
+  DeploySiteRecords:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: >-
+      Gate for the apex and vote site records. Leave "false" until there is a
+      real target to point at (a CloudFront distribution, load balancer, or IP).
+      Set "true" AND supply ApexTarget / VoteTarget to switch the site on.
+
+  ApexTarget:
+    Type: String
+    Default: ""
+    Description: >-
+      Deploy-time target for the apex A record, supplied only when
+      DeploySiteRecords is "true". An IPv4 address. Do NOT invent one. When the
+      apex should point at CloudFront, replace the ApexSiteRecord below with an
+      A-record AliasTarget block (apex CNAMEs are invalid DNS) -- CloudFront has
+      no stable IP.
+
+  VoteTarget:
+    Type: String
+    Default: ""
+    Description: >-
+      Deploy-time target hostname for vote.<domain> (a CNAME), supplied only
+      when DeploySiteRecords is "true". Do NOT invent one.
+
+Conditions:
+  # Default false: the stack deploys with security records only. Flip
+  # DeploySiteRecords to "true" (and supply the *Target params) to add the site.
+  SiteRecordsEnabled:
+    Fn::Equals:
+      - Ref: DeploySiteRecords
+      - "true"
+
+Resources:
+  # --- Mail lockdown -------------------------------------------------------
+  # Nothing sends mail from this domain, so lock it hard rather than leaving it
+  # open to spoofing. TTL 3600: these are stable security records.
+
+  # SPF: authorize no senders at all ("-all" = hard fail).
+  SpfRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "${DomainName}."
+      Type: TXT
+      TTL: "3600"
+      ResourceRecords:
+        - '"v=spf1 -all"'
+
+  # Null MX (RFC 7505): the explicit "this domain accepts no mail" signal --
+  # priority 0, target "." (the root).
+  NullMxRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "${DomainName}."
+      Type: MX
+      TTL: "3600"
+      ResourceRecords:
+        - "0 ."
+
+  # DMARC: reject anything failing alignment, strictly, for the domain and its
+  # subdomains. rua/ruf (aggregate/forensic report addresses) are omitted on
+  # purpose: reports to a mailbox on another domain require THAT domain to
+  # publish a "<thisdomain>._report._dmarc" authorization record, and there is
+  # no mailbox anywhere yet. Add rua/ruf once a reporting mailbox exists.
+  DmarcRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "_dmarc.${DomainName}."
+      Type: TXT
+      TTL: "3600"
+      ResourceRecords:
+        - '"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;"'
+
+  # --- Certificate issuance restriction ------------------------------------
+  # CAA: only Amazon (ACM) may issue certificates for this domain, wildcard or
+  # not. iodef (a violation-report address) is omitted until the maintainer
+  # supplies one. TTL 3600: stable security record.
+  CaaRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "${DomainName}."
+      Type: CAA
+      TTL: "3600"
+      ResourceRecords:
+        - '0 issue "amazon.com"'
+        - '0 issuewild "amazon.com"'
+
+  # --- Site records (gated OFF by default) ---------------------------------
+  # Authored so the site switches on without a template rewrite. TTL 300:
+  # changeable. Targets come from parameters at enable-time -- this template
+  # invents no IP and no CloudFront distribution.
+
+  ApexSiteRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: SiteRecordsEnabled
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "${DomainName}."
+      Type: A
+      TTL: "300"
+      ResourceRecords:
+        - Ref: ApexTarget
+
+  VoteSiteRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: SiteRecordsEnabled
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "vote.${DomainName}."
+      Type: CNAME
+      TTL: "300"
+      ResourceRecords:
+        - Ref: VoteTarget
+
+Outputs:
+  ManagedZoneId:
+    Description: The hosted zone these records were written into (an input, not created here).
+    Value:
+      Ref: HostedZoneId
+
+  SecurityRecordsSummary:
+    Description: The security records this stack manages.
+    Value:
+      Fn::Sub: "SPF + null MX + DMARC on ${DomainName}; CAA restricting issuance to amazon.com"
+
+  SiteRecordsState:
+    Description: Whether the apex/vote site records are deployed.
+    Value:
+      Fn::If:
+        - SiteRecordsEnabled
+        - "enabled"
+        - "gated off (DeploySiteRecords=false)"
