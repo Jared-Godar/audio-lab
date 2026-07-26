@@ -11,6 +11,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Full-history secret scan** (`.github/workflows/full-history-scan.yml`): the gitleaks
+  CLI over `--log-opts=--all`, weekly plus `workflow_dispatch`, catching secrets that
+  exist only in git history — which the per-push working-tree hook misses. It uses the
+  CLI, **not** gitleaks-action, which scopes its scan to the triggering event's commits
+  even at `fetch-depth: 0` (the `ecg_anomaly_detection` #264 defect). Verified with a
+  control before landing: a private key present only in history is caught (exit 1) while
+  the clean repo exits 0.
+- **Hygiene files for the public repo:** `LICENSE` (MIT), `SECURITY.md` (private
+  vulnerability reporting; the `ELEVENLABS_API_KEY`-in-shell threat surface),
+  `CONTRIBUTING.md` (the PM/executor workflow and merge gates), and `.github/CODEOWNERS`.
 - Tiered model selection for ElevenLabs: `--tier {draft,cast,production}`,
   with `--model` to override a tier's model at equal cost.
   - `draft` — Turbo v2.5 @ 128 kbps, ~half price, for read-throughs and timing.
@@ -142,6 +152,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **`gitleaks-action` scopes its scan to the triggering event's commits even with
+  `fetch-depth: 0`** — it is not a full-history re-scan, despite the deep checkout
+  suggesting otherwise. A genuine full-history scan needs the gitleaks CLI with
+  `--log-opts=--all`. Confirmed here with a control: a private key committed then removed
+  (present only in history, absent from the working tree) is caught by the CLI/`--all`
+  path with exit 1, and would be missed by any working-tree-only scan. Origin:
+  `ecg_anomaly_detection` #264.
 - **Nothing compared a new repository against the established ones**, so audio-lab was
   set up from scratch and diverged on 12 surfaces. Three were defects already diagnosed
   and written up in `macos-system-health` (#93 twice, #94) and reproduced here verbatim;

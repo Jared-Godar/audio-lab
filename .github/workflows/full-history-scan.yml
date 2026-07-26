@@ -1,0 +1,84 @@
+name: Full-history secret scan
+
+# Recurring full-history secret scan (issue #21, Gap 1). The per-push "Lint,
+# format and secrets" job in quality.yml runs the gitleaks pre-commit hook,
+# which scans the working tree — so a secret that is added AND removed within
+# one PR's history slips past it (quality.yml says as much in its own header).
+# This job runs the gitleaks CLI directly over every ref's complete history
+# (`--log-opts=--all`), giving the recurring full-history layer the per-push
+# hook cannot. It runs weekly on a schedule and on demand via
+# workflow_dispatch. Findings are redacted — only counts and rule IDs reach
+# the logs, never the secret material.
+#
+# This uses the gitleaks CLI, NOT gitleaks-action: the action scopes its scan
+# to the triggering event's commits even with fetch-depth: 0, so it is not a
+# full-history re-scan (see ecg_anomaly_detection#264 for that exact defect).
+on:
+  schedule:
+    # Monday 06:00 UTC — low-traffic hour.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-history-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Full-history secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Pinned to match the repo's other gitleaks pins
+      # (.pre-commit-config.yaml's gitleaks hook rev v8.30.1).
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Report history depth
+        # Makes full-history coverage verifiable at a glance in the run log.
+        run: |
+          echo "Commits reachable from all refs: $(git rev-list --all --count)"
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          # Defensive external call (AGENTS.md): curl --retry retries only
+          # transient failures (timeouts, connection resets, 5xx) with backoff,
+          # while --fail makes permanent errors (404/auth) fail fast without
+          # retry. On exhaustion, emit a clear message naming it an external
+          # condition rather than a repo/setup defect — never a raw error.
+          if ! curl --fail --show-error --silent --location \
+              --retry 4 --retry-max-time 120 --connect-timeout 30 \
+              --output gitleaks.tar.gz "$url"; then
+            echo "::error::Could not download gitleaks ${GITLEAKS_VERSION} — this is an external/connectivity condition, not a repository or setup defect. Re-run the workflow; if it persists, verify the gitleaks ${GITLEAKS_VERSION} linux_x64 release asset is reachable at ${url}." >&2
+            exit 1
+          fi
+          tar -xzf gitleaks.tar.gz gitleaks
+          install -m 0755 gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan complete history (all refs)
+        run: |
+          set -euo pipefail
+          # Direct CLI over every ref's full history — NOT the event-scoped
+          # action. --redact keeps secret material out of the log (only counts
+          # and rule IDs are emitted); --exit-code 1 fails the run on any
+          # finding. A failure here is a stop-and-report signal (report it
+          # privately, never in a public PR/issue body), not something to
+          # suppress. Verified before landing with a control: a private key
+          # present only in history (removed from the working tree) is caught
+          # with exit 1, while the clean repo exits 0.
+          gitleaks detect \
+            --source . \
+            --log-opts="--all" \
+            --redact \
+            --exit-code 1
