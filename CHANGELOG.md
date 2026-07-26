@@ -87,6 +87,15 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **No AWS Free Tier credits exist on this account** ($0.00 remaining, used, and
+  zero active credits, checked as root 2026-07-26). Creating an AWS Organization —
+  which enabling IAM Identity Center does on a standalone account — therefore costs
+  nothing. Unblocks M5.
+- **IAM users cannot access Billing at all until the root user activates "IAM user
+  and role access to Billing information"** (Billing -> Account). This is an
+  account-level switch, not a permissions problem: `AdministratorAccess` does not
+  bypass it. It also does not gate Cost Anomaly Detection or the Billing SDK APIs,
+  which is why dashboard widgets rendered while console pages showed Access denied.
 - **ElevenLabs bills at 0.55x its advertised `character_cost_multiplier`** on this
   account. Confirmed against `/v1/history`: seven Turbo generations predating the
   Creator upgrade billed at 0.504x; two after it billed at 0.275x. Same model, same
