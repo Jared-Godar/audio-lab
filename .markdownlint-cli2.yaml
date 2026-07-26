@@ -11,7 +11,8 @@ globs:
   - "**/*.md"
 ignores:
   - "prompts/**"      # seed briefs, preserved as written
-  - "artifacts/**"    # gitignored scratch, never reaches CI
+  - "artifacts/**"    # PM scratch + tracked specs/issues, preserved as written
+                      # (specs are immutable after handoff, like prompts/)
   - "episodes/**"     # generated show deliverables, not authored source
 
   - "**/node_modules/**"

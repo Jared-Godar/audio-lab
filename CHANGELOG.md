@@ -74,6 +74,17 @@ visible in the diff and would otherwise evaporate.
   answer to report.
 - Registered `toldstraight.com` (2026-07-26, $16/yr, auto-renew, privacy on).
   `toldstraight.fm` skipped at $122/yr; `vote.toldstraight.com` will be a subdomain.
+- **`AGENTS.md` gains six governance sections** ported from the established repos:
+  "Repository visibility and deletion", "PM thread discipline" (the one-block executor
+  relay and the launch-record-in-the-same-block rule), "Model and effort sizing",
+  "Definition of done", "Issues are written to the house standard", and "New-repo
+  parity checklist". These live in `~/.claude/CLAUDE.md` globally, which does **not**
+  reach cold-start, cloud, or fresh-clone sessions — only the tracked `AGENTS.md` does.
+- **`artifacts/specs/` and `artifacts/issues/` are now tracked.** They were gitignored,
+  so every PM-authored executor spec was invisible to any session that inherits no
+  local memory. The specs and issue drafts written 2026-07-26 are committed, matching
+  how `macos-system-health` tracks `artifacts/specs/`. Walkthroughs and session-handoffs
+  stay ignored as session scratch by contract.
 
 ### Fixed
 
@@ -114,9 +125,30 @@ visible in the diff and would otherwise evaporate.
   deep-link URL, and verify the elements exist against current vendor docs first.
   Origin: three stale or wrong AWS console locations handed over in one session, each
   costing a round trip.
+- **The PM lane was narrowed to permit issue and label work.** The guard blocked
+  `gh issue`/`gh label` from a PM session, yet writing issues is the PM's job in every
+  other project. `.claude/hooks/pm-lane-guard.sh` now allows `gh issue`/`gh label`
+  (create, edit, close, comment); git write commands, `gh pr create|merge|edit`,
+  `gh repo edit`, and `gh api -X POST|PUT|PATCH|DELETE` stay executor-only.
+  `CLAUDE.md` § "The lane is enforced" was false on this point — its capability table
+  and prose are corrected. The narrowing was applied by a **Bash write** because the
+  guard's `Edit` matcher blocks its own path; that hole is recorded in `CLAUDE.md`, not
+  closed here.
+- **Rewrote nine stub issues** — #4, #5, #6, #7, #8, #9, #10, #11, #13 — to the house
+  briefing standard: measured evidence with pasted command output, resolution options
+  framed as the maintainer's choice, explicit non-goals, and checkbox acceptance
+  criteria. #6 and #7 gained the scope, constraints, and acceptance detail that had
+  been stranded in a gitignored M1 spec. Closes #20.
 
 ### Findings
 
+- **Nothing compared a new repository against the established ones**, so audio-lab was
+  set up from scratch and diverged on 12 surfaces. Three were defects already diagnosed
+  and written up in `macos-system-health` (#93 twice, #94) and reproduced here verbatim;
+  two were live exposure on a public repo (no full-history secret scan, no LICENSE). The
+  individual gaps were cheap to close; the missing parity check was not, because it would
+  reproduce the same list on the next repository. Fix: the "New-repo parity checklist"
+  now in `AGENTS.md`, tracked as #21, with the issue-quality half tracked as #20.
 - **No AWS Free Tier credits exist on this account** ($0.00 remaining, used, and
   zero active credits, checked as root 2026-07-26). Creating an AWS Organization —
   which enabling IAM Identity Center does on a standalone account — therefore costs

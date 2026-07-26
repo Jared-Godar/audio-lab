@@ -94,10 +94,18 @@ wheels/
 .mypy_cache/
 .ipynb_checkpoints/
 
-# ── Working artifacts (never tracked) ────────────────────────
-# Session handoffs, walkthroughs, research notes, scratch guides.
-# Durable findings belong in docs/ and CHANGELOG.md instead.
-artifacts/
+# ── Working artifacts ────────────────────────────────────────
+# Most of artifacts/ is session scratch (handoffs, walkthroughs, research notes)
+# and stays untracked. But PM-authored executor specs and issue drafts are TRACKED
+# on purpose: a spec written to a gitignored path never reaches a cold-start, cloud,
+# or fresh-clone session — the exact failure AGENTS.md is itself tracked to avoid.
+# macos-system-health tracks artifacts/specs/ for the same reason.
+artifacts/*
+!artifacts/specs/
+!artifacts/issues/
+# Session scratch stays ignored by contract:
+artifacts/walkthroughs/
+artifacts/session-handoffs/
 
 # ── Logs & temp ──────────────────────────────────────────────
 *.log

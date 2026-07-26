@@ -197,6 +197,17 @@ outward-facing:
   copy in `~/ToldStraight-*`.** `prompts/` seeds are immutable after handoff:
   revisions go to a NEW dated file, never an in-place edit.
 
+## Repository visibility and deletion (hard rule)
+
+- No agent ever makes a repository **public**, or **deletes** a repository, without
+  the maintainer's express, per-repo authorization at the time of the action. This is
+  permanent, does not loosen with time or trust, and applies to every repository in
+  the portfolio — not just this one. `audio-lab` being public already is **not**
+  standing authorization to make the next repository public.
+- Making a repository **private** is propose-don't-execute.
+- Deleting a branch that is not fully merged is gated (see "Hold for the maintainer");
+  deleting a merged branch during the documented post-merge closure pass is expected.
+
 ## Canonical work-item workflow
 
 `main` is protected server-side: PR-only, four required checks, linear history, no
@@ -232,6 +243,148 @@ Run unprompted by the session that owns the item, after the merge is confirmed:
 4. Before removing any worktree, copy its `artifacts/walkthroughs/` and
    `artifacts/session-handoffs/` files into the primary checkout — pruning must
    never destroy the only copy.
+
+## PM thread discipline
+
+The lane is the mechanism (`.claude/hooks/pm-lane-guard.sh`, documented in `CLAUDE.md`
+§ "The lane is enforced, not remembered"). These are the habits the mechanism cannot
+enforce.
+
+- **The lane serves output quality, never permission purity.** A boundary applies only
+  when honoring it makes the result better. Manufacturing a blocker, withholding
+  metadata work that is squarely the PM's, or bouncing a self-evident decision back to
+  the maintainer is a defect, not caution. Writing issues, labels, milestones, and
+  board items **is** PM work here — do it, do not ask.
+- **Ground seed work before writing it.** A spec is grounded in a tracked issue,
+  current `main`, and repo state read this session — never a stale or remembered shape.
+- **Every executor relay ships as ONE copy-pasteable fenced block.** Anything handed to
+  another session — a seed, a handoff extract, a mid-flight redirect — is a **single**
+  fenced block, copyable in one motion. Never prose interleaved with fences, never
+  split by commentary. The block opens by naming the state it assumes (branch, commit,
+  what is already done) so a stale or out-of-order paste is self-detecting; **anything
+  the executor must NOT do goes in its first line, not its conclusion;** verification
+  commands and their expected output travel inside it. Context for the maintainer goes
+  outside and after the block, and never contains an instruction the executor needs.
+- **Every executor launch leaves a record in the same block as the invocation.** The
+  `gh issue comment` naming the spec path and a UTC timestamp ships *inside* the same
+  fence as the `claude` invocation, so one paste does both. Shipping them separately
+  reintroduces the failure it prevents: the comment succeeds, the launch never runs,
+  and the issue then claims a launch that did not happen. This is what closes the
+  absence-is-ambiguity gap — no PR, no branch, and a clean tree is the state of both
+  "never started" and "running, not yet committed". Shape:
+
+  ```fish
+  gh issue comment <N> -R Jared-Godar/audio-lab \
+    --body "Launched — spec: artifacts/specs/<file>.md · "(date -u +%Y-%m-%dT%H:%M:%SZ)
+  env AUDIO_LAB_EXECUTOR=1 claude --model <m> --effort <e> \
+    "Read and execute artifacts/specs/<file>.md in full."
+  ```
+
+## Model and effort sizing
+
+Executor invocations carry `--model` and `--effort` **explicitly** — the harness has no
+per-task auto-selector, so per-session sizing is per-task sizing. Size to the most
+demanding motion in the spec:
+
+- **Light — `sonnet` low/medium.** Docs-only or metadata-only PRs; fill-in-the-blanks
+  specs with exact content provided.
+- **Standard — `sonnet` high.** Defined-scope single-repo implementation. Default when
+  unsure.
+- **Heavy — `opus` high.** Audits, ambiguous scope, or anything irreversible or
+  public-facing.
+
+Optimize for quality and issue-closure, not token conservation. The PM/governance
+session's own tier is the maintainer's `/model` call; the session cannot self-select or
+change it mid-run, and flags proactively if it detects a downgraded tier. **Tier is a
+contributing factor, never the root cause** of a specific rigor failure — rank causes
+(1) missing mechanism, (2) disposition toward visible productivity over asking,
+(3) tier — and never offer tier as an explanation without a mechanism analysis
+alongside it.
+
+## Definition of done
+
+The executor self-runs this and shows receipts; CI enforces the mechanical items so
+compliance never depends on an agent remembering.
+
+- [ ] `pre-commit run --all-files` green (paste the result) — and the hook is actually
+      **installed**, not merely configured.
+- [ ] CI checks green.
+- [ ] Labels per `.github/labels.json` — ≥1 `type:`, ≥1 `area:`, `priority:` where
+      meaningful; every name verified to exist, never assumed.
+- [ ] CHANGELOG entry in the same PR, or an explicit `skip-changelog` justification.
+- [ ] Issue linked via `Closes #N` — a multi-issue PR repeats the keyword per number
+      (`Closes #A` / `Closes #B`), never the combined form that closes only the first.
+- [ ] Assignee `Jared-Godar`; milestone where the linked issue has one.
+- [ ] Every deliberately-omitted or exempted field named explicitly.
+- [ ] Verification output shown for each claimed step — asserted is not shown.
+
+## Issues are written to the house standard
+
+An issue is a **briefing document, not a to-do line** — from the first issue in a new
+repository. Before filing one, read two recent issues in `macos-system-health` or
+`ecg_anomaly_detection` and match them. Typical body length there is **3,000–6,000
+characters**; anything under ~1,500 is a stub and needs a reason to exist in that form.
+
+**Title:** a specific declarative sentence carrying the defect and its consequence, or
+the concrete outcome for a work item — never a bare verb phrase.
+
+**Body — numbered `##` sections, in this order:**
+
+1. **Summary** — the mechanism in prose: what is true, why it is wrong, what breaks.
+2. **Evidence** — **shell commands with their actual pasted output.** This is the
+   section that separates a real issue from a stub; `(no output)` is valid evidence, an
+   assertion without a receipt is not.
+3. **Why it matters / why now** — the downstream consequence, naming dependent work.
+4. **Proposed resolution** — numbered options with honest tradeoffs, framed "pick one
+   and record the reasoning." State a preference; do not dictate. Costs named out loud;
+   anything irreversible split into its own sign-off option.
+5. **Non-goals** — what this explicitly does not cover, so scope cannot drift.
+6. **Acceptance criteria** — `- [ ]` checkboxes, each verifiable by a named command or
+   artifact; a **negative test** where a gate is involved; **always ending in a
+   CHANGELOG entry.**
+7. **Dependencies / risk** — related issue numbers and the failure class.
+8. **References** — issues, file paths, commit SHAs, and **provenance** (who found it,
+   doing what, on what date).
+
+Sections 7–8 may merge on small issues; **1–6 are not optional.** Full metadata at
+creation (`type:`/`area:`/`priority:`, milestone where one applies), every label name
+verified against `.github/labels.json`. **Measure before claiming** — every count and
+every "nothing enforces this" is a command that was run. **The maintainer decides:**
+options are presented for his choice; an issue that dictates one path removes the
+decision from him.
+
+Prose is the weak form of this rule. Where the repo can support it, back it with
+`.github/ISSUE_TEMPLATE/` plus an issue-opened workflow — noting that a template alone
+is a scaffold, not a gate (`gh issue create --body-file` walks straight past it).
+
+## New-repo parity checklist
+
+A new repository starts from the established standard, not from zero. Before claiming a
+repo is set up — and before starting substantive work in one an earlier session set up
+— diff it against `macos-system-health`, `ecg_anomaly_detection`, and
+`github-portfolio-modernization`, and record every gap as **adopted** or **deliberate
+exception, with the reason.** Silence is not a decision. **Never claim a repo is
+configured without having run this** — "I set up governance" without the diff is the
+artifact-is-not-the-behavior failure.
+
+Surfaces to compare: **workflows** (a full-history secret scan is non-negotiable on a
+public repo; PR-metadata gate, changelog gate, quality/lint) · **repo settings**
+(`gh repo view --json` against what `AGENTS.md` declares) · **branch protection** ·
+**labels** (`gh label list` vs `.github/labels.json`, and something that syncs them;
+stock labels duplicating a `type:` scheme) · **issue/PR templates, CODEOWNERS** ·
+**local gates** (`scripts/check`, `install-hooks`, and whether the hook is actually
+installed) · **tests** · **hygiene files** (LICENSE, SECURITY, CONTRIBUTING,
+dependabot) · **project board** · **agent contracts** (`AGENTS.md`, `CLAUDE.md`, and
+that specs land on a **tracked** path) · **the reference repos' open issues** — a
+defect already diagnosed there and reproduced here means the investigation bought
+nothing.
+
+A rule in `~/.claude/CLAUDE.md` does **not** bind a cold-start, cloud, or fresh-clone
+session — only the repo's own tracked `AGENTS.md` does. Do not adopt everything
+wholesale; a small repo may correctly skip much, but skipping is recorded as a
+decision. Destructive or outward-facing gaps — deleting labels, changing merge
+settings, choosing a licence, altering visibility — are the maintainer's call, not the
+agent's.
 
 ## Engineering discipline
 
