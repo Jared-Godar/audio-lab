@@ -1,0 +1,42 @@
+name: Changelog gate
+
+# The standing rule is that every PR with substantive changes updates the
+# changelog in that same PR, rather than reconstructing it at release time from
+# git archaeology. A rule with no gate behind it relies on somebody remembering,
+# which is a hope rather than a guardrail — so this is the gate.
+#
+# Escape hatch: apply the `skip-changelog` label. Meant for genuinely trivial
+# PRs (a typo, a formatting sweep), not as a routine bypass.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: Changelog updated
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require a CHANGELOG.md change
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qx "CHANGELOG.md"; then
+            echo "CHANGELOG.md updated."
+            exit 0
+          fi
+          echo "::error::This PR does not touch CHANGELOG.md. Add an entry under today's date, or apply the 'skip-changelog' label if the change is genuinely trivial." >&2
+          exit 1
