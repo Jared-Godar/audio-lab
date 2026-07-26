@@ -116,3 +116,5 @@ tmp/
 # settings.json (your cross-repo permission-continuity practice).
 .claude/*
 !.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/*

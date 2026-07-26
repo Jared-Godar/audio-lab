@@ -52,6 +52,18 @@ visible in the diff and would otherwise evaporate.
   section recording how settled choices reach forward into later work (e.g. Route 53
   auto-creating the hosted zone means CloudFormation manages records, not zones).
   GitHub milestones mirror it.
+- **PM-lane enforcement.** Tracked `.claude/settings.json` plus
+  `.claude/hooks/pm-lane-guard.sh` gate the PM/executor split as a mechanism instead of
+  a rule to remember. Inside this repo PM may write only under `artifacts/` and cannot
+  run mutating `git`/`gh`; executors declare themselves with `AUDIO_LAB_EXECUTOR=1`.
+  Read-only verification stays open to PM, and writes outside the repo are ungated so
+  standing rules can be persisted the turn they are made.
+- **"The artifact is not the behavior"** hard rule in `AGENTS.md` and
+  `~/.claude/CLAUDE.md`: writing the thing that describes X is not doing X; reports
+  must distinguish "written, not in force" from "built and verified"; no technicality
+  defense exists for meeting the letter while defeating the purpose; and a gate you
+  built blocking the maintainer's request is a question to ask him, never a finished
+  answer to report.
 - Registered `toldstraight.com` (2026-07-26, $16/yr, auto-renew, privacy on).
   `toldstraight.fm` skipped at $122/yr; `vote.toldstraight.com` will be a subdomain.
 
@@ -70,6 +82,11 @@ visible in the diff and would otherwise evaporate.
   `<voice>-<short-id>` rather than a bare 20-char id; exact cache identity moved to
   a sibling `manifest.json`, so correctness no longer costs readability. Vendor is
   explicit so a repo with several TTS providers stays legible at a glance.
+- **`AGENTS.md` forbade deleting any branch** while its own closure pass required
+  deleting merged ones. Scoped the hold to unmerged branches.
+- **The same-turn persistence rule was unsatisfiable by a PM session** once the guard
+  existed. Resolved by capture-then-promote via `artifacts/rules-pending/`, plus
+  leaving writes outside the repo ungated — rather than weakening the guard.
 - **Sample cache collided across models.** `sample_path()` hashed only the text,
   so a half-price draft render and a 192 kbps master of the same line resolved to
   one file — you would have cast from, or shipped, whichever generated first. The
