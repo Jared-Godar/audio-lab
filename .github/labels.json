@@ -1,0 +1,22 @@
+{
+  "$comment": "Label taxonomy for audio-lab. Convention: 'namespace: value' with a space. Structure follows the github-portfolio-modernization 'goldilocks' set — three axes (type / area / priority), ~14 labels. type and priority are carried verbatim because they are genuinely portable; area values are repo-specific by nature and describe this project's domains. Do not create labels outside this file.",
+  "labels": [
+    { "name": "type: task", "color": "1D76DB", "description": "Concrete work item" },
+    { "name": "type: decision", "color": "5319E7", "description": "Requires a recorded decision" },
+    { "name": "type: docs", "color": "0E8A16", "description": "Documentation/governance-doc work" },
+    { "name": "type: automation", "color": "FBCA04", "description": "CI, workflows, bots, metadata automation" },
+    { "name": "type: bug", "color": "D73A4A", "description": "Something in the tooling or automation is broken" },
+
+    { "name": "area: pipeline", "color": "D4C5F9", "description": "Python audition/render tooling" },
+    { "name": "area: voices", "color": "F9D0C4", "description": "Casting, cloning, voice settings" },
+    { "name": "area: episodes", "color": "BFD4F2", "description": "Show content, scripts, deliverables" },
+    { "name": "area: infra", "color": "C5DEF5", "description": "AWS, DNS, CloudFormation, hosting" },
+    { "name": "area: governance", "color": "E99695", "description": "Process, CI plumbing, repo hygiene" },
+
+    { "name": "priority: high", "color": "B60205", "description": "Do before dependent work" },
+    { "name": "priority: medium", "color": "D93F0B", "description": "Normal queue" },
+    { "name": "priority: low", "color": "C2E0C6", "description": "Opportunistic" },
+
+    { "name": "skip-changelog", "color": "EEEEEE", "description": "Exempt from the changelog gate — use sparingly" }
+  ]
+}

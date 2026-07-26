@@ -33,6 +33,12 @@ visible in the diff and would otherwise evaporate.
   locked-environment check per uv subproject, on every PR and push to main.
   Deliberately sized for the repo as it stands; `quality.yml` lists the growth
   hooks to add later rather than adding them now.
+- Governance: PR template, a small label taxonomy in `.github/labels.json`, and a
+  changelog gate that fails any PR not touching this file. The gate exists because
+  a rule with nothing enforcing it depends on somebody remembering; `skip-changelog`
+  is the escape hatch for genuinely trivial changes.
+- Branch protection on `main`: pull request required, quality gates must pass,
+  linear history, no force-pushes or deletions.
 
 ### Fixed
 
