@@ -6,7 +6,10 @@
 #
 # The lane, made structural instead of mode-detected:
 #   PM sessions       may write ONLY under artifacts/ (gitignored scratch).
-#                     No git/gh mutations at all.
+#                     Issue and label operations ARE allowed: writing issues is
+#                     the PM's job here, as it is in every other project. Git
+#                     mutations, PR create/merge, repo edits and `gh api -X`
+#                     remain executor-only.
 #   Executor sessions set AUDIO_LAB_EXECUTOR=1 and may do everything.
 #
 # A hook cannot tell a PM chat from an executor CLI by inspection, so the executor
@@ -73,7 +76,7 @@ If this IS the executor session, it was launched without its flag. Relaunch with
     # Mutating verbs only. Read-only git/gh (log, diff, status, view, checks,
     # ls-remote, list) stays available to PM — verification is the PM's job.
     if printf '%s' "$cmd" | grep -Eq \
-      '(^|[;&|[:space:]])(git[[:space:]]+(commit|push|merge|rebase|reset|revert|cherry-pick|tag|branch[[:space:]]+-[dD]|switch[[:space:]]+-c|checkout[[:space:]]+-b)|gh[[:space:]]+(pr[[:space:]]+(create|merge|edit|close|ready)|issue[[:space:]]+(create|edit|close|comment|delete)|label[[:space:]]+(create|edit|delete|clone)|release[[:space:]]+(create|edit|delete)|repo[[:space:]]+(create|edit|delete)|api[[:space:]]+.*-X[[:space:]]*(POST|PUT|PATCH|DELETE)))'; then
+      '(^|[;&|[:space:]])(git[[:space:]]+(commit|push|merge|rebase|reset|revert|cherry-pick|tag|branch[[:space:]]+-[dD]|switch[[:space:]]+-c|checkout[[:space:]]+-b)|gh[[:space:]]+(pr[[:space:]]+(create|merge|edit|close|ready)|release[[:space:]]+(create|edit|delete)|repo[[:space:]]+(create|edit|delete)|api[[:space:]]+.*-X[[:space:]]*(POST|PUT|PATCH|DELETE)))'; then
       deny "BLOCKED by the PM-lane guard (.claude/hooks/pm-lane-guard.sh).
 
 This session is running as PM: it decides, documents, verifies and gates.
@@ -82,7 +85,7 @@ It does not mutate repository or GitHub state.
 Command refused:
     ${cmd}
 
-Read-only git and gh remain available — log, diff, status, pr view, pr checks,
+Issues and labels are yours (gh issue/label create|edit). Read-only git and gh remain available — log, diff, status, pr view, pr checks,
 issue view, ls-remote — because verifying the executor's work is the PM's job.
 
 Do this instead: write the spec to artifacts/specs/<dated-slug>.md and hand it to a
