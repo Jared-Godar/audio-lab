@@ -15,6 +15,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import time
@@ -52,6 +53,7 @@ class Voice:
 # Models and cost tiers
 # --------------------------------------------------------------------------- #
 
+
 @dataclass(frozen=True)
 class Model:
     """An ElevenLabs TTS model and what it costs to run.
@@ -69,20 +71,29 @@ class Model:
 
 MODELS = {
     "v3": Model(
-        "eleven_v3", "Eleven v3 — most expressive, audio-tag driven",
-        cost_multiplier=1.0, max_chars=5_000,
+        "eleven_v3",
+        "Eleven v3 — most expressive, audio-tag driven",
+        cost_multiplier=1.0,
+        max_chars=5_000,
     ),
     "multilingual_v2": Model(
-        "eleven_multilingual_v2", "Multilingual v2 — voiceover/audiobook workhorse",
-        cost_multiplier=1.0, max_chars=10_000, supports_style=True,
+        "eleven_multilingual_v2",
+        "Multilingual v2 — voiceover/audiobook workhorse",
+        cost_multiplier=1.0,
+        max_chars=10_000,
+        supports_style=True,
     ),
     "turbo_v2_5": Model(
-        "eleven_turbo_v2_5", "Turbo v2.5 — half price, 32 languages",
-        cost_multiplier=0.5, max_chars=40_000,
+        "eleven_turbo_v2_5",
+        "Turbo v2.5 — half price, 32 languages",
+        cost_multiplier=0.5,
+        max_chars=40_000,
     ),
     "flash_v2": Model(
-        "eleven_flash_v2", "Flash v2 — half price, English only, lowest latency",
-        cost_multiplier=0.5, max_chars=30_000,
+        "eleven_flash_v2",
+        "Flash v2 — half price, English only, lowest latency",
+        cost_multiplier=0.5,
+        max_chars=30_000,
     ),
 }
 
@@ -96,26 +107,32 @@ class Tier:
     """
 
     name: str
-    model: str          # key into MODELS
+    model: str  # key into MODELS
     output_format: str  # ElevenLabs output_format code
     why: str
 
 
 TIERS = {
     "draft": Tier(
-        "draft", "turbo_v2_5", "mp3_44100_128",
+        "draft",
+        "turbo_v2_5",
+        "mp3_44100_128",
         "half-price read-throughs — timing, pacing, does-this-line-land. Turbo "
         "over Flash: same price, better quality, 40k chars (a whole episode in "
         "one request); Flash only wins on realtime latency, which batch work "
         "never needs",
     ),
     "cast": Tier(
-        "cast", "multilingual_v2", "mp3_44100_192",
+        "cast",
+        "multilingual_v2",
+        "mp3_44100_192",
         "auditions render at production quality; casting on draft output means "
         "judging a voice you will never actually ship",
     ),
     "production": Tier(
-        "production", "multilingual_v2", "mp3_44100_192",
+        "production",
+        "multilingual_v2",
+        "mp3_44100_192",
         "final master — swap to v3 with --model to A/B expressiveness at identical cost",
     ),
 }
@@ -171,7 +188,7 @@ def request_with_retry(method: str, url: str, *, attempts: int = 3, **kw):
                 raise ExternalServiceError(f"ElevenLabs {r.status_code}: {hint}")
             last = f"HTTP {r.status_code}"
         if attempt < attempts:
-            time.sleep(1.5 ** attempt)
+            time.sleep(1.5**attempt)
     raise ExternalServiceError(
         f"ElevenLabs unreachable after {attempts} attempts ({last}). This is a "
         "connectivity or service condition, not a problem with your setup — check "
@@ -183,6 +200,7 @@ def request_with_retry(method: str, url: str, *, attempts: int = 3, **kw):
 # Playback + caching
 # --------------------------------------------------------------------------- #
 
+
 def play(path: Path) -> None:
     """Blocking playback via macOS afplay. Ctrl-C skips cleanly."""
     try:
@@ -191,22 +209,99 @@ def play(path: Path) -> None:
         pass
 
 
-def sample_path(voice: Voice, text: str, variant: str = "") -> Path:
+def slug(s: str, limit: int = 40) -> str:
+    """Lowercase, hyphenated, filesystem-safe fragment of a string."""
+    s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+    return re.sub(r"[\s_]+", "-", s)[:limit].strip("-")
+
+
+def voice_dir(voice: Voice) -> Path:
+    """Readable per-voice folder: `Daniel-onwK4e9Z`, not a raw 20-char id.
+
+    Name for the human, short id suffix for uniqueness — library voice names
+    are not guaranteed distinct.
+    """
+    return SAMPLES_DIR / voice.engine / f"{slug(voice.name, 24)}-{voice.voice_id[:8]}"
+
+
+def _manifest_path(voice: Voice) -> Path:
+    return voice_dir(voice) / "manifest.json"
+
+
+def sample_path(voice: Voice, text: str, variant: str = "", purpose: str = "") -> Path:
     """Cache location for one rendered sample.
 
-    `variant` discriminates model + bitrate. Without it, a half-price draft
-    render and a production master of the same line collide on one path, and
-    you end up casting from — or shipping — whichever was generated first.
+    Filenames are DESCRIPTIVE and must stay that way:
+
+        20260726-multilingual_v2-Daniel-ep01-h25-model-ab.mp3
+
+    Never name a listenable artifact with a bare hash. A person has to find
+    these in a folder and know what they are without opening every one.
+
+    Exact cache identity still needs the full parameter set (text, model,
+    bitrate, voice settings), so that lives in a sibling manifest.json keyed by
+    digest. The filename is for humans; the manifest is for lookups. If two
+    different keys would produce the same readable name, a numeric suffix
+    disambiguates rather than falling back to a hash.
     """
     digest = hashlib.sha1(f"{text}\x00{variant}".encode()).hexdigest()[:12]
-    p = SAMPLES_DIR / voice.engine / voice.voice_id / f"{digest}.mp3"
+    folder = voice_dir(voice)
+    folder.mkdir(parents=True, exist_ok=True)
+
+    manifest = _load_manifest(voice)
+    if digest in manifest:
+        return folder / manifest[digest]["file"]
+
+    model = variant.split("|")[0].replace("eleven_", "")
+    fmt = variant.split("|")[1].replace("mp3_44100_", "") if "|" in variant else ""
+    parts = [
+        datetime.now().strftime("%Y%m%d"),
+        slug(voice.engine, 16),  # vendor first — whose engine made this, at a glance
+        # Verbatim so it matches MODELS keys. Empty for vendors with no model
+        # concept (edge-tts, kokoro); the join below drops empty parts.
+        model,
+        slug(voice.name, 24),
+        slug(purpose or text, 40),
+    ]
+    if fmt:
+        parts.append(f"{fmt}k")
+    base = "-".join(p for p in parts if p)
+
+    name, n = f"{base}.mp3", 2
+    taken = {v["file"] for v in manifest.values()}
+    while name in taken:
+        name, n = f"{base}-{n}.mp3", n + 1
+
+    manifest[digest] = {
+        "file": name,
+        "text": text[:200],
+        "variant": variant,
+        "purpose": purpose,
+    }
+    _save_manifest(voice, manifest)
+    return folder / name
+
+
+def _load_manifest(voice: Voice) -> dict:
+    p = _manifest_path(voice)
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except json.JSONDecodeError:
+            return {}  # corrupt index just means we re-render, never a crash
+    return {}
+
+
+def _save_manifest(voice: Voice, manifest: dict) -> None:
+    p = _manifest_path(voice)
     p.parent.mkdir(parents=True, exist_ok=True)
-    return p
+    p.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
 
 
 # --------------------------------------------------------------------------- #
 # Engines
 # --------------------------------------------------------------------------- #
+
 
 class EdgeTTS:
     name = "edge-tts"
@@ -216,6 +311,7 @@ class EdgeTTS:
     def available(self) -> bool:
         try:
             import edge_tts  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -289,8 +385,10 @@ class ElevenLabs:
     def credits_remaining(self) -> tuple[int, int]:
         """(remaining, monthly_limit) for the current billing cycle."""
         r = request_with_retry(
-            "GET", f"{self.API}/user/subscription",
-            headers={"xi-api-key": self._key()}, timeout=15,
+            "GET",
+            f"{self.API}/user/subscription",
+            headers={"xi-api-key": self._key()},
+            timeout=15,
         )
         d = r.json()
         limit = d.get("character_limit", 0)
@@ -298,8 +396,10 @@ class ElevenLabs:
 
     def list_voices(self, locale_prefix: str = "en") -> list[Voice]:
         r = request_with_retry(
-            "GET", f"{self.API}/voices",
-            headers={"xi-api-key": self._key()}, timeout=15,
+            "GET",
+            f"{self.API}/voices",
+            headers={"xi-api-key": self._key()},
+            timeout=15,
         )
         out = []
         for v in r.json()["voices"]:
@@ -334,20 +434,24 @@ class ElevenLabs:
         used to attribute cost to an individual request; this can.
         """
         r = request_with_retry(
-            "GET", f"{self.API}/history",
+            "GET",
+            f"{self.API}/history",
             headers={"xi-api-key": self._key()},
-            params={"page_size": limit}, timeout=20,
+            params={"page_size": limit},
+            timeout=20,
         )
         rows = []
         for h in r.json().get("history", []):
             billed = h.get("character_count_change_to", 0) - h.get(
                 "character_count_change_from", 0
             )
-            rows.append({
-                "model_id": h.get("model_id") or "?",
-                "chars": len(h.get("text") or ""),  # 0 for models that omit text
-                "billed": billed,
-            })
+            rows.append(
+                {
+                    "model_id": h.get("model_id") or "?",
+                    "chars": len(h.get("text") or ""),  # 0 for models that omit text
+                    "billed": billed,
+                }
+            )
         return rows
 
     def synthesize(self, voice: Voice, text: str, out_path: Path) -> Path:
@@ -357,7 +461,8 @@ class ElevenLabs:
                 f"{self.model.label}. Render chapter by chapter and concatenate."
             )
         r = request_with_retry(
-            "POST", f"{self.API}/text-to-speech/{voice.voice_id}",
+            "POST",
+            f"{self.API}/text-to-speech/{voice.voice_id}",
             attempts=2,  # a retry can re-bill; keep the blast radius to one
             headers={"xi-api-key": self._key(), "Content-Type": "application/json"},
             params={"output_format": self.output_format},
@@ -383,11 +488,16 @@ class Kokoro:
     free = True
     variant = ""
     DEFAULT_VOICES = [
-        ("af_heart", "Heart", "en-US"), ("af_bella", "Bella", "en-US"),
-        ("af_nicole", "Nicole", "en-US"), ("af_sky", "Sky", "en-US"),
-        ("am_adam", "Adam", "en-US"), ("am_michael", "Michael", "en-US"),
-        ("bf_emma", "Emma", "en-GB"), ("bf_isabella", "Isabella", "en-GB"),
-        ("bm_george", "George", "en-GB"), ("bm_lewis", "Lewis", "en-GB"),
+        ("af_heart", "Heart", "en-US"),
+        ("af_bella", "Bella", "en-US"),
+        ("af_nicole", "Nicole", "en-US"),
+        ("af_sky", "Sky", "en-US"),
+        ("am_adam", "Adam", "en-US"),
+        ("am_michael", "Michael", "en-US"),
+        ("bf_emma", "Emma", "en-GB"),
+        ("bf_isabella", "Isabella", "en-GB"),
+        ("bm_george", "George", "en-GB"),
+        ("bm_lewis", "Lewis", "en-GB"),
     ]
 
     def _cmd(self) -> str | None:
@@ -418,6 +528,7 @@ ENGINES = {e.name: e for e in (EdgeTTS(), ElevenLabs(), Kokoro())}
 # --------------------------------------------------------------------------- #
 # Results persistence
 # --------------------------------------------------------------------------- #
+
 
 def load_results() -> dict:
     if RESULTS_PATH.exists():

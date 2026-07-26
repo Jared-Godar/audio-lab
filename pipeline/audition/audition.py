@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import questionary
 from rich.console import Console
 from rich.table import Table
 
 from .helpers import (
-    ENGINES, ExternalServiceError, Voice, load_results, play, sample_path,
-    save_results, voice_record,
+    ENGINES,
+    ExternalServiceError,
+    Voice,
+    load_results,
+    play,
+    sample_path,
+    save_results,
+    voice_record,
 )
 
 console = Console()
@@ -26,8 +34,9 @@ ROLES = ["host", "guest", "ancillary", "undecided"]
 # Synthesis with cache + ElevenLabs credit guard
 # --------------------------------------------------------------------------- #
 
-def get_sample(voice: Voice, text: str, engine) -> "Path | None":
-    path = sample_path(voice, text, engine.variant)
+
+def get_sample(voice: Voice, text: str, engine, purpose: str = "") -> Path | None:
+    path = sample_path(voice, text, engine.variant, purpose)
     if path.exists():
         return path
     if not engine.free:
@@ -75,6 +84,7 @@ def show_budget(label: str) -> None:
 # Selection
 # --------------------------------------------------------------------------- #
 
+
 def gather_voices(engine_names: list[str], locale: str) -> list[Voice]:
     voices: list[Voice] = []
     for name in engine_names:
@@ -104,11 +114,13 @@ def select_voices(voices: list[Voice]) -> list[Voice]:
 # Verdict loop
 # --------------------------------------------------------------------------- #
 
-def judge(voice: Voice, engine, text: str) -> bool | None:
+
+def judge(voice: Voice, engine, text: str, purpose: str = "audition") -> bool | None:
     """Audition one voice. True=pass, False=fail, None=quit session."""
     current_text = text
+    current_purpose = purpose
     while True:
-        path = get_sample(voice, current_text, engine)
+        path = get_sample(voice, current_text, engine, current_purpose)
         if path is None:
             return False
         play(path)
@@ -127,6 +139,10 @@ def judge(voice: Voice, engine, text: str) -> bool | None:
                 new = questionary.text("Text to read:").ask()
                 if new:
                     current_text = new
+                    label = questionary.text(
+                        "Label this sample (used in the filename):", default="custom"
+                    ).ask()
+                    current_purpose = label or "custom"
             case "quit session" | None:
                 return None
 
@@ -141,7 +157,9 @@ def run_audition(engine_names: list[str], locale: str, text: str | None) -> None
         return
 
     results = load_results()
-    seen = {r["engine"] + ":" + r["voice_id"] for r in results["passed"] + results["failed"]}
+    seen = {
+        r["engine"] + ":" + r["voice_id"] for r in results["passed"] + results["failed"]
+    }
 
     while True:
         picks = select_voices(voices)
@@ -157,7 +175,9 @@ def run_audition(engine_names: list[str], locale: str, text: str | None) -> None
             if voice.key() not in seen:
                 bucket.append(voice_record(voice))
                 seen.add(voice.key())
-            console.print("  [green]✓ passed[/green]" if outcome else "  [red]✗ failed[/red]")
+            console.print(
+                "  [green]✓ passed[/green]" if outcome else "  [red]✗ failed[/red]"
+            )
         if not questionary.confirm("Back to the picker?", default=True).ask():
             break
 
@@ -168,18 +188,22 @@ def run_shortlist(engine_names: list[str], text: str | None) -> None:
     """Replay previously passed voices head-to-head and re-verdict."""
     results = load_results()
     if not results["passed"]:
-        console.print("[yellow]No passed voices yet — run a full audition first.[/yellow]")
+        console.print(
+            "[yellow]No passed voices yet — run a full audition first.[/yellow]"
+        )
         return
     script = text or CANNED
     if "elevenlabs" in engine_names:
         show_budget("Starting budget")
     keep, cut = [], []
     for rec in results["passed"]:
-        voice = Voice(rec["engine"], rec["voice_id"], rec["name"], rec.get("locale", ""))
+        voice = Voice(
+            rec["engine"], rec["voice_id"], rec["name"], rec.get("locale", "")
+        )
         engine = ENGINES[voice.engine]
         outcome = judge(voice, engine, script)
         if outcome is None:
-            keep.extend(results["passed"][len(keep) + len(cut):])  # rest unchanged
+            keep.extend(results["passed"][len(keep) + len(cut) :])  # rest unchanged
             break
         (keep if outcome else cut).append(rec)
     results["passed"] = keep
@@ -209,13 +233,20 @@ def run_casting() -> None:
 # Output
 # --------------------------------------------------------------------------- #
 
+
 def finish(results: dict) -> None:
     path = save_results(results)
     table = Table(title="Passed voices")
     for col in ("engine", "voice_id", "name", "locale", "role"):
         table.add_column(col)
     for r in results["passed"]:
-        table.add_row(r["engine"], r["voice_id"], r["name"], r.get("locale", ""), r.get("role", "undecided"))
+        table.add_row(
+            r["engine"],
+            r["voice_id"],
+            r["name"],
+            r.get("locale", ""),
+            r.get("role", "undecided"),
+        )
     console.print(table)
     console.print(f"[dim]Saved -> {path}[/dim]")
     show_budget("Remaining")
