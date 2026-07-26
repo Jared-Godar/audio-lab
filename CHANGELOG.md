@@ -84,6 +84,11 @@ visible in the diff and would otherwise evaporate.
 
 - Per-call cost estimates now reflect the measured account rate rather than the
   advertised multiplier, so the spend confirmation prompt is trustworthy.
+- `AGENTS.md` gains a **GUI navigation** rule: direct the maintainer by the click path
+  a human actually uses — menu, item, section heading, button label — never a bare
+  deep-link URL, and verify the elements exist against current vendor docs first.
+  Origin: three stale or wrong AWS console locations handed over in one session, each
+  costing a round trip.
 
 ### Findings
 
