@@ -38,7 +38,15 @@ visible in the diff and would otherwise evaporate.
   a rule with nothing enforcing it depends on somebody remembering; `skip-changelog`
   is the escape hatch for genuinely trivial changes.
 - Branch protection on `main`: pull request required, quality gates must pass,
-  linear history, no force-pushes or deletions.
+  linear history, no force-pushes or deletions, `enforce_admins: true`.
+- `AGENTS.md` — the standing contract binding every agent session, tracked so
+  cold-start sessions that inherit no local memory are still bound by it. Carries
+  the meta-contract (read the durable contracts, don't assume, durable contract
+  outranks the prompt), the do-automatically list, the hold-for-the-maintainer
+  list, and the canonical PR workflow. Modelled on the portfolio-mod/ECG pattern,
+  scaled down to this repo.
+- `CLAUDE.md` gains PM/executor session modes and the requirement that executor
+  specs open by reading the durable contracts.
 
 ### Fixed
 
