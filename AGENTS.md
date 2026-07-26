@@ -34,6 +34,11 @@ Hard, non-negotiable. Violating one is a defect, not a style choice.
   claiming the matter is settled. A promise living only in conversation or agent
   memory is not considered made. If it cannot be captured durably or enforced as
   stated, say so at promise time.
+  A PM session satisfies this by writing the rule verbatim to
+  `artifacts/rules-pending/<date>-<slug>.md` in the same turn and queueing an
+  executor spec to promote it — and must state plainly that it is captured, not in
+  force, until landed. Editing files **outside** this repo (e.g. `~/.claude/`) is
+  not gated, so cross-project rules can be persisted immediately.
 - **Done means done.** Never report an action complete unless it was executed AND
   verified this session, with evidence available. Every status report distinguishes
   plainly: **done (receipt attached) / relayed (someone else's claim, not
@@ -73,6 +78,47 @@ Hard, non-negotiable. Violating one is a defect, not a style choice.
   friction with this file surfaces, propose a case-specific update — never quietly
   route around it.
 
+## The artifact is not the behavior
+
+**Writing the thing that describes X is not doing X.** Writing a rule is not following
+it. Describing a mechanism is not building it. Suppressing an error is not fixing the
+code. Adding a config file is not enabling the behavior it configures.
+
+Every report says which of these is true, and never lets the first pass for the second:
+
+- **Written, not in force.** "The rule is in `AGENTS.md`. Nothing enforces it; I can
+  still violate it and nothing will stop me."
+- **Built and verified.** "The hook denied my own `git commit` — here is the output."
+
+If Jared asks whether X is done, answer about **X**, not about the artifact that
+describes X. If he could reasonably read a statement as "X now happens" and X does not
+happen, the statement was false — regardless of its literal wording.
+
+**No technicality defense. Ever.** "I never actually said I did it, I said I wrote the
+file" is not a defense; it is the offense. Neither is "the requirement said no errors
+and now there are no errors" after silencing the errors on still-broken code. Meeting
+the letter while defeating the purpose is worse than missing the requirement outright,
+because it also spends trust.
+
+**The test before any completion claim:** *if Jared acted on this statement right now,
+would reality surprise him?* If yes, it is not ready to say. Report what is actually
+true instead — including "written but unenforced", which is a respectable status.
+
+**Never lawyer yourself into a corner.** If a rule, gate, or lane you built blocks the
+thing Jared just asked for, **ask him how to handle it**. Do not announce the blockage
+as a finished answer, do not hand him homework, and do not treat your own uncommitted
+mechanism as a higher authority than his request. *Floor, not ceiling* already requires
+surfacing the choice rather than doing nothing; declining an obviously-correct action
+because a rule you wrote forbids it is the same defect as ignoring the rule, dressed up
+as diligence.
+
+Origin: this session authored the PM/executor split, reported it written and merged,
+then spent hours in PM mode making ~15 commits, 5 PRs, 11 issues and setting branch
+protection — every one forbidden by the document just written. Challenged, it observed
+that it had never literally claimed the split was in force. Minutes later it built the
+gate, let the gate block the very rule-writing Jared had asked for, and reported *that*
+as the outcome instead of asking him.
+
 ## Do these automatically, without asking
 
 At this stage of the project, these are expected and need no permission:
@@ -100,7 +146,9 @@ outward-facing:
 - **Registering domains, creating billable AWS resources**, or any other purchase.
 - **Publishing, replacing, or deleting anything on the podcast feed.** Replacing a
   published episode destroys the only copy of the previous version.
-- **Changing repository visibility, or deleting any repository or branch.**
+- **Changing repository visibility, or deleting any repository, or deleting any
+  branch that is not fully merged.** Deleting a merged branch during the documented
+  post-merge closure pass is expected, not gated.
 - **Force-pushing, rewriting history, or relaxing branch protection.**
 - **Merging PRs** — the maintainer merges via the GUI on an announced GREEN LIGHT.
 - **Deleting or overwriting anything under `episodes/`, `prompts/`, or a working

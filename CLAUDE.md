@@ -31,6 +31,41 @@ Also applies: the global rules in `~/.claude/CLAUDE.md`.
 
 **Unclear which mode you are in:** say so and ask before proceeding.
 
+## The lane is enforced, not remembered
+
+`.claude/hooks/pm-lane-guard.sh` is a tracked `PreToolUse` hook. It does not detect
+your mode — **it makes the boundary structural**:
+
+| Capability | PM (default) | Executor |
+| --- | --- | --- |
+| Declared by | nothing — absence of the flag | `AUDIO_LAB_EXECUTOR=1` |
+| Write/Edit **inside this repo** | only under `artifacts/` | anywhere |
+| Write/Edit **outside this repo** | allowed | allowed |
+| `git commit/push/merge/branch -D` | **denied** | allowed |
+| `gh pr/issue/label create`, `gh api -X` | **denied** | allowed |
+| `git log/diff/status`, `gh * view/checks` | allowed | allowed |
+
+Launch an executor with:
+
+```fish
+env AUDIO_LAB_EXECUTOR=1 claude
+```
+
+Read-only git and `gh` stay open to PM deliberately — independently verifying the
+executor's work is the PM's job, and it cannot do that blind. Writes outside the repo
+are ungated so a PM session can persist a standing rule to `~/.claude/` the moment it
+is made, as the global contract requires.
+
+**Why this exists.** The split lived as prose here for a whole session while a PM chat
+made ~15 commits, opened 5 PRs, created 11 issues and set branch protection. Nothing
+stopped it, because nothing gated it. A rule with no mechanism behind it depends on an
+agent remembering, which is a hope rather than a guardrail. The hook is tracked so
+cold-start, cloud and fresh-clone sessions inherit it — a guard living only in
+`settings.local.json` binds one machine and nothing else.
+
+**If the guard blocks something it should not:** say so and ask. Do not weaken it
+unilaterally, and do not report the blockage as a finished answer.
+
 ## Executor specs must begin with the contract read
 
 Any spec authored under `prompts/` opens with an explicit instruction to read
