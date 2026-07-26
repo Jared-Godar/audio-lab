@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible problem in the tooling or automation.
+title: "<what breaks and its consequence>"
+labels:
+  - "type: bug"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include the `ELEVENLABS_API_KEY` or any credential. Report security
+        issues privately via GitHub security advisories, not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behaviour, with the command run and its output pasted.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The minimal sequence that triggers it.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Relevant versions
+      description: e.g. gitleaks / uv / Python version, or the commit SHA.
+    validations:
+      required: false

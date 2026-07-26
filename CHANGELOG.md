@@ -11,6 +11,25 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Label integrity.** `.github/labels.json` now declares all 23 live labels — the 9
+  GitHub stock labels are **retained by decision** (issue #21) and declared so the file
+  matches the live set. `scripts/sync_labels.py` syncs the manifest to GitHub (`sync`,
+  **additive — never deletes**) and detects drift (`check`), and
+  `.github/workflows/label-drift-gate.yml` runs the check on label changes. Verified with
+  a negative test: a seeded stray live label is caught (exit 1); the clean state passes.
+- **`scripts/` is no longer empty.** `scripts/check` — one local gate (pre-commit +
+  `uv sync --locked` per subproject + label drift) mirroring CI; `scripts/install-hooks`
+  — runs `pre-commit install` and verifies the hook landed, making the #14 fix repeatable
+  for a fresh clone.
+- **`.github/dependabot.yml`** — GitHub Actions ecosystem, monthly, with a cooldown.
+  Closes #5. (uv/pip ecosystems deliberately deferred, per #5.)
+- **PR-metadata gate** — `.github/workflows/pr-metadata-gate.yml` +
+  `scripts/check_pr_metadata.py`: requires ≥1 `type:` and ≥1 `area:` label (all declared
+  in `labels.json`) and an assignee. Deliberately does **not** require a milestone or a
+  `Closes #N` link, so `Refs`-only governance PRs are not false-failed.
+- **`.github/ISSUE_TEMPLATE/`** — a config, a house-standard briefing form, and a bug
+  form. Stated plainly: a template is a scaffold, not a gate — `gh issue create
+  --body-file` walks past it; the real standard is in `AGENTS.md`.
 - **Full-history secret scan** (`.github/workflows/full-history-scan.yml`): the gitleaks
   CLI over `--log-opts=--all`, weekly plus `workflow_dispatch`, catching secrets that
   exist only in git history — which the per-push working-tree hook misses. It uses the
@@ -143,6 +162,11 @@ visible in the diff and would otherwise evaporate.
   deep-link URL, and verify the elements exist against current vendor docs first.
   Origin: three stale or wrong AWS console locations handed over in one session, each
   costing a round trip.
+- **Repo merge settings now match the declared contract** (issue #21, Gap 5):
+  `mergeCommitAllowed=false`, `rebaseMergeAllowed=false`, `squashMergeAllowed=true`,
+  `deleteBranchOnMerge=true` — squash-only, linear history, auto-delete merged branches,
+  as `AGENTS.md` § "Canonical work-item workflow" declares. Applied via `gh repo edit`
+  and verified by `gh repo view --json` read-back; no commit involved.
 - **The PM lane was narrowed to permit issue and label work.** The guard blocked
   `gh issue`/`gh label` from a PM session, yet writing issues is the PM's job in every
   other project. `.claude/hooks/pm-lane-guard.sh` now allows `gh issue`/`gh label`

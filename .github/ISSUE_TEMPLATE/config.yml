@@ -1,0 +1,9 @@
+# Nudge web-UI issues toward the templates. NOTE: this is a scaffold, not a gate
+# — `gh issue create --body-file` (how agent-authored issues are filed here) walks
+# straight past it. The real standard lives in AGENTS.md § "Issues are written to
+# the house standard".
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Jared-Godar/audio-lab/security/advisories/new
+    about: Report privately via GitHub security advisories — never in a public issue.
