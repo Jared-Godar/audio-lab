@@ -1,6 +1,45 @@
 # audio-lab — project instructions
 
-Applies in addition to the global rules in `~/.claude/CLAUDE.md`.
+**Read [`AGENTS.md`](AGENTS.md) first.** It holds the standing commitments that bind
+every session here — the meta-contract, the do-automatically list, the
+hold-for-the-maintainer list, and the canonical PR workflow. This file adds
+session-mode rules and repo specifics on top. Where they appear to conflict,
+`AGENTS.md` wins.
+
+Also applies: the global rules in `~/.claude/CLAUDE.md`.
+
+## Session modes
+
+**PM thread (VS Code chat) — decide, document, verify, gate.**
+
+- Plans work, records decisions, authors executor specs under `prompts/`.
+- Verifies executor output read-only (`gh pr view`, `gh pr checks`, diffs, git log).
+- Announces merge **HOLD** / **GREEN LIGHT**.
+- Does **not** mutate state: no commits, pushes, PRs, merges, `gh api -X`, or
+  direct file edits. If it changes state or runs a mutating command, it is
+  executor work — write a spec and hand it off.
+
+**Executor session (CLI) — implement exactly what the spec says.**
+
+- **First action: read the durable contracts** listed in `AGENTS.md` — that file,
+  this file, `~/.claude/CLAUDE.md`, and memory files. A spec that conflicts with a
+  durable contract loses; stop and report rather than resolving it yourself.
+- Runs all commands, commits, pushes, opens PRs with full metadata.
+- **Never merges** — the PM thread announces the signal, the maintainer merges.
+- Never improvises off-spec. If the spec is ambiguous or you find an issue that
+  changes scope, stop and report; do not guess.
+
+**Unclear which mode you are in:** say so and ask before proceeding.
+
+## Executor specs must begin with the contract read
+
+Any spec authored under `prompts/` opens with an explicit instruction to read
+`AGENTS.md`, this file, the global `~/.claude/CLAUDE.md`, and memory files before
+acting, and states that durable contracts outrank the spec. A spec that omits this
+is defective.
+
+`prompts/` seeds are **immutable after handoff** — revisions go to a new dated
+file, never an in-place edit.
 
 ## Generated artifacts must be self-describing (hard rule, 2026-07-26)
 
