@@ -1,3 +1,6 @@
+# SUPERSEDED by `uv run audition` in pipeline/, which added ElevenLabs/Kokoro,
+# a persistent pass/fail record, and role casting. Kept as the zero-dependency
+# edge-tts fallback; results here are not written to voices.json.
 function audition-judge
     set -l voices (edge-tts --list-voices | awk '/^en-/ {print $1}')
     set -g passed   # global so the results survive the function ending

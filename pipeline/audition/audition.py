@@ -7,7 +7,8 @@ from rich.console import Console
 from rich.table import Table
 
 from .helpers import (
-    ENGINES, Voice, load_results, play, sample_path, save_results, voice_record,
+    ENGINES, ExternalServiceError, Voice, load_results, play, sample_path,
+    save_results, voice_record,
 )
 
 console = Console()
@@ -26,23 +27,48 @@ ROLES = ["host", "guest", "ancillary", "undecided"]
 # --------------------------------------------------------------------------- #
 
 def get_sample(voice: Voice, text: str, engine) -> "Path | None":
-    path = sample_path(voice, text)
+    path = sample_path(voice, text, engine.variant)
     if path.exists():
         return path
     if not engine.free:
         est = engine.estimate_credits(text)
+        rate = engine.model.cost_multiplier
         if not questionary.confirm(
-            f"ElevenLabs synthesis for {voice.name} ≈ {est} credits. Spend them?",
+            f"{voice.name} on {engine.model.label} ≈ {est:,} credits "
+            f"({len(text):,} chars × {rate}). Spend them?",
             default=True,
         ).ask():
             return None
     try:
         with console.status(f"Synthesizing {voice.label}…"):
             return engine.synthesize(voice, text, path)
+    except ExternalServiceError as exc:
+        console.print(f"[red]✗ {voice.label}[/red] — {exc}")
+        path.unlink(missing_ok=True)
+        return None
     except Exception as exc:  # noqa: BLE001
         console.print(f"[red]✗ {voice.label}: {exc}[/red]")
         path.unlink(missing_ok=True)
         return None
+
+
+def show_budget(label: str) -> None:
+    """Print the ElevenLabs credit ledger. Never fatal — this is a readout."""
+    engine = ENGINES["elevenlabs"]
+    if not engine.available():
+        return
+    try:
+        remaining, limit = engine.credits_remaining()
+    except ExternalServiceError as exc:
+        console.print(f"[yellow]Credit check unavailable: {exc}[/yellow]")
+        return
+    pct = (remaining / limit * 100) if limit else 0
+    colour = "green" if pct > 40 else "yellow" if pct > 15 else "red"
+    console.print(
+        f"[{colour}]{label}: {remaining:,} of {limit:,} credits "
+        f"({pct:.0f}%)[/{colour}]  [dim]tier={engine.tier.name} "
+        f"model={engine.model.model_id} fmt={engine.output_format}[/dim]"
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -107,6 +133,8 @@ def judge(voice: Voice, engine, text: str) -> bool | None:
 
 def run_audition(engine_names: list[str], locale: str, text: str | None) -> None:
     script = text or CANNED
+    if "elevenlabs" in engine_names:
+        show_budget("Starting budget")
     voices = gather_voices(engine_names, locale)
     if not voices:
         console.print("[red]No voices available.[/red]")
@@ -143,6 +171,8 @@ def run_shortlist(engine_names: list[str], text: str | None) -> None:
         console.print("[yellow]No passed voices yet — run a full audition first.[/yellow]")
         return
     script = text or CANNED
+    if "elevenlabs" in engine_names:
+        show_budget("Starting budget")
     keep, cut = [], []
     for rec in results["passed"]:
         voice = Voice(rec["engine"], rec["voice_id"], rec["name"], rec.get("locale", ""))
@@ -188,6 +218,7 @@ def finish(results: dict) -> None:
         table.add_row(r["engine"], r["voice_id"], r["name"], r.get("locale", ""), r.get("role", "undecided"))
     console.print(table)
     console.print(f"[dim]Saved -> {path}[/dim]")
+    show_budget("Remaining")
     if results["passed"]:
         line = ", ".join(f"{r['engine']}:{r['voice_id']}" for r in results["passed"])
         console.print(f"\nClaude-ready: Use these voices: {line}")

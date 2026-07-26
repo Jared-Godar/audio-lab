@@ -17,6 +17,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
@@ -48,6 +49,137 @@ class Voice:
 
 
 # --------------------------------------------------------------------------- #
+# Models and cost tiers
+# --------------------------------------------------------------------------- #
+
+@dataclass(frozen=True)
+class Model:
+    """An ElevenLabs TTS model and what it costs to run.
+
+    cost_multiplier is credits charged per character, straight from
+    /v1/models -> model_rates.character_cost_multiplier.
+    """
+
+    model_id: str
+    label: str
+    cost_multiplier: float
+    max_chars: int
+    supports_style: bool = False
+
+
+MODELS = {
+    "v3": Model(
+        "eleven_v3", "Eleven v3 — most expressive, audio-tag driven",
+        cost_multiplier=1.0, max_chars=5_000,
+    ),
+    "multilingual_v2": Model(
+        "eleven_multilingual_v2", "Multilingual v2 — voiceover/audiobook workhorse",
+        cost_multiplier=1.0, max_chars=10_000, supports_style=True,
+    ),
+    "turbo_v2_5": Model(
+        "eleven_turbo_v2_5", "Turbo v2.5 — half price, 32 languages",
+        cost_multiplier=0.5, max_chars=40_000,
+    ),
+    "flash_v2": Model(
+        "eleven_flash_v2", "Flash v2 — half price, English only, lowest latency",
+        cost_multiplier=0.5, max_chars=30_000,
+    ),
+}
+
+
+@dataclass(frozen=True)
+class Tier:
+    """A task-pinned quality/cost preset.
+
+    The point is to spend cheaply where the output is thrown away and dearly
+    where it ships — without having to remember model ids at the call site.
+    """
+
+    name: str
+    model: str          # key into MODELS
+    output_format: str  # ElevenLabs output_format code
+    why: str
+
+
+TIERS = {
+    "draft": Tier(
+        "draft", "turbo_v2_5", "mp3_44100_128",
+        "half-price read-throughs — timing, pacing, does-this-line-land. Turbo "
+        "over Flash: same price, better quality, 40k chars (a whole episode in "
+        "one request); Flash only wins on realtime latency, which batch work "
+        "never needs",
+    ),
+    "cast": Tier(
+        "cast", "multilingual_v2", "mp3_44100_192",
+        "auditions render at production quality; casting on draft output means "
+        "judging a voice you will never actually ship",
+    ),
+    "production": Tier(
+        "production", "multilingual_v2", "mp3_44100_192",
+        "final master — swap to v3 with --model to A/B expressiveness at identical cost",
+    ),
+}
+
+DEFAULT_TIER = "cast"
+
+# Every model on this account bills at ~0.55x its advertised multiplier.
+# Measured 2026-07-26 from /v1/history (character_count_change deltas):
+#   multilingual_v2 0.55  v3 0.55  flash_v2 0.27  turbo_v2_5 0.27
+# against listed rates of 1.0 / 1.0 / 0.5 / 0.5 — a uniform Creator-tier discount.
+# Re-measure with:  uv run audition --check-rates
+# If the discount lapses, estimates become conservative (over-quoted), never under.
+ACCOUNT_RATE_FACTOR = 0.55
+
+
+# --------------------------------------------------------------------------- #
+# Network resilience
+# --------------------------------------------------------------------------- #
+
+TRANSIENT_STATUS = {408, 429, 500, 502, 503, 504}
+
+PERMANENT_HINTS = {
+    401: "API key rejected — check ELEVENLABS_API_KEY in your environment.",
+    402: "Out of credits for this billing cycle.",
+    403: "That voice or model isn't available on your plan.",
+    404: "Voice or model not found — the id may be stale.",
+    422: "Request rejected — text may exceed the model's per-request limit.",
+}
+
+
+class ExternalServiceError(RuntimeError):
+    """A network or provider condition — not a defect in this code or your setup."""
+
+
+def request_with_retry(method: str, url: str, *, attempts: int = 3, **kw):
+    """HTTP with bounded exponential backoff on transient failures only.
+
+    Permanent failures (auth, quota, not-found) fail fast — retrying a 401 only
+    wastes time. Callers that spend credits should pass attempts=2: a timeout may
+    land after the provider already billed, so every retry risks a second charge.
+    """
+    last = ""
+    for attempt in range(1, attempts + 1):
+        try:
+            r = requests.request(method, url, **kw)
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last = f"{type(exc).__name__}: {exc}"
+        else:
+            if r.status_code == 200:
+                return r
+            if r.status_code not in TRANSIENT_STATUS:
+                hint = PERMANENT_HINTS.get(r.status_code) or r.text[:200]
+                raise ExternalServiceError(f"ElevenLabs {r.status_code}: {hint}")
+            last = f"HTTP {r.status_code}"
+        if attempt < attempts:
+            time.sleep(1.5 ** attempt)
+    raise ExternalServiceError(
+        f"ElevenLabs unreachable after {attempts} attempts ({last}). This is a "
+        "connectivity or service condition, not a problem with your setup — check "
+        "status.elevenlabs.io and retry. Cached samples still play offline."
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Playback + caching
 # --------------------------------------------------------------------------- #
 
@@ -59,8 +191,14 @@ def play(path: Path) -> None:
         pass
 
 
-def sample_path(voice: Voice, text: str) -> Path:
-    digest = hashlib.sha1(text.encode()).hexdigest()[:12]
+def sample_path(voice: Voice, text: str, variant: str = "") -> Path:
+    """Cache location for one rendered sample.
+
+    `variant` discriminates model + bitrate. Without it, a half-price draft
+    render and a production master of the same line collide on one path, and
+    you end up casting from — or shipping — whichever was generated first.
+    """
+    digest = hashlib.sha1(f"{text}\x00{variant}".encode()).hexdigest()[:12]
     p = SAMPLES_DIR / voice.engine / voice.voice_id / f"{digest}.mp3"
     p.parent.mkdir(parents=True, exist_ok=True)
     return p
@@ -73,6 +211,7 @@ def sample_path(voice: Voice, text: str) -> Path:
 class EdgeTTS:
     name = "edge-tts"
     free = True
+    variant = ""  # single fixed quality; nothing to discriminate in the cache
 
     def available(self) -> bool:
         try:
@@ -119,7 +258,27 @@ class ElevenLabs:
     name = "elevenlabs"
     free = False  # burns account credits; audition layer guards each call
     API = "https://api.elevenlabs.io/v1"
-    MODEL = "eleven_multilingual_v2"
+
+    def __init__(self, tier: str = DEFAULT_TIER) -> None:
+        self.apply_tier(tier)
+
+    # -- tier / model wiring ------------------------------------------------ #
+
+    def apply_tier(self, tier_name: str) -> None:
+        tier = TIERS[tier_name]
+        self.tier = tier
+        self.model = MODELS[tier.model]
+        self.output_format = tier.output_format
+
+    def override_model(self, model_key: str) -> None:
+        """Keep the tier's bitrate, swap the model — for A/B tests at equal cost."""
+        self.model = MODELS[model_key]
+
+    @property
+    def variant(self) -> str:
+        return f"{self.model.model_id}|{self.output_format}"
+
+    # -- account ------------------------------------------------------------ #
 
     def _key(self) -> str | None:
         return os.environ.get("ELEVENLABS_API_KEY")
@@ -127,39 +286,84 @@ class ElevenLabs:
     def available(self) -> bool:
         return bool(self._key())
 
-    def list_voices(self, locale_prefix: str = "en") -> list[Voice]:
-        r = requests.get(
-            f"{self.API}/voices", headers={"xi-api-key": self._key()}, timeout=15
+    def credits_remaining(self) -> tuple[int, int]:
+        """(remaining, monthly_limit) for the current billing cycle."""
+        r = request_with_retry(
+            "GET", f"{self.API}/user/subscription",
+            headers={"xi-api-key": self._key()}, timeout=15,
         )
-        r.raise_for_status()
+        d = r.json()
+        limit = d.get("character_limit", 0)
+        return limit - d.get("character_count", 0), limit
+
+    def list_voices(self, locale_prefix: str = "en") -> list[Voice]:
+        r = request_with_retry(
+            "GET", f"{self.API}/voices",
+            headers={"xi-api-key": self._key()}, timeout=15,
+        )
         out = []
         for v in r.json()["voices"]:
-            # Free tier: only premade voices are usable via API (library voices 402).
-            if v.get("category") != "premade":
-                continue
+            # Every category on this account is usable on Creator and above —
+            # premade, plus anything cloned or added from the shared library.
             out.append(
                 Voice(
                     engine=self.name,
                     voice_id=v["voice_id"],
                     name=v["name"].split(" - ")[0],
                     locale="en",
-                    meta={"description": v["name"]},
+                    meta={
+                        "description": v["name"],
+                        "category": v.get("category", ""),
+                    },
                 )
             )
         return sorted(out, key=lambda v: v.name)
 
     def estimate_credits(self, text: str) -> int:
-        return len(text)  # 1 credit ~= 1 character
+        return round(len(text) * self.effective_rate)
+
+    @property
+    def effective_rate(self) -> float:
+        """Credits actually billed per character, discount included."""
+        return self.model.cost_multiplier * ACCOUNT_RATE_FACTOR
+
+    def recent_rates(self, limit: int = 40) -> list[dict]:
+        """Per-generation billing straight from history — the source of truth.
+
+        The /v1/user/subscription counter lags by tens of seconds and cannot be
+        used to attribute cost to an individual request; this can.
+        """
+        r = request_with_retry(
+            "GET", f"{self.API}/history",
+            headers={"xi-api-key": self._key()},
+            params={"page_size": limit}, timeout=20,
+        )
+        rows = []
+        for h in r.json().get("history", []):
+            billed = h.get("character_count_change_to", 0) - h.get(
+                "character_count_change_from", 0
+            )
+            rows.append({
+                "model_id": h.get("model_id") or "?",
+                "chars": len(h.get("text") or ""),  # 0 for models that omit text
+                "billed": billed,
+            })
+        return rows
 
     def synthesize(self, voice: Voice, text: str, out_path: Path) -> Path:
-        r = requests.post(
-            f"{self.API}/text-to-speech/{voice.voice_id}",
+        if len(text) > self.model.max_chars:
+            raise ExternalServiceError(
+                f"{len(text):,} chars exceeds the {self.model.max_chars:,} limit for "
+                f"{self.model.label}. Render chapter by chapter and concatenate."
+            )
+        r = request_with_retry(
+            "POST", f"{self.API}/text-to-speech/{voice.voice_id}",
+            attempts=2,  # a retry can re-bill; keep the blast radius to one
             headers={"xi-api-key": self._key(), "Content-Type": "application/json"},
-            json={"text": text, "model_id": self.MODEL},
-            timeout=60,
+            params={"output_format": self.output_format},
+            json={"text": text, "model_id": self.model.model_id},
+            timeout=120,
         )
-        if r.status_code != 200:
-            raise RuntimeError(f"ElevenLabs {r.status_code}: {r.text[:200]}")
         out_path.write_bytes(r.content)
         return out_path
 
@@ -177,6 +381,7 @@ class Kokoro:
 
     name = "kokoro"
     free = True
+    variant = ""
     DEFAULT_VOICES = [
         ("af_heart", "Heart", "en-US"), ("af_bella", "Bella", "en-US"),
         ("af_nicole", "Nicole", "en-US"), ("af_sky", "Sky", "en-US"),

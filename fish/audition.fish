@@ -1,3 +1,6 @@
+# SUPERSEDED by `uv run audition` in pipeline/ — that one does ElevenLabs and
+# Kokoro too, caches samples, and tracks credits. This stays for a quick
+# edge-tts-only spin with no venv; it will never grow other engines.
 function audition
     set -l voices (edge-tts --list-voices | awk '/^en-/ {print $1}')
     while true
