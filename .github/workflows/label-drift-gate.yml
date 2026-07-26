@@ -1,0 +1,42 @@
+name: Label drift gate
+
+# Fails if the live GitHub label set diverges from .github/labels.json (issue
+# #21, Gap 4). labels.json is the source of truth; scripts/sync_labels.py check
+# compares the two name sets and exits non-zero on any difference. The check is
+# read-only and the paired `sync` is additive, so this gate never deletes a
+# label -- it reports drift for a human to reconcile (audio-lab retains GitHub's
+# stock labels by decision). Runs when labels.json changes, on any label
+# create/edit/delete, and on demand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/labels.json"
+  label:
+    types: [created, edited, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: label-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check labels.json against the live set
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # gh reads the token from GH_TOKEN and the repo from GH_REPO, so the
+      # `gh label list` in the script needs no -R and no interactive auth.
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Compare declared labels to the live label set
+        run: python3 scripts/sync_labels.py check

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# The one local gate. Mirrors what CI enforces so a green run here means a green
+# PR: the pre-commit suite over all files, plus a locked-environment check per uv
+# subproject (the same `uv sync --locked` the quality workflow runs). Optionally
+# runs the label-drift check when gh is available and authenticated.
+#
+# Usage: scripts/check            # full gate
+#        scripts/check --no-labels  # skip the networked label-drift check
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+RUN_LABELS=1
+case "${1:-}" in
+  --no-labels) RUN_LABELS=0 ;;
+  "") ;;
+  *) printf 'Usage: %s [--no-labels]\n' "$0" >&2; exit 64 ;;
+esac
+
+require() {
+  command -v "$1" >/dev/null 2>&1 || {
+    printf 'Missing required tool: %s\n' "$1" >&2
+    exit 69
+  }
+}
+
+printf '== pre-commit (all files) ==\n'
+if command -v pre-commit >/dev/null 2>&1; then
+  pre-commit run --all-files
+else
+  require uvx
+  uvx --from pre-commit==4.6.0 pre-commit run --all-files
+fi
+
+printf '\n== locked environments ==\n'
+require uv
+for project in pipeline spotify; do
+  if [[ -f "$project/pyproject.toml" ]]; then
+    printf -- '-- %s --\n' "$project"
+    uv sync --locked --project "$project"
+  fi
+done
+
+if [[ "$RUN_LABELS" -eq 1 ]]; then
+  printf '\n== label drift ==\n'
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    python3 scripts/sync_labels.py check
+  else
+    printf 'Skipped: gh not available or not authenticated (run with network + gh auth to check).\n'
+  fi
+fi
+
+printf '\nAll checks passed.\n'

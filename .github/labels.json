@@ -1,5 +1,5 @@
 {
-  "$comment": "Label taxonomy for audio-lab. Convention: 'namespace: value' with a space. Structure follows the github-portfolio-modernization 'goldilocks' set — three axes (type / area / priority), ~14 labels. type and priority are carried verbatim because they are genuinely portable; area values are repo-specific by nature and describe this project's domains. Do not create labels outside this file.",
+  "$comment": "Label taxonomy for audio-lab. Convention: 'namespace: value' with a space. The type/area/priority axes follow the github-portfolio-modernization 'goldilocks' set — type and priority are carried verbatim because they are genuinely portable; area values are repo-specific and describe this project's domains. The nine GitHub stock labels below (bug/documentation/enhancement/duplicate/good first issue/help wanted/invalid/question/wontfix) are RETAINED by maintainer decision 2026-07-26 (issue #21): all were unused (0 issues/0 PRs) but kept rather than deleted, so they are declared here to keep this file identical to the live label set. This file is the source of truth; scripts/sync_labels.py syncs it to GitHub and checks for drift. The sync is additive — it never deletes a live label — so a label present live but absent here is reported as drift, not removed. Do not create labels outside this file.",
   "labels": [
     { "name": "type: task", "color": "1D76DB", "description": "Concrete work item" },
     { "name": "type: decision", "color": "5319E7", "description": "Requires a recorded decision" },
@@ -17,6 +17,16 @@
     { "name": "priority: medium", "color": "D93F0B", "description": "Normal queue" },
     { "name": "priority: low", "color": "C2E0C6", "description": "Opportunistic" },
 
-    { "name": "skip-changelog", "color": "EEEEEE", "description": "Exempt from the changelog gate — use sparingly" }
+    { "name": "skip-changelog", "color": "EEEEEE", "description": "Exempt from the changelog gate — use sparingly" },
+
+    { "name": "bug", "color": "d73a4a", "description": "Something isn't working" },
+    { "name": "documentation", "color": "0075ca", "description": "Improvements or additions to documentation" },
+    { "name": "enhancement", "color": "a2eeef", "description": "New feature or request" },
+    { "name": "duplicate", "color": "cfd3d7", "description": "This issue or pull request already exists" },
+    { "name": "good first issue", "color": "7057ff", "description": "Good for newcomers" },
+    { "name": "help wanted", "color": "008672", "description": "Extra attention is needed" },
+    { "name": "invalid", "color": "e4e669", "description": "This doesn't seem right" },
+    { "name": "question", "color": "d876e3", "description": "Further information is requested" },
+    { "name": "wontfix", "color": "ffffff", "description": "This will not be worked on" }
   ]
 }

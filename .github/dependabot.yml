@@ -1,0 +1,17 @@
+version: 2
+
+# Keep the SHA-pinned GitHub Actions current (issue #5). Monthly is deliberately
+# low-noise; the uv/pip ecosystems are intentionally NOT enabled — two small
+# subprojects would generate more PRs than value at this stage (recorded in #5).
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "type: automation"
+      - "area: governance"

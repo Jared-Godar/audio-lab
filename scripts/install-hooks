@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Install the pre-commit git hook. This is the fix for issue #14: a tracked
+# .pre-commit-config.yaml does NOT install anything on its own, so every local
+# guard (gitleaks, detect-private-key, no-commit-to-branch) silently did nothing
+# until `pre-commit install` was run. A fresh clone must run this once.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if ! command -v pre-commit >/dev/null 2>&1; then
+  # pre-commit ships with the repo's uv env, but this script is used at first
+  # clone before that may exist; fall back to uvx if the bare command is absent.
+  if command -v uvx >/dev/null 2>&1; then
+    uvx --from pre-commit==4.6.0 pre-commit install
+  else
+    printf 'pre-commit not found. Install it (pipx install pre-commit) or use uv, then re-run.\n' >&2
+    exit 69
+  fi
+else
+  pre-commit install
+fi
+
+# Verify the hook actually landed — a configured-but-uninstalled hook is exactly
+# the #14 failure this script exists to prevent, so confirm both directions.
+if [[ -x .git/hooks/pre-commit ]]; then
+  printf 'Installed: .git/hooks/pre-commit is present and executable.\n'
+else
+  printf 'Warning: .git/hooks/pre-commit did not install; git commits are NOT gated locally.\n' >&2
+  exit 1
+fi

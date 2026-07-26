@@ -1,0 +1,66 @@
+name: Work item / decision briefing
+description: A briefing to the house standard — evidence, options, acceptance criteria.
+title: "<specific declarative title carrying the defect/outcome and its consequence>"
+labels:
+  - "type: task"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An issue here is a briefing, not a to-do line (see AGENTS.md § "Issues are
+        written to the house standard"). Evidence is **measured** — paste the command
+        AND its output; `(no output)` is valid evidence, an assertion without a receipt
+        is not. Options are the maintainer's choice; do not dictate one.
+  - type: textarea
+    id: summary
+    attributes:
+      label: 1. Summary
+      description: The mechanism in prose — what is true, why it is wrong, what breaks.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 2. Evidence
+      description: Shell commands with their actual pasted output. This is what separates a real issue from a stub.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 3. Why it matters / why now
+      description: The downstream consequence; name dependent work.
+    validations:
+      required: true
+  - type: textarea
+    id: resolution
+    attributes:
+      label: 4. Proposed resolution
+      description: Numbered options with honest tradeoffs, framed "pick one and record the reasoning". State a preference; do not dictate.
+    validations:
+      required: true
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: 5. Non-goals
+      description: What this explicitly does not cover, so scope cannot drift.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 6. Acceptance criteria
+      description: Checkboxes, each verifiable by a named command or artifact, always ending in a CHANGELOG entry.
+      value: |
+        - [ ]
+        - [ ] CHANGELOG entry added
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: 7-8. Dependencies, risk, references, provenance
+      description: Related issue numbers, failure class, file paths, commit SHAs, and who found it doing what, when.
+    validations:
+      required: false
