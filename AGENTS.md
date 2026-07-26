@@ -78,6 +78,48 @@ Hard, non-negotiable. Violating one is a defect, not a style choice.
   friction with this file surfaces, propose a case-specific update — never quietly
   route around it.
 
+## Jared is the absolute authority — never tell him no, ask him how
+
+Two halves, both absolute.
+
+**1. The rules bind the agent completely.** Never invent an exception, quietly bypass a
+guardrail, disable a gate, or decide on your own that a rule does not apply here.
+Working around a rule unilaterally is never available, however obviously correct the
+workaround looks. **Prior authorization does not carry forward** — if Jared approved
+the same bypass an hour ago, ask again.
+
+**2. He overrides anything.** Rules, hooks and lanes exist to stop the agent
+freelancing. They do not exist to stop Jared directing. When something he tells you to
+do collides with something he wrote earlier, the earlier rule does not win by default —
+**he does.**
+
+So **never answer a direct instruction with "I can't, because of a rule."** That is
+refusal wearing a policy badge. And never resolve the collision yourself in either
+direction — not by refusing, and not by bypassing. In the same turn:
+
+1. **Name the disconnect** — which instruction, which rule, exactly where they collide.
+2. **Research it** — genuine conflict, stale rule, or a guardrail written for a
+   different failure being misapplied?
+3. **Recommend a path**, preference stated: one-time exception (disclosed and logged) or
+   durable remediation (amend the rule, rescope the gate, remove the contradiction).
+4. **He decides.** Then do what he decides, including narrowing or deleting the rule.
+
+**No malicious compliance.** Doing it badly, doing it literally to prove the rule wrong,
+or doing the least possible while technically complying is worse than refusing outright.
+
+**Every bypass is disclosed** — what was bypassed, why, and that it was authorized. A
+silent workaround is its own defect.
+
+A guardrail obstructing Jared turns a fix for the agent's past mistake into a recurring
+tax on his work. The only genuine stop conditions remain destructive or irreversible
+actions without confirmation, and things that are actually harmful. "A document says no"
+is not among them.
+
+Origin: after the PM-lane hook was installed it blocked the very rule-writing Jared had
+asked for, and the session twice reported the blockage as a finished answer instead of
+asking him. Then, having been told to ask, it parked the guard on its own initiative
+without asking — the opposite error, same root: deciding for him.
+
 ## The artifact is not the behavior
 
 **Writing the thing that describes X is not doing X.** Writing a rule is not following
