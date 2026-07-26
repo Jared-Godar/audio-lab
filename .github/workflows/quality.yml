@@ -1,0 +1,76 @@
+name: Quality gates
+
+# Deliberately lean. This repo runs the checks that pay for themselves at its
+# current size: lint/format, secret detection, and lockfile integrity.
+#
+# Growth hooks, to add when they start earning their keep — not before:
+#   - cfn-lint / cfn-guard once infra/ has real stacks
+#   - full-history secret re-scan (the pre-commit gitleaks hook scans the
+#     working tree, so a secret added AND removed inside one PR would slip past)
+#   - JS/TS lint + build once the community voting app exists
+#   - pytest once there are tests worth gating on
+# The `environments` matrix already picks up new uv subprojects by name.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint, format and secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@f98e06938123ccabd21905ea5d0069192241f9f1 # v8.3.1
+        with:
+          enable-cache: true
+
+      - name: Run pre-commit
+        env:
+          # no-commit-to-branch guards local commits only — on the push-to-main
+          # trigger the checked-out ref legitimately is main, so it would fail
+          # unconditionally here. Branch protection is the server-side enforcement.
+          SKIP: no-commit-to-branch
+        run: uvx --from pre-commit==4.6.0 pre-commit run --all-files --show-diff-on-failure
+
+  environments:
+    name: Locked environment (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each subproject carries its own pyproject + uv.lock and resolves
+        # independently. Add new ones here.
+        project: [pipeline, spotify]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@f98e06938123ccabd21905ea5d0069192241f9f1 # v8.3.1
+        with:
+          enable-cache: true
+
+      # --locked fails if the lockfile drifted from its manifest, which is the
+      # actual failure mode worth catching: a dependency added without relocking.
+      - name: Verify lockfile resolves
+        working-directory: ${{ matrix.project }}
+        run: uv sync --locked

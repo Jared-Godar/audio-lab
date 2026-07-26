@@ -4,6 +4,7 @@ Personal audio tooling: TTS voice auditioning, podcast generation via the Save t
 Spotify CLI, and Spotify listening-data analysis.
 
 ## Structure
+
 - `pipeline/` — uv-managed Python project; the `audition` CLI and spotipy analysis
 - `fish/` — shell functions, symlinked into fish config
 - `episodes/` — "Told Straight" deliverables (transcripts, notes, art)
@@ -46,4 +47,5 @@ for rates, budget math, and account constraints.
 `ELEVENLABS_API_KEY` is read from the environment. Never commit it.
 
 ## Stack
+
 save-to-spotify CLI · ElevenLabs · edge-tts · Kokoro (local) · ffmpeg · uv · fish

@@ -6,7 +6,7 @@ were learned; this is what's true now. Verified 2026-07-26.
 ## Account shape
 
 | | |
-|---|---|
+| --- | --- |
 | Tier | Creator |
 | Monthly credits | 130,552 (cycle resets 2026-08-26) |
 | Effective capacity | **~237k characters** of production audio — see rates below |
@@ -25,7 +25,7 @@ patches; save the professional slot for something that genuinely warrants it.
 pay. Everything bills at **0.55x the listed rate**.
 
 | Model | Listed | Effective | Max chars | Notes |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `eleven_v3` | 1.0x | **0.55x** | 5,000 | Most expressive; audio tags, no `style` param |
 | `eleven_multilingual_v2` | 1.0x | **0.55x** | 10,000 | Voiceover workhorse; supports `style` + `speaker_boost` |
 | `eleven_turbo_v2_5` | 0.5x | **0.28x** | 40,000 | Best quality per credit; the draft model |
@@ -50,7 +50,7 @@ table, update `ACCOUNT_RATE_FACTOR` in `pipeline/audition/helpers.py`.
 ## Tiers
 
 | Tier | Model | Output | For |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `draft` | Turbo v2.5 | 128 kbps | Read-throughs, timing, does-this-line-land |
 | `cast` | Multilingual v2 | 192 kbps | Auditions — **deliberately production quality** |
 | `production` | Multilingual v2 | 192 kbps | Final master |
@@ -69,7 +69,7 @@ Roughly 1 credit per 1.8 characters at production quality. For the two "Told
 Straight" episodes (~17k characters of guest track if the host is recorded live):
 
 | Pass | Cost |
-|---|---|
+| --- | --- |
 | Casting audition (~40 voices) | ~4,400 |
 | One draft pass, both episodes | ~4,800 |
 | One production master, both episodes | ~9,400 |

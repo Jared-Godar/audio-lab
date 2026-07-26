@@ -49,4 +49,3 @@ _Orientation, not medical advice - decisions about diagnosis and treatment belon
 15. Karalunas & Huang-Pollock, J Clin Child Adolesc Psychol 2011 - executive function - [doi.org/10.1080/15374416.2011.614578](https://doi.org/10.1080/15374416.2011.614578)
 
 16. Beheshti et al., BMC Psychiatry 2020 - emotional dysregulation (core feature) - [doi.org/10.1186/s12888-020-2442-7](https://doi.org/10.1186/s12888-020-2442-7)
-

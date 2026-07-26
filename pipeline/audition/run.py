@@ -34,9 +34,12 @@ def print_models() -> None:
         mt.add_column(col)
     for key, m in MODELS.items():
         mt.add_row(
-            key, m.model_id, f"{m.cost_multiplier}×",
+            key,
+            m.model_id,
+            f"{m.cost_multiplier}×",
             f"{m.cost_multiplier * ACCOUNT_RATE_FACTOR:.2f}×",
-            f"{m.max_chars:,}", "yes" if m.supports_style else "—",
+            f"{m.max_chars:,}",
+            "yes" if m.supports_style else "—",
         )
     console.print(mt)
     console.print(
@@ -90,32 +93,49 @@ def check_rates() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="audition", description="TTS voice audition tool")
+    parser = argparse.ArgumentParser(
+        prog="audition", description="TTS voice audition tool"
+    )
     parser.add_argument(
         "--engines",
         default=",".join(ENGINES),
         help=f"Comma-separated engines (default: {','.join(ENGINES)})",
     )
-    parser.add_argument("--locale", default="en", help="Locale prefix filter (default: en)")
-    parser.add_argument("--text", default=None, help="Override the canned audition script")
     parser.add_argument(
-        "--tier", default=DEFAULT_TIER, choices=sorted(TIERS),
+        "--locale", default="en", help="Locale prefix filter (default: en)"
+    )
+    parser.add_argument(
+        "--text", default=None, help="Override the canned audition script"
+    )
+    parser.add_argument(
+        "--tier",
+        default=DEFAULT_TIER,
+        choices=sorted(TIERS),
         help=f"ElevenLabs cost/quality preset (default: {DEFAULT_TIER})",
     )
     parser.add_argument(
-        "--model", default=None, choices=sorted(MODELS),
+        "--model",
+        default=None,
+        choices=sorted(MODELS),
         help="Override the tier's model, keeping its bitrate (for A/B tests)",
     )
     parser.add_argument(
-        "--list-models", action="store_true", help="Show models, rates and tiers, then exit"
+        "--list-models",
+        action="store_true",
+        help="Show models, rates and tiers, then exit",
     )
     parser.add_argument(
-        "--check-rates", action="store_true",
+        "--check-rates",
+        action="store_true",
         help="Re-derive billing rates from generation history, then exit",
     )
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--shortlist", action="store_true", help="Re-judge previously passed voices")
-    mode.add_argument("--cast", action="store_true", help="Assign roles to passed voices")
+    mode.add_argument(
+        "--shortlist", action="store_true", help="Re-judge previously passed voices"
+    )
+    mode.add_argument(
+        "--cast", action="store_true", help="Assign roles to passed voices"
+    )
     args = parser.parse_args()
 
     if args.list_models:

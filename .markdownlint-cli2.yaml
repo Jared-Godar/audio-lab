@@ -1,0 +1,19 @@
+# Markdown lint config. Prose here is written for humans reading it in an
+# editor, not for a fixed column width, so the line-length rule is off; the
+# structural rules that catch genuine mistakes stay on.
+config:
+  MD013: false   # line length — prose wraps naturally, tables would break
+  MD033: false   # inline HTML — used sparingly in show notes
+  MD041: false   # first line must be top-level heading — frontmatter files
+  MD024:         # duplicate headings: a changelog repeats Added/Fixed per release
+    siblings_only: true
+globs:
+  - "**/*.md"
+ignores:
+  - "prompts/**"      # seed briefs, preserved as written
+  - "artifacts/**"    # gitignored scratch, never reaches CI
+  - "episodes/**"     # generated show deliverables, not authored source
+
+  - "**/node_modules/**"
+  - ".venv/**"
+  - "**/.venv/**"

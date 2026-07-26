@@ -1,4 +1,5 @@
 # Membership Has Requirements: Adult ADHD, Told Straight
+
 _Transcript - Told Straight, Episode 01 - host bm_fable (British) & expert Emma (British)_
 
 > Content note: this episode discusses ADHD candidly, including elevated mortality and accident risk in untreated ADHD, and substance-use statistics. It is orientation, not medical advice. If you are in crisis, contact your local emergency or crisis line.

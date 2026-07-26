@@ -10,6 +10,7 @@ visible in the diff and would otherwise evaporate.
 ## 2026-07-26
 
 ### Added
+
 - Tiered model selection for ElevenLabs: `--tier {draft,cast,production}`,
   with `--model` to override a tier's model at equal cost.
   - `draft` — Turbo v2.5 @ 128 kbps, ~half price, for read-throughs and timing.
@@ -25,7 +26,23 @@ visible in the diff and would otherwise evaporate.
   failures only; fail-fast with plain-language hints on 401/402/403/404/422.
   Synthesis is capped at 2 attempts because a retry can re-bill.
 
+- `CLAUDE.md` — project instructions, including the self-describing-filename rule.
+- `artifacts/` — gitignored working zone for handoffs, walkthroughs and guides.
+  Durable findings still belong in `docs/` and this changelog.
+- Lean CI: pre-commit (ruff, markdownlint, shellcheck, gitleaks, zizmor) and a
+  locked-environment check per uv subproject, on every PR and push to main.
+  Deliberately sized for the repo as it stands; `quality.yml` lists the growth
+  hooks to add later rather than adding them now.
+
 ### Fixed
+
+- **Rendered samples were named by hash.** A three-way model comparison landed as
+  `76a676a12824.mp3` / `facf0b2fbe0a.mp3` / `a7a79bffe119.mp3`, which is unusable
+  for a human asked to listen to them. Filenames are now
+  `YYYYMMDD-VENDOR-MODEL-VOICE-PURPOSE-BITRATE.mp3` and per-voice folders are
+  `<voice>-<short-id>` rather than a bare 20-char id; exact cache identity moved to
+  a sibling `manifest.json`, so correctness no longer costs readability. Vendor is
+  explicit so a repo with several TTS providers stays legible at a glance.
 - **Sample cache collided across models.** `sample_path()` hashed only the text,
   so a half-price draft render and a 192 kbps master of the same line resolved to
   one file — you would have cast from, or shipped, whichever generated first. The
@@ -37,10 +54,12 @@ visible in the diff and would otherwise evaporate.
   voice added from the shared library.
 
 ### Changed
+
 - Per-call cost estimates now reflect the measured account rate rather than the
   advertised multiplier, so the spend confirmation prompt is trustworthy.
 
 ### Findings
+
 - **ElevenLabs bills at 0.55x its advertised `character_cost_multiplier`** on this
   account. Confirmed against `/v1/history`: seven Turbo generations predating the
   Creator upgrade billed at 0.504x; two after it billed at 0.275x. Same model, same
@@ -59,6 +78,7 @@ visible in the diff and would otherwise evaporate.
 ## 2026-07-23
 
 ### Added
+
 - Voice audition applet (`pipeline/audition/`): engine-agnostic TTS auditioning
   with a listen/verdict loop, shortlist replay, role casting, and a sample cache.
   Adapters for edge-tts, ElevenLabs, and local Kokoro.
@@ -66,11 +86,13 @@ visible in the diff and would otherwise evaporate.
   art, captions, alt text.
 
 ### Changed
+
 - `.gitignore` reworked to track episode deliverables (art, transcripts, notes)
   while excluding secrets, PII, virtualenvs, and heavy media.
 
 ## 2026-07-22
 
 ### Added
+
 - Initial repository structure: `fish/` shell functions, `pipeline/` and
   `spotify/` uv projects, `scripts/`, `docs/`, `prompts/`.

@@ -4,13 +4,13 @@
 function audition-judge
     set -l voices (edge-tts --list-voices | awk '/^en-/ {print $1}')
     set -g passed   # global so the results survive the function ending
-    
+
     while true
         set -l picks (printf '%s\n' $voices | fzf --multi --height 60% --border \
                             --prompt="Audition > " \
                             --header="Tab: mark several · Enter: audition · Esc: finish & show results")
         test -z "$picks"; and break
-        
+
         for v in $picks
             set -l text "Hello, I'm $v. The quick brown fox jumps over the lazy dog, and I'd be delighted to read your morning briefing."
             set -l judging true
@@ -20,7 +20,7 @@ function audition-judge
                     edge-tts --voice $v --text "$text" --write-media /tmp/$v.mp3
                 end
                 afplay /tmp/$v.mp3
-                
+
                 read -P "  [$v]  (p)ass  (f)ail  (r)epeat  (c)ustom text  (q)uit judging: " verdict
                 switch $verdict
                     case p P pass
@@ -48,7 +48,7 @@ function audition-judge
         end
         echo
     end
-    
+
     echo
     echo "=== Passing voices ==="
     printf '%s\n' $passed

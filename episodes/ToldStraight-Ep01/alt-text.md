@@ -1,4 +1,5 @@
 # Image alt-text — Told Straight, Ep.01
+
 Paste into the "alt text" / image description field wherever each image is used (Transistor episode artwork, show notes, social).
 
 **cover.png** — Podcast cover styled as a clinical intake form on off-white paper. Large black type reads "MEMBERSHIP HAS REQUIREMENTS" with a red underline; subtitle "Adult ADHD — Told Straight". Form fields read: Member: [ YOU ]; Status: Diagnosed – Confirmed; Established: 1775 (older than the U.S.). A red rubber stamp in the corner reads "MEMBER".
