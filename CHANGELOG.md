@@ -52,6 +52,14 @@ visible in the diff and would otherwise evaporate.
   section recording how settled choices reach forward into later work (e.g. Route 53
   auto-creating the hosted zone means CloudFormation manages records, not zones).
   GitHub milestones mirror it.
+- **"Jared is the absolute authority" hard rule** in `AGENTS.md` and
+  `~/.claude/CLAUDE.md`. The rules bind the agent completely — no self-invented
+  exceptions, no unilateral bypass, and prior authorization does not carry forward. But
+  they never bind Jared: a direct instruction is never answered with "I can't, because
+  of a rule." Collisions get named, researched, and resolved by him, with a recommended
+  path and every bypass disclosed. No malicious compliance.
+- `prompts/20260726-pm-thread-seed-v3.md` — PM seed carrying the lane, the three
+  failures that produced it, and the ask-don't-refuse contract.
 - **PM-lane enforcement.** Tracked `.claude/settings.json` plus
   `.claude/hooks/pm-lane-guard.sh` gate the PM/executor split as a mechanism instead of
   a rule to remember. Inside this repo PM may write only under `artifacts/` and cannot
