@@ -1,19 +1,24 @@
 [project]
 name = "audio-pipeline"
 version = "0.1.0"
-description = "Add your description here"
+description = "ElevenLabs voice tooling — core/ (multi-engine audition-v1 is archived)"
 readme = "README.md"
 requires-python = ">=3.13"
+# ElevenLabs-only (#6). edge-tts is dropped with the multi-engine tool; questionary
+# (interactive audition loop, now in archive/audition-v1) and spotipy (belongs to the
+# spotify/ subproject, never imported here) go with it. Re-add if a caller needs them.
 dependencies = [
-    "edge-tts>=7.2.8",
-    "questionary>=2.1.1",
     "requests>=2.34.2",
     "rich>=15.0.0",
-    "spotipy>=2.26.0",
 ]
 
 [project.scripts]
-audition = "audition.run:main"
+voicelab = "core.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
 
 [tool.uv]
 package = true

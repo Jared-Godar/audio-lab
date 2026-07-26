@@ -1,0 +1,20 @@
+[project]
+name = "audition-v1"
+version = "0.1.0"
+description = "Frozen multi-engine (edge-tts / ElevenLabs / Kokoro) voice audition tool — retired snapshot. See README.md."
+readme = "README.md"
+requires-python = ">=3.13"
+# The deps this snapshot actually imports — edge-tts, questionary, requests, rich.
+# spotipy was never used by the audition tool; it is intentionally absent here.
+dependencies = [
+    "edge-tts>=7.2.8",
+    "questionary>=2.1.1",
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+]
+
+[project.scripts]
+audition = "audition.run:main"
+
+[tool.uv]
+package = true
