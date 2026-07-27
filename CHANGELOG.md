@@ -11,6 +11,26 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Jofra pinned as the Ep01 co-host in a tracked cast record (#40).** The maintainer's
+  choice — **Jofra – Expressive & Neutral Narrator**, `NuRyEq0OdD9mMOyd51UZ`, picked
+  directly from the 18 stage-two screen-test renders — previously existed only in an
+  issue comment. `episodes/cast.json` now names it (role, episode, vendor, voice_id,
+  model, output_format, source, `chosen_by`, `chosen_on`, provenance), and
+  `pipeline/core/cast.py` loads it into a `Voice` usable directly by the existing
+  synthesis path — no downstream caller parses JSON or retypes the id. A missing,
+  malformed, or role-not-found `cast.json` fails with a clear message naming the file,
+  never a bare `KeyError` (`AGENTS.md` § "Defensively code every external call" applied
+  to a file boundary, not just the network). Deliberately does **not** touch
+  `pipeline/core/screentest.py`'s candidate list — coupling the casting tool to a cast
+  it exists to help choose was out of scope. `ROADMAP.md` § M2 fills the `⟨PR⟩`
+  placeholder left on `main` (`#39`), records stage three as **superseded by the direct
+  pick, not run** (the §3 reversal condition never fired; the remaining seven
+  candidates were deliberately not screened), and marks M2 complete. Also corrects
+  `docs/elevenlabs.md:38-39`, which still pointed at the retired `pipeline/audition/`
+  path (`uv run audition --check-rates` / `helpers.py`) two PRs after #29 replaced it
+  with `pipeline/core/` — now `uv run voicelab rates` / `pipeline/core/models.py`, both
+  verified to exist by running them. Zero credits spent: the loader is a local-file
+  read, and `uv run pytest` never touches the network.
 - **DNS security records deployed for `toldstraight.com` (#22).** M5. The `infra/dns.yaml`
   template authored in #13 is now **live**: SPF (`v=spf1 -all`), null MX (`0 .`), DMARC
   (`p=reject; sp=reject; adkim=s; aspf=s`), and CAA (`issue`/`issuewild` restricted to
@@ -38,6 +58,17 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **Synthesis against a shared-library voice consumes neither a general voice slot nor
+  the Professional Voice Clone slot (#40).** Measured by the PM thread 2026-07-27
+  (issue #40 Gap 4, relayed here rather than re-verified by this zero-credit executor
+  session): `GET /v1/user/subscription` read `voice_slots_used = 0/30` and
+  `professional_voice_slots_used = 0/1` while `GET /v1/voices` showed Jofra present
+  with `category='professional'` and three renders already completed against it (the
+  #38 stage-two screen test). `CHANGELOG.md` previously recorded only that *browsing
+  and previewing* a shared-library voice are free (2026-07-26, "`GET /v1/shared-voices`
+  is page-based..."); this extends that to *synthesizing* against one. Takeaway: the
+  single PVC slot `AGENTS.md` protects is never at risk from casting off the shared
+  library, however many voices are screen-tested.
 - **Route 53 never increments the SOA serial on record changes, so the serial is not a
   proof-of-write (#22).** The deploy spec's acceptance check "confirm the SOA serial
   incremented from 1" rests on a **false premise about Route 53**. Measured: the zone's SOA

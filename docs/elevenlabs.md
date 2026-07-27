@@ -35,8 +35,8 @@ pay. Everything bills at **0.55x the listed rate**.
 Evidence: seven Turbo generations predating the Creator upgrade billed at 0.504x;
 two after it billed at 0.275x — same model, same endpoint. The discount is uniform.
 
-Re-verify any time with `uv run audition --check-rates`. If it diverges from the
-table, update `ACCOUNT_RATE_FACTOR` in `pipeline/audition/helpers.py`.
+Re-verify any time with `uv run voicelab rates` (from `pipeline/`). If it diverges
+from the table, update `ACCOUNT_RATE_FACTOR` in `pipeline/core/models.py`.
 
 ## Measuring spend
 
