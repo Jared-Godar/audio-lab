@@ -49,7 +49,7 @@ blind head-to-head → cast and pin voice IDs.
 - Cost: ~4,400 credits. The sweep stage is free.
 - **Stage one (free preview sweep) — complete** (#7): 12 candidates on disk in
   `artifacts/voice-previews/`.
-- **Stage two (paid screen test) — complete** (#38, PR ⟨PR⟩): the top-5-by-adopters
+- **Stage two (paid screen test) — complete** (#38, PR #39): the top-5-by-adopters
   shortlist plus the premade-Daniel control read three real Ep01 EXPERT lines
   (dense-stat / warm aside / emotional handoff) on `eleven_v3` @ 192 kbps. 18 renders
   under `output/auditions/samples/elevenlabs/`, each folder self-describing with a
@@ -58,9 +58,16 @@ blind head-to-head → cast and pin voice IDs.
   per-generation rounding — the 0.55× rate holds exactly).** The control rendered
   through the same voice_id and path as the #10 bake-off, so the render path is sound;
   the aural judgement (which candidates survive) is the maintainer's, next.
-- **Stage three (blind head-to-head) — pending** the maintainer's listen. Reversal
-  condition on the shortlist: if fewer than two of the five survive, screen the
-  remaining seven before trusting the adopter-count proxy (#38 §3).
+- **Stage three (blind head-to-head) — superseded by a direct maintainer pick, not
+  run** (#40). The maintainer picked Jofra directly from the stage-two renders on
+  2026-07-27 rather than reporting a thin field, so the reversal condition — fewer
+  than two of the five surviving (#38 §3) — never fired, and the remaining seven
+  candidates were deliberately not screened.
+- **Cast pinned — M2 complete** (#40): **Jofra – Expressive & Neutral Narrator**
+  (`NuRyEq0OdD9mMOyd51UZ`), a shared-library voice that consumes neither a general
+  voice slot nor the Professional Voice Clone slot, recorded in `episodes/cast.json`
+  with a loader in `pipeline/core/cast.py` so M3 and M4 read one source of truth
+  instead of an issue comment.
 
 ### M3 — Tuning app (Phase II)
 

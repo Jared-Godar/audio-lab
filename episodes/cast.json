@@ -1,0 +1,15 @@
+[
+  {
+    "role": "co-host",
+    "episode": "ToldStraight-Ep01",
+    "vendor": "elevenlabs",
+    "voice_id": "NuRyEq0OdD9mMOyd51UZ",
+    "name": "Jofra – Expressive & Neutral Narrator",
+    "model": "eleven_v3",
+    "output_format": "mp3_44100_192",
+    "source": "shared-library",
+    "chosen_by": "maintainer",
+    "chosen_on": "2026-07-27",
+    "provenance": "#38 stage-two screen test, PR #39 (55f5b53)"
+  }
+]
