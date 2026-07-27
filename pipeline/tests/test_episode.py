@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -378,3 +379,92 @@ def test_assemble_rejects_empty_and_missing(tmp_path):
         ep.assemble_master([], tmp_path / "m.mp3")
     with pytest.raises(ep.AssemblyError, match="missing"):
         ep.assemble_master([tmp_path / "nope.mp3"], tmp_path / "m.mp3")
+
+
+# --------------------------------------------------------------------------- #
+# Mastering (#46) — chapter flags, structure-aware gaps, per-speaker match.
+# --------------------------------------------------------------------------- #
+
+
+def test_chapter_starts_are_detected():
+    turns = ep.parse_turns()
+    assert ep.chapter_starts(turns) == [0, 8, 16, 24, 32, 40]
+    assert turns[0].chapter_start and turns[8].chapter_start
+    assert not turns[1].chapter_start
+
+
+def test_smart_gap_ms_is_structure_aware():
+    turns = ep.parse_turns()
+    assert ep.smart_gap_ms(turns, 8) == ep.CHAPTER_GAP_MS  # chapter start
+    assert ep.smart_gap_ms(turns, 18) == ep.QUICK_GAP_MS  # t18 "Ah." (3 chars)
+    assert ep.smart_gap_ms(turns, 3) == ep.NORMAL_GAP_MS  # ordinary handoff
+
+
+def _sine_stem(path: Path, *, freq: int, db: float, secs: float = 3.0):
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            f"sine=frequency={freq}:duration={secs}",
+            "-af",
+            f"volume={db}dB",
+            "-ar",
+            "44100",
+            "-ac",
+            "1",
+            "-c:a",
+            "libmp3lame",
+            "-b:a",
+            "192k",
+            str(path),
+        ],
+        check=True,
+    )
+
+
+@pytest.mark.skipif(not FFMPEG, reason="ffmpeg/ffprobe not on PATH")
+def test_master_matches_speakers_and_hits_loudness_target(tmp_path):
+    """Two speakers 12 dB apart come out matched (<0.6 dB) and the master hits -16 LUFS."""
+    stems = []
+    for i in range(4):
+        spk = "HOST" if i % 2 == 0 else "EXPERT"
+        db = -24.0 if spk == "HOST" else -12.0  # HOST much quieter than EXPERT
+        p = tmp_path / f"t{i}.mp3"
+        _sine_stem(p, freq=180 if spk == "HOST" else 300, db=db)
+        stems.append(
+            (ep.Turn(i, spk, "word " * 6), p)
+        )  # >SHORT_TURN so gaps are normal
+
+    res = ep.master_from_stems(
+        stems, tmp_path / "master.mp3", tempo=1.0, trim=False, polish=False
+    )
+    assert res.speaker_gap_before > 3.0  # the imbalance was real and detected
+    assert res.speaker_gap_after < 0.6  # per-speaker match closed it
+    assert abs(res.final_lufs - (-16.0)) < 2.0  # chain hit the target, not just exit 0
+    assert res.path.exists()
+
+
+@pytest.mark.skipif(not FFMPEG, reason="ffmpeg/ffprobe not on PATH")
+def test_master_no_loudnorm_skips_matching(tmp_path):
+    p = tmp_path / "t0.mp3"
+    _sine_stem(p, freq=200, db=-12.0)
+    res = ep.master_from_stems(
+        [(ep.Turn(0, "HOST", "hi"), p)],
+        tmp_path / "m.mp3",
+        tempo=1.0,
+        trim=False,
+        polish=False,
+        loudnorm_i=None,
+    )
+    assert res.final_lufs is None and res.speaker_lufs_before == {}
+
+
+@pytest.mark.skipif(not FFMPEG, reason="ffmpeg/ffprobe not on PATH")
+def test_master_rejects_empty(tmp_path):
+    with pytest.raises(ep.AssemblyError, match="no stems"):
+        ep.master_from_stems([], tmp_path / "m.mp3")
