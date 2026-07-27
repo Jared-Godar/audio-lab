@@ -11,6 +11,44 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`toldstraight.com` now sends and receives mail at iCloud+, and the anti-spoofing
+  guarantee survived the change (#54).** M5. The mail lockdown deployed six hours earlier
+  in #22 was **deliberately, partially undone** — the RFC 7505 null MX (`0 .`) and
+  `v=spf1 -all` are gone, replaced by iCloud's two mail exchangers
+  (`10 mx01/mx02.mail.icloud.com.`), an SPF policy authorising iCloud **and nothing else**,
+  Apple's `apple-domain=` ownership token, and a `sig1._domainkey` CNAME delegating DKIM to
+  Apple. **DMARC and CAA are untouched**: `p=reject; sp=reject; adkim=s; aspf=s` is still
+  published and is where enforcement actually lives, so the #22 protection was *narrowed
+  from "no sender at all" to "exactly one sender"*, not traded away. Chosen over WorkMail
+  (discontinued mid-issue) and SES+Lambda: **$0 marginal cost**, a real mailbox, and no
+  forwarder component whose failure mode is silently lost mail.
+  Deployed as **two** CloudFormation change-sets against the existing `toldstraight-dns`
+  stack (`--change-set-type UPDATE`), each described and read before execution, both
+  reaching `UPDATE_COMPLETE`; the hosted zone stayed a **parameter**, and the resource-type
+  census of every change-set was checked to contain **no `AWS::Route53::HostedZone`**.
+  **TTLs on the three changed records are 300, not 3600, on purpose** — the null MX told
+  resolvers "this domain accepts no mail", which at 3600 could have kept bouncing mail for
+  an hour past cutover; 300 makes the cutover observable and the rollback fast. Restoring
+  3600 is an owed follow-up, named in the PR rather than silently skipped.
+  **The logical ids `SpfRecord` and `NullMxRecord` are now misnamed on purpose**, and this
+  is the one place the spec was not followed literally: it directed renaming them to honest
+  names. Measured instead of argued — a rename produced a change-set of three `Add`s and
+  **two `Remove`s, each carrying `PhysicalResourceId: toldstraight.com`**, i.e.
+  CloudFormation would have created the new record sets and then issued `DELETE` against
+  the live ones in its cleanup phase, risking the removal of SPF and Apple's verification
+  token together. Keeping the ids yields `Replacement: False` in-place modifications, which
+  is what the spec's own §4 said to expect. Both change-sets were built and pasted, and the
+  maintainer chose; the losing one was deleted rather than left lying around.
+  Verified two independent directions with a `google.com` control through the identical
+  path (`aws route53 list-resource-record-sets` **and** authoritative
+  `dig @ns-235.awsdns-29.com`), plus a negative test confirming apex `A`, `vote` and
+  `auditions` still resolve to nothing and CAA is byte-identical. **Not verified, and
+  reported owed rather than claimed:** the two-directional mail test (#54 §7), which needs
+  a mailbox that exists only on Apple's side. `infra/README.md` gains the mail
+  architecture, the verified Apple click path for adding/revoking an address, and the
+  rollback — and its **"Note on mail" was rewritten because #54 made it false**, along with
+  its **two-policy IAM section, which had been describing a three-policy reality**.
+
 - **The durable contracts are re-injected every turn, and a mid-session change is now
   announced instead of silently ignored (#33).**
   `.claude/hooks/contract-reinjection.sh` is a tracked `UserPromptSubmit` hook — the
@@ -271,6 +309,46 @@ visible in the diff and would otherwise evaporate.
   would have cut CI coverage to 54 while looking green.
 
 ### Findings
+
+- **Apple's Custom Email Domain verifier string-matches the SPF record it issues, so
+  `~all` is mandatory rather than advisory (#54).** The domain was deployed first with
+  `v=spf1 include:icloud.com -all` — semantically *stricter* than Apple's instructions,
+  and correct on the reasoning that iCloud is the only sender. Apple rejected it: *"Check
+  your SPF record — make sure the settings you updated match the ones sent to you."* The
+  verifier does a **literal string comparison against the value it issued** and does not
+  evaluate SPF semantics, so a stronger record can never pass, and the error message
+  blames the record rather than naming the mismatch. **Caching was excluded before
+  concluding this**, not assumed: the `-all` record was confirmed live on *both* the
+  authoritative nameserver and public resolvers — the old `v=spf1 -all` gone from public
+  view — before Apple was retried. Fixed by a one-value change-set. **The security cost is
+  bounded and is not where enforcement lives:** DMARC stays `p=reject` with strict
+  alignment, and the `~all`/`-all` difference reaches only receivers doing an SPF-only
+  check with no DMARC lookup, for whom spoofed mail moves from hard reject to softfail.
+  Recorded loudly at the resource in `dns.yaml` because **this is the record most likely to
+  be "improved" back by a future reviewer** — `-all` is exactly what a security review asks
+  for, and changing it un-verifies the domain at Apple and breaks mail when nobody is
+  watching.
+
+- **A CloudFormation logical id cannot be renamed, and renaming one that owns a live DNS
+  record is a delete-then-create (#54).** Renaming `SpfRecord` → `ApexTxtRecords` and
+  `NullMxRecord` → `MailMxRecord` produced a change-set of three `Add`s and two `Remove`s,
+  where **both `Remove`s carried `PhysicalResourceId: toldstraight.com`** — the live apex
+  TXT and MX. CloudFormation creates first and deletes in its cleanup phase, so the
+  sequence would UPSERT the new record sets and then issue `DELETE` against the live ones.
+  Keeping the ids produced `Modify` with `Replacement: False` — a clean in-place UPSERT.
+  Takeaway: **an honest comment costs nothing; an honest identifier can cost a live DNS
+  record.** Measured by building both change-sets and describing them — creating a
+  change-set deploys nothing, which makes it a free way to turn "I think this is risky"
+  into a receipt.
+
+- **An empty Fish command substitution inside a quoted string silently deletes the whole
+  argument (#54).** `echo "apex A: "(dig +short @ns A toldstraight.com)" (empty=good)"`
+  printed **nothing at all** when the record was absent — not an empty value, no line. The
+  negative test in the acceptance criteria therefore *looked* like it had passed while
+  producing no evidence whatsoever, which is the exact shape of a false green: an empty
+  result and a broken probe are indistinguishable. The fix is to capture into a variable
+  and test `count`. Worth recording because the failure mode is invisible on the success
+  path and only manifests on the case the check exists to catch.
 
 - **A stale `__pycache__` can survive a same-size file restore and produce a phantom
   failure.** After restoring `core/voice.py` from a backup during the negative test

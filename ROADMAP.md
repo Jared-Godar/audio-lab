@@ -118,6 +118,21 @@ registration.
   apex + `vote` **site records remain gated off** (`DeploySiteRecords=false`) — nothing
   to point them at yet. Mail is locked hard: nothing can send as this domain until the
   records change.
+- **Mail on iCloud+ — deployed 2026-07-27** (#54): the #22 lockdown was deliberately,
+  partially undone so the domain can host mailboxes. Null MX → iCloud's `mx01`/`mx02`;
+  SPF → `include:icloud.com ~all`; Apple's `apple-domain=` token and a `sig1._domainkey`
+  DKIM CNAME added. **DMARC `p=reject` with strict alignment and CAA are unchanged** — the
+  anti-spoofing guarantee was narrowed from "no sender" to "exactly one sender", not traded
+  away. Two change-sets on `toldstraight-dns`, both `UPDATE_COMPLETE`. Cost **$0 marginal**
+  (iCloud+ Custom Email Domain on an existing tier), chosen after WorkMail was found
+  discontinued mid-issue. **`~all` is mandatory, not a weakening by preference** — Apple's
+  verifier string-matches the value it issues and rejects the stricter `-all`.
+- Owed follow-ups from #54, tracked so they are not lost: **raise the three mail records'
+  TTLs from 300 back to 3600** once mail is confirmed working, **paste the live
+  `AudioLabSiteInfra` v4 / `AudioLabMail` v1 JSON** into `infra/README.md` (the deploy role
+  cannot read IAM, so an executor cannot), and **trim `AudioLabMail`'s dead WorkMail /
+  Directory Service statements** (a maintainer console action). Optionally add a
+  same-domain DMARC `rua=` now that a mailbox on this domain exists.
 - Still ahead in M5: the static site (S3 + CloudFront + ACM), then the apex/vote records
   switched on with real targets.
 

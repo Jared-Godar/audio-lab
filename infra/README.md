@@ -1,8 +1,8 @@
 # `infra/` — DNS for `toldstraight.com`
 
 CloudFormation that manages **records inside an existing Route 53 hosted zone**.
-The security records are **deployed** (stack `toldstraight-dns`, 2026-07-27); the site
-records remain gated off. See [Deployment record](#deployment-record) below.
+The mail and security records are **deployed** (stack `toldstraight-dns`, 2026-07-27); the
+site records remain gated off. See [Deployment record](#deployment-record) below.
 
 ## What the stack manages
 
@@ -11,17 +11,50 @@ records remain gated off. See [Deployment record](#deployment-record) below.
 
 | Record | Name | Type | TTL | Value | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| SPF | apex | TXT | 3600 | `"v=spf1 -all"` | authorize no mail senders (hard fail) |
-| Null MX | apex | MX | 3600 | `0 .` | RFC 7505: this domain accepts no mail |
+| Apex TXT | apex | TXT | 300 | `"v=spf1 include:icloud.com ~all"` **+** `"apple-domain=…"` | SPF: only iCloud may send (softfail — **`~all` is mandatory**, see below) · Apple domain-ownership token |
+| MX | apex | MX | 300 | `10 mx01.mail.icloud.com.` + `10 mx02.mail.icloud.com.` | inbound mail to iCloud+ |
+| DKIM | `sig1._domainkey` | CNAME | 300 | `sig1.dkim.<domain>.at.icloudmailadmin.com.` | delegates the DKIM key to Apple |
 | DMARC | `_dmarc` | TXT | 3600 | `"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;"` | reject unaligned mail, domain + subdomains |
 | CAA | apex | CAA | 3600 | `0 issue "amazon.com"` + `0 issuewild "amazon.com"` | only ACM/Amazon may issue certs |
 | Apex site | apex | A | 300 | `ApexTarget` param | **gated off** by default |
 | Vote site | `vote` | CNAME | 300 | `VoteTarget` param | **gated off** by default |
 
-Nothing sends mail from this domain, so the mail records lock it down hard rather than
-leaving it open to spoofing. `rua`/`ruf` (DMARC report addresses) and `iodef` (CAA
-violation address) are deliberately omitted until a reporting mailbox exists — see the
-comments in `dns.yaml`.
+**The two apex TXT strings share one `AWS::Route53::RecordSet` on purpose.** Route 53
+addresses a record set by (name, type), so an apex TXT can only ever be a single resource
+holding multiple strings — authoring the SPF policy and Apple's verification token
+separately would collide and fail the stack.
+
+`rua`/`ruf` (DMARC report addresses) and `iodef` (CAA violation address) are still
+omitted. The reason has half-expired: a mailbox on **this** domain now exists, and a
+same-domain `rua` target needs no cross-domain `_report._dmarc` authorization, so adding
+one is now cheap. It is a deliberate follow-up, not an oversight — see the comments in
+`dns.yaml`.
+
+### Mail architecture, and how to add or revoke an address
+
+Mailboxes are hosted by **iCloud+ Custom Email Domain** — a real mailbox, native in Mail
+on macOS/iOS, at **$0 marginal cost** on an existing paid iCloud+ tier. There is no
+forwarder, no Lambda, and no repo-owned mail component; the only mail state in this repo
+is the four DNS records above.
+
+- **Add or remove an address** (e.g. `hello@`, `jared@`): Apple's side only, no DNS
+  change. Adding an address neither needs nor triggers a template change.
+
+  **Click path** (verified against Apple's current documentation, July 2026 — not
+  recited from memory): go to **`icloud.com/icloudplus`** → sign in to your Apple
+  Account → **Custom Email Domain** → select **`toldstraight.com`** → then use the
+  controls beside each address to create or delete one. If you are already signed in
+  to iCloud.com, the equivalent route is the **toolbar → Custom Email Domain**.
+
+  **Apple caps a custom domain at three active email addresses.** `hello@` and `jared@`
+  are two of the three; a fourth alias is not available without removing one.
+- **Revoke the domain entirely:** roll back the DNS (see [Rollback](#rollback)), which
+  stops inbound mail within the 300 s TTL, then remove the domain on Apple's side.
+
+**Apple's setup flow offers to write these records into Route 53 for you. Decline it.**
+The zone's records are owned by this template; joint ownership between a provider and
+CloudFormation is exactly the drift this file exists to prevent. Take the *values* off
+Apple's screen; publish them only through a change-set.
 
 The apex and vote records are authored but held behind the `SiteRecordsEnabled`
 condition (`DeploySiteRecords` defaults to `false`), so the deployed stack carries
@@ -92,12 +125,98 @@ aws cloudformation wait stack-create-complete --profile audio-lab \
   --stack-name toldstraight-dns
 ```
 
-**Rollback:** `aws cloudformation delete-stack --profile audio-lab --stack-name
-toldstraight-dns` removes the four records but **not** the zone — the zone is a
-parameter, so it survives stack deletion (that is the whole point of the rule above).
+### Rollback
+
+**The fastest rollback is a DNS one, not a git one.** The mail records carry TTL 300
+deliberately, so a revert is visible within five minutes.
+
+Restore the pre-#54 lockdown by re-deploying the previous template through a change-set:
+
+```fish
+git show afdfb3f:infra/dns.yaml > /tmp/dns-pre-54.yaml
+aws cloudformation create-change-set --profile audio-lab \
+  --stack-name toldstraight-dns --change-set-name rollback-icloud-mail \
+  --change-set-type UPDATE --template-body file:///tmp/dns-pre-54.yaml \
+  --parameters \
+    ParameterKey=HostedZoneId,ParameterValue=Z09608783EP48AD8RCAL5 \
+    ParameterKey=DomainName,ParameterValue=toldstraight.com \
+    ParameterKey=DeploySiteRecords,ParameterValue=false
+# then describe -> read -> execute, exactly as above.
+```
+
+**Do not use `delete-stack` as a rollback.** `aws cloudformation delete-stack --profile
+audio-lab --stack-name toldstraight-dns` removes the records but **not** the zone — the
+zone is a parameter, so it survives stack deletion (that is the whole point of the rule
+above). But it leaves the domain with *no* mail records at all: no SPF, no DMARC, no MX,
+null or otherwise. That is strictly worse than either the locked or the iCloud state,
+because an unprotected domain invites spoofing. Delete the stack only when the intent is
+genuinely to stop managing this zone.
 
 To **change** these records later, create a change-set with `--change-set-type UPDATE`
 (the stack now exists), review it, then execute — never a bare `deploy`.
+
+### Update 2026-07-27 (issue #54) — mail switched on for iCloud+
+
+The mail lockdown was **deliberately, partially undone** so `toldstraight.com` can host
+mailboxes at iCloud+ Custom Email Domain. Deployed by change-set
+`enable-icloud-mail-keepids`, type `UPDATE`, result **`UPDATE_COMPLETE`**.
+
+| Record | From | To |
+| --- | --- | --- |
+| Apex TXT | `"v=spf1 -all"` (TTL 3600) | `"v=spf1 include:icloud.com ~all"` + `"apple-domain=…"` (TTL 300) |
+| MX | `0 .` (RFC 7505 null, TTL 3600) | `10 mx01.mail.icloud.com.` + `10 mx02.mail.icloud.com.` (TTL 300) |
+| DKIM | absent | `sig1._domainkey` CNAME → `sig1.dkim.<domain>.at.icloudmailadmin.com.` (TTL 300) |
+| DMARC · CAA | — | **unchanged** |
+
+The change-set was described and reviewed before execution: **`Modify` SpfRecord,
+`Modify` NullMxRecord, `Add` DkimRecord — three `AWS::Route53::RecordSet`s, no
+`AWS::Route53::HostedZone`.**
+
+#### SPF must end `~all`. This is not a preference — do not "improve" it to `-all`
+
+Deployed first as `-all` (hard fail), on the reasoning that iCloud is the only sender so
+the stricter form was both correct and safer. **Apple's verifier rejected the domain:**
+
+> Check your SPF record — make sure the settings you updated match the ones sent to you.
+
+**Apple's Custom Email Domain verifier does a literal string comparison against the SPF
+value it issued; it does not evaluate SPF semantics.** Apple issues `~all`, so `-all` can
+never pass, no matter how long you wait — and the error blames your record rather than
+naming the mismatch. Corrected in a second change-set (`spf-softfail-for-apple-verifier`,
+one `Modify` on the TXT resource, `UPDATE_COMPLETE`).
+
+**Caching was excluded as a cause before concluding this**, not assumed: the `-all` record
+was confirmed live on *both* the authoritative nameserver and public resolvers, with the
+old `v=spf1 -all` gone from public view, before Apple was retried.
+
+**The security accounting, stated rather than glossed:** DMARC is `p=reject` with strict
+alignment and is **unchanged** — that is where enforcement lives. The `~all` vs `-all`
+difference reaches only receivers that do an SPF-only check with **no** DMARC lookup; for
+those, spoofed mail moves from hard reject to softfail. Against DMARC-aware receivers,
+everything #22 bought is intact.
+
+**This is the record most likely to be "fixed" by a future reviewer**, because `-all` is
+what a security review asks for. `dns.yaml` carries a blunt warning at the resource.
+Changing it un-verifies the domain at Apple and breaks mail at a moment nobody is watching.
+
+**TTLs on the three changed records are 300, not 3600, on purpose.** The null MX told
+resolvers "this domain accepts no mail", and at TTL 3600 that could have been cached for
+an hour past cutover. 300 makes the cutover observable and a rollback fast. **Raising
+them back to 3600 once mail is confirmed working is an owed follow-up.**
+
+#### The logical IDs `SpfRecord` and `NullMxRecord` are now misnamed, deliberately
+
+Neither resource is a "null MX" or an SPF-only record any more. **A CloudFormation
+logical ID cannot be renamed** — changing it is a delete of the old resource plus a
+create of the new one. Measured on this stack: renaming them produced a change-set of
+three `Add`s and two `Remove`s, where each `Remove` carried
+`PhysicalResourceId: toldstraight.com` — CloudFormation would have created the new record
+sets and then issued `DELETE` against the live ones in its cleanup phase, risking the
+removal of SPF and Apple's verification token together. Keeping the ids yields
+`Replacement: False` in-place modifications instead.
+
+**An honest comment costs nothing; an honest identifier would cost a live DNS record.**
+`dns.yaml` carries this reasoning at both resources. Read the values, not the ids.
 
 ## Enabling the site records later
 
@@ -121,9 +240,21 @@ When the apex should point at CloudFront, replace `ApexSiteRecord` with an A-rec
 `AliasTarget` block rather than an `ApexTarget` IP — apex CNAMEs are invalid DNS and
 CloudFront has no stable IP. The template comments flag this at the record.
 
-**Note on mail:** `v=spf1 -all` + DMARC `p=reject` mean nothing can send mail as this
-domain until these records change. That is correct today and deliberate. If a
-newsletter or transactional sender is ever added, these records must change first.
+**Note on mail (rewritten 2026-07-27, #54 — the previous version is now false).** This
+file used to say *"nothing can send mail as this domain until these records change."*
+That stopped being true the moment #54 deployed: the domain now sends and receives via
+iCloud+.
+
+What is true today: **`v=spf1 include:icloud.com ~all` authorizes iCloud and nothing
+else**, DMARC stays `p=reject` with strict alignment, and Apple's DKIM selector signs as
+`toldstraight.com`. **The anti-spoofing guarantee from #22 survives** — it was narrowed
+from "no sender at all" to "exactly one sender", not traded away. Anything else claiming
+to be this domain fails SPF alignment and is **rejected by DMARC policy**, which is the
+mechanism doing the work (see the `~all` note above for why SPF itself softfails).
+
+If a newsletter or transactional sender (e.g. SES for #50's Cognito invitations) is ever
+added, **these records must change first** — a second sender needs its own SPF `include:`
+and its own DKIM selector, or its mail will be rejected by the domain's own policy.
 
 ## Finding the `HostedZoneId`
 
@@ -165,14 +296,28 @@ aws route53 list-resource-record-sets --profile audio-lab \
   --query 'ResourceRecordSets[].{Name:Name,Type:Type,TTL:TTL}' --output table
 
 # DNS — query the zone's OWN nameserver directly to sidestep resolver caching:
-dig +short @ns-235.awsdns-29.com TXT toldstraight.com          # expect "v=spf1 -all"
-dig +short @ns-235.awsdns-29.com MX toldstraight.com           # expect 0 .
+dig +short @ns-235.awsdns-29.com TXT toldstraight.com          # expect v=spf1 include:icloud.com ~all + apple-domain=...
+dig +short @ns-235.awsdns-29.com MX toldstraight.com           # expect 10 mx01/mx02.mail.icloud.com.
+dig +short @ns-235.awsdns-29.com CNAME sig1._domainkey.toldstraight.com  # expect sig1.dkim...icloudmailadmin.com.
 dig +short @ns-235.awsdns-29.com TXT _dmarc.toldstraight.com   # expect v=DMARC1; p=reject; ...
 dig +short @ns-235.awsdns-29.com CAA toldstraight.com          # expect 0 issue "amazon.com" + issuewild
 
 # Control (known-positive through the identical path):
 dig +short TXT google.com; dig +short MX google.com; dig +short CAA google.com
 ```
+
+**Negative check — the #22 protection must still hold.** These must all return nothing;
+run the control above alongside them, or an empty answer and a broken probe look identical:
+
+```fish
+dig +short @ns-235.awsdns-29.com A toldstraight.com        # expect (no output)
+dig +short @ns-235.awsdns-29.com A vote.toldstraight.com   # expect (no output)
+```
+
+**Careful writing these in Fish:** an empty command substitution inside a quoted string
+collapses the whole argument, so `echo "apex: "(dig +short …)` prints *nothing at all*
+when the record is absent — which reads as a silent pass. Capture into a variable and
+test `count` instead.
 
 **Public resolvers lag.** A pre-deploy query for an absent record can seed a negative
 cache for up to the SOA minimum TTL (86400s here), so `dig` against your default
@@ -207,17 +352,58 @@ directly — edit the permission set and **Reprovision**.
   effectively permanent (changing it means deleting the instance and losing every user,
   group, permission set, and assignment).
 - **Permission set:** `AudioLabDeploy` — a **custom** permission set (not
-  `AdministratorAccess`), session duration **1 hour**, referencing the two
+  `AdministratorAccess`), session duration **1 hour**, referencing the **three**
   customer-managed policies below **by name** (create the policies first, or provisioning
-  fails).
+  fails). The limit is 10 policies per permission set.
 - **Break-glass:** keep exactly one IAM admin user with `AdministratorAccess` + MFA,
   unused day to day, so a misconfigured Identity Center cannot lock you out.
 
 ### Customer-managed policies attached to `AudioLabDeploy`
 
 Create these in **IAM → Policies → Create policy → JSON tab** (not the visual editor —
-its "string like" matcher can silently widen an ARN), then attach both to the permission
-set by name and **Reprovision**.
+its "string like" matcher can silently widen an ARN), then attach all three to the
+permission set by name and **Reprovision**.
+
+**There are three, not two — corrected 2026-07-27 (#54).** This section documented a
+two-policy structure long after it stopped being true. On 2026-07-27 the single
+`AudioLabSiteInfra` policy **exceeded IAM's 6,144-character managed-policy limit** once
+WorkMail, Directory Service and SES actions were added (7,066 minified, 922 over). AWS
+excludes whitespace from that count, so minifying was not an escape. It was split along a
+real seam — mail and the audition platform have independent lifecycles — rather than by
+trimming capabilities:
+
+| Policy | Statements | Minified size | Headroom |
+| --- | --- | --- | --- |
+| `AudioLabDnsDomains` | unchanged | — | — |
+| `AudioLabSiteInfra` (**v4**) | 16 | 5,072 | 1,072 |
+| `AudioLabMail` (**v1**) | 5 | 2,116 | 4,028 |
+
+**Attaching a new policy to a permission set requires reprovisioning** — unlike editing a
+policy's *contents*, which takes effect immediately.
+
+> **`AudioLabMail`'s WorkMail and Directory Service statements are dead.** AWS announced
+> it will discontinue Amazon WorkMail on **31 March 2027**, new sign-ups are closed, and
+> this account reports *"This account does not have access to Amazon WorkMail."* The
+> `WorkMailOrganization` and `WorkMailDirectoryBacking` statements (~1,120 characters)
+> describe a capability that cannot be used. They are **inert, not harmful**. The
+> `MailDomainIdentity` and `MailAccountVisibility` (SES) statements stay — #50 needs SES
+> sending for Cognito invitations. **Trimming the dead statements is a maintainer console
+> action, deliberately not done by an executor** (see the note below on the JSON gap).
+
+**Not recorded here yet: the verbatim JSON for `AudioLabSiteInfra` v4 and `AudioLabMail`
+v1.** Stated plainly rather than papered over — this executor could not read it and did
+not invent it:
+
+- `iam:ListPolicies` / `iam:GetPolicyVersion` are **denied** to `AudioLabDeploy`
+  (`AccessDenied … not authorized to perform: iam:ListPolicies`), and **widening IAM to
+  unblock the documentation would be exactly the wrong fix.**
+- The gitignored working notes (`artifacts/aws-iam-setup.md`,
+  `artifacts/aws-identity-center-roles.md`) predate the split and contain only the old
+  two-policy structure — so the claim that all three policies "live in gitignored notes"
+  is false for two of them. They exist only in the console.
+
+The `AudioLabDnsDomains` JSON below is complete and current. To finish this section, paste
+the other two from **IAM → Policies → select the policy → the Permissions tab → JSON**.
 
 **`AudioLabDnsDomains`** — `route53domains` is us-east-1 only and has no resource-level
 permissions, so `"Resource": "*"` is the service's constraint, not sloppiness:
@@ -266,7 +452,14 @@ permissions, so `"Resource": "*"` is the service's constraint, not sloppiness:
 ```
 
 **`AudioLabSiteInfra`** — CloudFormation + S3 (scoped to the `toldstraight-*` prefix) +
-ACM + CloudFront + a whoami statement:
+ACM + CloudFront + a whoami statement.
+
+> ⚠️ **The JSON below is the ORIGINAL 6-statement version, not the live v4 (16
+> statements).** It is retained because it is the accurate record of what was deployed on
+> 2026-07-26 and every statement in it still exists in v4; it is **not** a complete
+> description of the live policy, which also carries Lambda, Cognito, API Gateway and SSM
+> actions added for #50. Do not recreate the policy from this block. Replace it with the
+> live JSON when the maintainer pastes it — see the note above.
 
 ```json
 {
@@ -363,6 +556,53 @@ ACM + CloudFront + a whoami statement:
   ]
 }
 ```
+
+**`AudioLabMail` (v1)** — 5 statements, created 2026-07-27 when `AudioLabSiteInfra`
+outgrew the 6,144-character limit. Two of the five are permanently dead (see the WorkMail
+note above); the SES statements remain live and are what #50 needs.
+
+| Sid | Status | Purpose |
+| --- | --- | --- |
+| `WorkMailOrganization` | **dead** | WorkMail org/user management — product discontinued, account ineligible |
+| `WorkMailDirectoryBacking` | **dead** | Directory Service actions backing a WorkMail org |
+| `MailDomainIdentity` | live | SES identity actions scoped to `identity/toldstraight.com` |
+| `MailAccountVisibility` | live | SES account/sending read actions |
+| `MailSending` | live | SES send actions (#50's Cognito invitations) |
+
+**JSON not recorded — see the note above.** The statement inventory here comes from the
+maintainer's own record on issue #54, not from a read of the live policy, and is labelled
+as such rather than presented as a measurement.
+
+**Verified after the split by nine probes in both directions** (2026-07-27, recorded on
+issue #54 — relayed, not re-run by this session):
+
+```text
+MAIL      workmail list-organizations      ALLOWED
+          sesv2 list-email-identities      ALLOWED
+          ds describe-directories          ALLOWED
+PLATFORM  lambda list-functions            ALLOWED
+          cognito-idp list-user-pools      ALLOWED
+          apigateway get-rest-apis         ALLOWED
+          ssm get-parameters-by-path       ALLOWED   (/audiolab/)
+          route53 list-hosted-zones        ALLOWED   toldstraight.com.
+CONTROL   ec2 describe-instances           DENIED
+```
+
+The platform probes are a regression check — the v4 split removed statements from a policy
+the audition work depends on, and all of them still resolve. **The EC2 denial is the
+control:** without it, a working probe and an over-broad policy are indistinguishable.
+
+**A `[]` from a list API proves an IAM grant, not that the service is usable.**
+`aws workmail list-organizations` returned `[]` and was read as "allowed, nothing created
+yet" — permissions and *availability* are two different questions and only one was tested.
+The account had no WorkMail access at all. This is the same class of false green the
+control discipline in this file exists to catch.
+
+**AWS action names are not inferable from API shape; the IAM policy editor is the
+authority.** Three names were wrong across two rounds and the console validator caught
+every one: `apigateway:TagResource`, `apigateway:UntagResource`, and
+`workmail:DescribeMailDomain` (WorkMail names it `GetMailDomain`) — plus
+`ssm:DescribeParameters` scoped to a resource ARN when it is account-level.
 
 **Deliberately excluded from the policy** — add only when something actually needs them:
 `iam:CreateRole`/`iam:PassRole` (a privilege-escalation path, needed only once a stack
