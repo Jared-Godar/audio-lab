@@ -73,10 +73,28 @@ If this IS the executor session, it was launched without its flag. Relaunch with
 
   Bash)
     cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
+    # Match the command VERBS, not the raw line. Quoted arguments — a grep
+    # search pattern, an issue body that happens to name commands — must not
+    # trip the guard, so strip single- and double-quoted spans before matching.
+    # A verb that is quoted cannot actually execute as a verb, so stripping
+    # never hides a real mutation. (KNOWN HOLE, stated plainly: a deliberate
+    # `bash -c "git push"` wrapper evades this, exactly like the printf/tee
+    # in-repo write hole documented in CLAUDE.md. The guard is a lane marker
+    # against accidental PM freelancing, not a sandbox against a determined
+    # bypass.)
+    verbs="$(printf '%s' "$cmd" | sed "s/'[^']*'//g; s/\"[^\"]*\"//g")"
     # Mutating verbs only. Read-only git/gh (log, diff, status, view, checks,
-    # ls-remote, list) stays available to PM — verification is the PM's job.
-    if printf '%s' "$cmd" | grep -Eq \
-      '(^|[;&|[:space:]])(git[[:space:]]+(commit|push|merge|rebase|reset|revert|cherry-pick|tag|branch[[:space:]]+-[dD]|switch[[:space:]]+-c|checkout[[:space:]]+-b)|gh[[:space:]]+(pr[[:space:]]+(create|merge|edit|close|ready)|release[[:space:]]+(create|edit|delete)|repo[[:space:]]+(create|edit|delete)|api[[:space:]]+.*-X[[:space:]]*(POST|PUT|PATCH|DELETE)))'; then
+    # ls-remote, list, and the merge-base/merge-tree/merge-file family) stays
+    # available to PM — verification is the PM's job. Two fixes over the naive
+    # matcher (issue #35):
+    #   * Each simple verb is anchored on a trailing word boundary
+    #     ([[:space:]]|$), so `merge` matches `git merge` but NOT the read-only
+    #     `git merge-base`.
+    #   * The gh api clause matches BOTH the short `-X` and the long `--method`
+    #     flag (and `=`-joined values), so a ref-deleting DELETE cannot slip
+    #     through the long form.
+    if printf '%s' "$verbs" | grep -Eq \
+      '(^|[;&|[:space:]])(git[[:space:]]+((commit|push|merge|rebase|reset|revert|cherry-pick|tag)([[:space:]]|$)|(branch[[:space:]]+-[dD]|switch[[:space:]]+-c|checkout[[:space:]]+-b))|gh[[:space:]]+(pr[[:space:]]+(create|merge|edit|close|ready)|release[[:space:]]+(create|edit|delete)|repo[[:space:]]+(create|edit|delete)|api[[:space:]]+.*(-X|--method)[[:space:]=]*(POST|PUT|PATCH|DELETE)))'; then
       deny "BLOCKED by the PM-lane guard (.claude/hooks/pm-lane-guard.sh).
 
 This session is running as PM: it decides, documents, verifies and gates.

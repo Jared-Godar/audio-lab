@@ -20,7 +20,17 @@ jobs:
     name: Changelog updated
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+    # Bot authors are exempt from the changelog gate (issue #28). A grouped
+    # monthly action-version bump is exactly the trivial-change class the
+    # escape hatch was written for, and the version diff itself is the audit
+    # trail. Exempting the AUTHOR — rather than pinning the skip-changelog
+    # label onto every bot PR in dependabot.yml — keeps skip-changelog meaning
+    # what AGENTS.md says it means for HUMAN PRs: an explicit, per-PR judgement,
+    # never a standing bypass. user.login is set by GitHub and cannot be spoofed
+    # by a PR author, so this is safe on the pull_request trigger.
+    if: >-
+      ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+          && github.event.pull_request.user.login != 'dependabot[bot]' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
