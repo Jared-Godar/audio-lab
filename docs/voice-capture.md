@@ -298,10 +298,10 @@ the side view exists because the one-room-one-distance rule (see Recording best
 practices, below) has to survive past the first session — mark it once, and every
 later session can return to the exact same spot.
 
-**Rendering check (this PR):** confirmed on GitHub's rendered PR/file view, not just
-in the local editor — both boxes hold their right edges in a monospace font and the
-`[ MIC ]` / `( O )` alignment reads cleanly at the default code-block width. See the
-PR body for the pasted screenshot/confirmation.
+**Rendering check (this PR):** confirmed on GitHub's rendered file view, not just in
+the local editor — both boxes hold their right edges in a monospace font and the
+`[ MIC ]` / `( O )` alignment reads cleanly at the default code-block width. See
+PR #49's Verification section for the exact link checked and what was confirmed.
 
 ### Deciding it — a test, not this document
 
