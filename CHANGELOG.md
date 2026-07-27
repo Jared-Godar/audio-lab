@@ -250,7 +250,36 @@ visible in the diff and would otherwise evaporate.
   (…) quota of 5000` reaches the caller verbatim. Diagnose before suppressing — a clear
   message that names what actually failed.
 
+### Fixed
+
+- **A test that could only ever pass on one machine — caught within minutes of wiring
+  pytest into CI (#30 Gap 4).** `test_manifest_entry_matches_sweep_schema` read its
+  reference schema from `artifacts/voice-previews/manifest.json`, which is **gitignored**
+  (`.gitignore` `artifacts/*`, zero tracked files under that directory). It passed
+  locally and failed on the first CI run — `1 failed, 54 passed` — which is precisely
+  what #30 predicted in writing: *"the 11/11 pass reported on PR #29 is a local
+  result."* The reference is now a **tracked** fixture at
+  `pipeline/tests/fixtures/voice-preview-manifest-schema.json` — one entry copied
+  verbatim from the 2026-07-26 sweep (public ElevenLabs shared-voice metadata, nothing
+  account-specific). **Proven in both directions rather than merely seen passing:** with
+  a seeded key-order regression in `manifest_entry()` the test fails; restored, the full
+  suite is 55/55 with zero skips. The fixture deliberately lives in `tests/fixtures/`
+  and **not** `tests/data/` — `data/` is gitignored repo-wide under "Personal data
+  exports", so the obvious directory name would have reproduced the identical bug, which
+  `git check-ignore` was used to confirm before choosing the path. Repair option chosen
+  by the maintainer from four presented; the one-line `skipif` was rejected because it
+  would have cut CI coverage to 54 while looking green.
+
 ### Findings
+
+- **A stale `__pycache__` can survive a same-size file restore and produce a phantom
+  failure.** After restoring `core/voice.py` from a backup during the negative test
+  above, the suite kept failing while the on-disk source, the editable install path and
+  `git status` all said it was correct — Python was serving a `.pyc` compiled from the
+  seeded version. Clearing `__pycache__` and `.pytest_cache` resolved it. The lesson is
+  narrow but sharp: **when a test result contradicts the file you just verified, suspect
+  the cache before you re-reason about the code** — and clear caches on *both* sides of
+  a seeded-regression test, or the negative and positive halves are not comparable.
 
 - **Bash 3.2 — what macOS ships and what runs these hooks — mis-parses a `case`
   statement inside `$( … )`, and `bash -n` does not catch it.** The substitution is

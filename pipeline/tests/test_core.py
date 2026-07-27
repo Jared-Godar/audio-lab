@@ -193,10 +193,24 @@ def test_browse_respects_max_results(monkeypatch):
 
 
 def test_manifest_entry_matches_sweep_schema():
+    # The reference is a TRACKED fixture, not the live sweep manifest under
+    # artifacts/voice-previews/ — that path is gitignored, so the original version of
+    # this test passed on the author's machine and could never pass anywhere else. It
+    # went unnoticed until pytest was wired into CI (#30 Gap 4), which is exactly what
+    # that issue predicted: "the 11/11 pass reported on PR #29 is a local result."
+    #
+    # The fixture is one entry copied verbatim from the 2026-07-26 sweep (public
+    # ElevenLabs shared-voice metadata, nothing account-specific). Key ORDER is what is
+    # under test, so if manifest_entry() ever renames or reorders a field, this fails.
+    # Note the directory is tests/fixtures/ and NOT tests/data/: `data/` is gitignored
+    # repo-wide (.gitignore "Personal data exports"), which would have reproduced the
+    # very bug this replaces.
     sweep = (
-        Path(__file__).resolve().parents[2] / "artifacts/voice-previews/manifest.json"
+        Path(__file__).resolve().parent
+        / "fixtures"
+        / "voice-preview-manifest-schema.json"
     )
-    reference_keys = list(json.loads(sweep.read_text())[0].keys())
+    reference_keys = list(json.loads(sweep.read_text(encoding="utf-8"))[0].keys())
     sv = SharedVoice.from_api(_voice("z", 123))
     entry = sv.manifest_entry(
         "20260726-elevenlabs-preview-voice-z-cohost-candidate.mp3"
