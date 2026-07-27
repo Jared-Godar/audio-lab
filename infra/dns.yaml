@@ -5,6 +5,10 @@ AWSTemplateFormatVersion: "2010-09-09"
 # Long form is plain YAML, so the repo's generic check-yaml pre-commit hook can
 # parse it; the short-tag form uses custom YAML tags (!Equals, ...) that a safe
 # YAML loader cannot construct. Both forms are equally valid CloudFormation.
+#
+# NOTE: the Description below is capped at 1024 characters by CloudFormation
+# (cfn-lint E1003 and validate-template both reject a longer one), so detail
+# that would overflow it lives in comments at the resources instead.
 
 Description: >-
   DNS RecordSets for toldstraight.com, managed INSIDE a pre-existing Route 53
@@ -16,11 +20,11 @@ Description: >-
   until the nameservers are repointed by hand. The zone is therefore an INPUT
   (HostedZoneId parameter), never a Resource. See infra/README.md.
 
-  Initial scope is security records that cost nothing to get wrong-then-fix:
-  a hard mail lockdown (nothing sends mail from this domain yet) and a
-  certificate-issuer restriction. Site records (apex + vote) are authored but
-  gated OFF by default, so this template deploys today with security records
-  only and the site switches on later without a rewrite.
+  Scope is mail plus a certificate-issuer restriction. Mail was a hard lockdown
+  (SPF "-all", RFC 7505 null MX); as of #54 the domain hosts mailboxes at
+  iCloud+, so MX accepts iCloud, SPF authorizes iCloud and only iCloud, and
+  Apple's DKIM selector is delegated by CNAME. DMARC stays p=reject with STRICT
+  alignment and CAA is untouched. Site records (apex + vote) are gated OFF.
 
 Parameters:
   HostedZoneId:
@@ -74,11 +78,73 @@ Conditions:
       - "true"
 
 Resources:
-  # --- Mail lockdown -------------------------------------------------------
-  # Nothing sends mail from this domain, so lock it hard rather than leaving it
-  # open to spoofing. TTL 3600: these are stable security records.
+  # --- Mail: iCloud+ Custom Email Domain (#54) ------------------------------
+  # This domain previously declared that it neither sends nor accepts mail
+  # (SPF "-all" + RFC 7505 null MX, #22). It now hosts mailboxes at iCloud+,
+  # so those two records are deliberately given up. What is NOT given up:
+  # DMARC stays p=reject with STRICT alignment and CAA is untouched. Only
+  # iCloud is authorized to send, and anything else claiming to be this domain
+  # is still rejected by DMARC policy.
+  #
+  # Note that SPF now ends "~all" (softfail), NOT "-all" -- forced by Apple's
+  # verifier, see the SpfRecord comment below. DMARC is where the enforcement
+  # lives; do not read "~all" as the domain having gone soft.
+  #
+  # TTL 300 on every record this change touches (was 3600). The null MX said
+  # "this domain accepts no mail", so a resolver that cached it could keep
+  # bouncing mail for a full hour after cutover. 300 makes the cutover
+  # observable and a rollback fast. Raising them back to 3600 once mail is
+  # confirmed working is a deliberate follow-up, not part of #54.
+  #
+  # Apple's setup screen offers to write these records into Route 53 itself.
+  # That offer is declined by decision: the zone's records are owned by this
+  # template, and joint ownership between a provider and CloudFormation is
+  # exactly the drift infra/README.md exists to prevent. The VALUES below were
+  # read off Apple's screen; the records are published only from here.
 
-  # SPF: authorize no senders at all ("-all" = hard fail).
+  # Both apex TXT values live in ONE RecordSet ON PURPOSE. Route 53 addresses a
+  # record set by (name, type), so an apex TXT can only ever be a single
+  # resource holding multiple strings -- authoring the SPF policy and Apple's
+  # domain-verification token as two AWS::Route53::RecordSet resources would
+  # collide on the same name+type and fail the stack. So this resource is really
+  # "the apex TXT record set", not "the SPF record".
+  #
+  # THE LOGICAL ID IS DELIBERATELY NOT RENAMED, despite now being inaccurate.
+  # A CloudFormation logical ID cannot be renamed: changing it is a delete of
+  # the old resource plus a create of the new one. Measured on this stack --
+  # renaming SpfRecord -> ApexTxtRecords produced "Add ApexTxtRecords" +
+  # "Remove SpfRecord", both against physical resource toldstraight.com, i.e.
+  # CloudFormation would create the new apex TXT and then issue a DELETE
+  # against the live one in its cleanup phase. That risks taking SPF and
+  # Apple's verification token off the domain together. Keeping the id makes
+  # the change a clean in-place Modify. An honest comment costs nothing; an
+  # honest identifier would cost a live DNS record.
+  #   - v=spf1 include:icloud.com ~all
+  #       *** "~all" IS MANDATORY HERE. DO NOT "IMPROVE" IT TO "-all". ***
+  #       Apple's Custom Email Domain verifier does a LITERAL STRING COMPARISON
+  #       against the SPF value it issued -- it does not evaluate SPF
+  #       semantics. Apple issues "~all", so "-all" can NEVER pass verification
+  #       however long you wait, and the failure message blames your record
+  #       ("Check your SPF record -- make sure the settings you updated match
+  #       the ones sent to you") rather than naming the mismatch.
+  #
+  #       This was tried the strong way first and it failed: "-all" is
+  #       semantically stricter and is what a security review would ask for,
+  #       which is exactly why someone will eventually change it back. Doing so
+  #       un-verifies the domain at Apple and breaks mail at a moment nobody is
+  #       watching. Measured 2026-07-27 -- caching was excluded as a cause, the
+  #       new record was confirmed live on both the authoritative nameserver
+  #       and public resolvers before Apple was retried.
+  #
+  #       The security cost is bounded and is NOT where the enforcement lives:
+  #       DMARC below is p=reject with strict alignment and is unchanged. The
+  #       "~all" vs "-all" difference only reaches receivers doing an SPF-only
+  #       check with no DMARC lookup; for those, spoofed mail moves from hard
+  #       reject to softfail. Against DMARC-aware receivers, everything #22
+  #       bought is intact.
+  #   - apple-domain=...
+  #       Apple's domain-ownership verification token. Removing it can
+  #       un-verify the domain at Apple; it is not decoration.
   SpfRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -87,12 +153,19 @@ Resources:
       Name:
         Fn::Sub: "${DomainName}."
       Type: TXT
-      TTL: "3600"
+      TTL: "300"
       ResourceRecords:
-        - '"v=spf1 -all"'
+        - '"v=spf1 include:icloud.com ~all"'
+        - '"apple-domain=5J9Dq1Hh4Tnuwc0B"'
 
-  # Null MX (RFC 7505): the explicit "this domain accepts no mail" signal --
-  # priority 0, target "." (the root).
+  # Inbound mail: iCloud's two mail exchangers, equal priority 10. This
+  # replaces the RFC 7505 null MX ("0 .") that previously declared the domain
+  # accepts no mail. Trailing dots are load-bearing -- without them Route 53
+  # would append the zone name and point mail at a host that does not exist.
+  #
+  # The logical id NullMxRecord is kept for the same reason SpfRecord is (see
+  # above): renaming it would delete and re-create a live MX record instead of
+  # modifying it. The name is now historical -- read the values, not the id.
   NullMxRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -101,15 +174,44 @@ Resources:
       Name:
         Fn::Sub: "${DomainName}."
       Type: MX
-      TTL: "3600"
+      TTL: "300"
       ResourceRecords:
-        - "0 ."
+        - "10 mx01.mail.icloud.com."
+        - "10 mx02.mail.icloud.com."
+
+  # DKIM: Apple signs outbound mail with selector "sig1" and publishes the key
+  # on its own infrastructure, so this is a CNAME delegation rather than a key
+  # published here -- Apple can rotate the key without a change-set. The target
+  # embeds this domain name by design; it is not a copy-paste error.
+  #
+  # This record is what makes DMARC survivable. Alignment is STRICT
+  # (adkim=s; aspf=s) and DMARC passes on EITHER aligned SPF or aligned DKIM;
+  # since Apple signs as d=toldstraight.com, DKIM is the path expected to hold
+  # even if iCloud's envelope sender does not align under aspf=s.
+  DkimRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "sig1._domainkey.${DomainName}."
+      Type: CNAME
+      TTL: "300"
+      ResourceRecords:
+        - Fn::Sub: "sig1.dkim.${DomainName}.at.icloudmailadmin.com."
 
   # DMARC: reject anything failing alignment, strictly, for the domain and its
-  # subdomains. rua/ruf (aggregate/forensic report addresses) are omitted on
-  # purpose: reports to a mailbox on another domain require THAT domain to
-  # publish a "<thisdomain>._report._dmarc" authorization record, and there is
-  # no mailbox anywhere yet. Add rua/ruf once a reporting mailbox exists.
+  # subdomains. UNCHANGED by #54 -- this is the anti-spoofing guarantee that
+  # survives the mail cutover, and relaxing alignment to adkim=r/aspf=r is a
+  # decision to be made on evidence from a FAILED test, by the maintainer, not
+  # pre-emptively.
+  #
+  # rua/ruf (aggregate/forensic report addresses) are still omitted, but the
+  # reason has now half-expired: a mailbox on THIS domain exists as of #54, and
+  # a same-domain rua target needs no cross-domain "_report._dmarc"
+  # authorization record. Adding "rua=mailto:..." is therefore now cheap and is
+  # a deliberate follow-up, out of scope for #54 (which changes only the three
+  # records mail requires).
   DmarcRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -177,9 +279,13 @@ Outputs:
       Ref: HostedZoneId
 
   SecurityRecordsSummary:
-    Description: The security records this stack manages.
+    Description: The mail and security records this stack manages.
     Value:
-      Fn::Sub: "SPF + null MX + DMARC on ${DomainName}; CAA restricting issuance to amazon.com"
+      Fn::Sub: >-
+        iCloud+ mail on ${DomainName} (MX mx01/mx02.mail.icloud.com, SPF
+        include:icloud.com -all, DKIM selector sig1 delegated to Apple);
+        DMARC p=reject with strict alignment; CAA restricting issuance to
+        amazon.com
 
   SiteRecordsState:
     Description: Whether the apex/vote site records are deployed.
