@@ -7,7 +7,7 @@ Update this when a milestone moves or a decision lands. Findings about external
 services still go to `CHANGELOG.md` under **Findings**; durable operating detail
 goes to `docs/`.
 
-Last updated: 2026-07-26
+Last updated: 2026-07-27
 
 ---
 
@@ -85,6 +85,15 @@ registration.
 
 - Blocked by: nothing. Unblocked 2026-07-26 — no Free Tier credits exist to lose.
 - `toldstraight.com` registered 2026-07-26, $16/yr, auto-renew on.
+- **DNS security records — deployed 2026-07-27** (#22): SPF, null MX, DMARC `p=reject`,
+  and CAA restricting issuance to `amazon.com`, via CloudFormation stack
+  `toldstraight-dns` (change-set, `CREATE_COMPLETE`) into the pre-existing zone
+  `Z09608783EP48AD8RCAL5`. The zone stays a **parameter**, never a stack resource. The
+  apex + `vote` **site records remain gated off** (`DeploySiteRecords=false`) — nothing
+  to point them at yet. Mail is locked hard: nothing can send as this domain until the
+  records change.
+- Still ahead in M5: the static site (S3 + CloudFront + ACM), then the apex/vote records
+  switched on with real targets.
 
 ### M6 — Community applet
 
