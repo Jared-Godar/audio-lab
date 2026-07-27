@@ -39,6 +39,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Re-injecting durable contracts...",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/contract-reinjection.sh\""
+          }
+        ]
+      }
     ]
   }
 }

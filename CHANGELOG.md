@@ -11,6 +11,81 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The durable contracts are re-injected every turn, and a mid-session change is now
+  announced instead of silently ignored (#33).**
+  `.claude/hooks/contract-reinjection.sh` is a tracked `UserPromptSubmit` hook — the
+  event name, payload shape and `hookSpecificOutput.additionalContext` return path
+  verified against the current documentation (`code.claude.com/docs/en/hooks`,
+  2026-07-27) rather than assumed, because naming an event that does not exist yields a
+  hook that silently never fires. Every turn it emits a **generated** digest of
+  `AGENTS.md`, `CLAUDE.md` and `~/.claude/CLAUDE.md`: their SHAs, sizes and section
+  headings, computed from the files at hook time. Nothing is hand-maintained — a
+  hand-written digest is one more artifact that can lie, which is the defect #33 exists
+  to remove. When a SHA differs from what the session last saw, it **escalates**: names
+  the sections added, modified and removed, injects their full text (bounded at 16,000
+  bytes; a file over 8,000 degrades to changed-sections-plus-re-read and says so), and
+  instructs the session to re-read before citing. The failure it answers was observed
+  here — a session spent half an hour quoting an `AGENTS.md` that had been rewritten
+  thirty minutes earlier, in that same session, by a PR it had itself verified.
+  **Measured cost, paid on every turn while registered:** 2,794 bytes (~700 tokens) on
+  the first turn of a session, **2,575 bytes (~645 tokens) steady state**, 4,040 bytes
+  (~1,010 tokens) on an escalation — recorded in `CLAUDE.md` § "Contract re-injection"
+  rather than buried, along with the fact that the steady-state figure scales with the
+  number of section headings, so every new `AGENTS.md` section costs a line per turn
+  forever. **It fails open, always**, and that was demonstrated across six
+  failure modes, not asserted: contract file renamed, `python3` off `PATH`, corrupt
+  session state, garbage stdin, empty stdin, helper script deleted — every one exits 0
+  and injects nothing, and it never exits 2, which would block and erase the prompt.
+  **Stated plainly: it cannot make an agent read what it injects.** It removes the
+  excuse, not the possibility. Registered in the **tracked** `.claude/settings.json` so
+  cold-start, cloud and fresh-clone sessions inherit it. This is **net-new, not a
+  port** — no context-injecting hook exists in `macos-system-health`,
+  `ecg_anomaly_detection` or `github-portfolio-modernization`; all four repos' hooks are
+  `PreToolUse` deny hooks — and it is recorded as a deliberate divergence in `AGENTS.md`
+  § "Recorded divergences from the reference repositories", per the parity checklist.
+
+- **The four PM/executor workflow templates were ported, so specs stop being hand-rolled
+  from nothing (#34).** Every executor spec and launch block written here on 2026-07-26
+  was invented from scratch, and they were wrong in ways the templates prevent by
+  construction — one handed the executor the merge signal, one was six words long and
+  dropped a working config, and relays shipped as prose interleaved with fences.
+  Ported, each naming its source file inline and marking every adaptation
+  **⟨audio-lab adaptation⟩** so divergence is visible rather than silent:
+  `artifacts/specs/TEMPLATE.md` ← `macos-system-health/artifacts/specs/TEMPLATE.md`
+  (13,577 b), `docs/PM-WORKFLOW.md` ← its 13,684 b namesake,
+  `prompts/EXECUTOR-SEED-PROMPT-TEMPLATE.md` ←
+  `macos-system-health/prompts/2026-07-21-issue-45-executor-seed.md`, and
+  `templates/task-spec.md` ← `github-portfolio-modernization/templates/task-spec.md`.
+  Structure and section ordering are preserved deliberately; divergence from the
+  reference is what produced #34. The spec template keeps the two sections whose absence
+  is directly traceable to the observed failures — **§8 "Verification status of this
+  spec's claims"** and the separate **§ Handoff** block. Four adaptations are real and
+  marked: this repo has no `effort:`/`status:`/`risk:` labels and no
+  `label-policy.json`; `artifacts/specs/` is **tracked** here and specs are copied
+  byte-identical to `prompts/`; **push and PR-open are NOT gated here** (the reference
+  repo gates them — `AGENTS.md` § "Do these automatically" explicitly permits them, and
+  only merging is gated); and every launch pins the **full model id** (`claude-opus-5`)
+  rather than the `opus` alias, which silently resolves to whatever is latest for the
+  account. Both repo-specific carry-forwards are present: the `gh issue comment` launch
+  record ships **inside the same fence** as the `claude` invocation, and the model id is
+  never an alias. `AGENTS.md` § "Canonical work-item workflow" now points at all three
+  templates so an author finds them without knowing they exist. **They are scaffolds,
+  not gates** — nothing enforces their use, and the docs say so.
+
+- **`pytest` runs in CI (#30 Gap 4).** A `Tests (pipeline)` job in
+  `.github/workflows/quality.yml` runs the 55-test suite on every PR and push to `main`.
+  ffmpeg and ffprobe are installed when the runner lacks them, with bounded retries and
+  a message that names an apt failure as an external condition rather than a repo
+  defect — five tests are ffmpeg-gated and would otherwise skip silently, making a green
+  run cover less than it appears to; `-ra` prints skip reasons so the log always shows
+  how much actually ran. **Disclosed rather than implied: this check CANNOT block a
+  merge.** `main`'s required-status-checks list is `Lint, format and secrets`,
+  `Locked environment (pipeline)`, `Locked environment (spotify)`, `Changelog updated`
+  — read live on 2026-07-27 — and adding to it is a branch-protection change that only
+  the maintainer can make. Shipping a test job that looks like a gate and is not is
+  precisely the failure `AGENTS.md` § "The artifact is not the behavior" names, and
+  #30 §4 warns about it by name. #30 stays **open**; only its Gap 4 is addressed here.
+
 - **Voice-capture guide promoted from a gitignored working note to a tracked reference,
   and extended with hardware, software, and room guidance (#44).**
   `artifacts/voice-cloning-guide.md` moved to `docs/voice-capture.md` — it now has to be
@@ -127,6 +202,33 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **The PM-lane guard's two documented, untracked holes are narrowed — and the residue
+  is named rather than papered over (#48).** Hole 1: the `Bash` branch matched command
+  *verbs* only, so `printf … > AGENTS.md`, `tee`, `sed -i`, `cp`, `mv`, `dd` and
+  `truncate` walked straight past it — a PM session could edit any tracked file by
+  shelling out. That is not hypothetical exploitation: **the guard was once narrowed by
+  using the hole in the guard**, which is the documented history of the file. It now
+  resolves redirect and write-command destinations against the same allow-list the
+  `Write` branch uses (in-repo and outside `artifacts/` is refused), reusing the
+  existing quoted-span stripping so a path inside an issue body cannot trip it. The
+  extraction is deliberately narrow, because a false deny taxes the maintainer's own
+  work: only `cp`/`mv`'s final operand counts, `sed` needs `-i` as a real flag token
+  (not a substring, or `sed -n 1,5p release-info.txt` would be refused), and
+  `truncate -s 0` does not treat `0` as a path. Hole 2: `~/.aws`, `~/.ssh` and
+  `~/.gnupg` are now denied to the `Write`/`Edit` tools for **every** session including
+  executors — that check runs *before* the `AUDIO_LAB_EXECUTOR=1` early exit, since an
+  executor is the session most likely to be running unattended. `aws configure`,
+  `ssh-keygen` and `gpg` are unaffected, and `~/.claude/` stays writable because the
+  global contract requires a standing rule to be persistable in the same turn it is
+  agreed. **Verified with 51 paired permit/deny cases, both lanes, all passing** — every
+  deny shipped with the permit it must not have broken, and `CLAUDE.md`'s capability
+  table was rewritten so no row claims enforcement the hook does not have. **The hook
+  header now says plainly that this is a lane marker, not a sandbox**, and the five
+  bypasses it names — `bash -c`, a script file, `python3 -c`, `perl -i`, `make` — were
+  each **run to confirm they are genuinely still open** rather than listed from
+  reasoning. What changed is the bar: from trivially bypassed by the obvious method to
+  requiring deliberate circumvention.
+
 - **Ep01 transcript speaker labels drop the TTS voice id and rename the expert (#43).**
   Across `transcript.md`, `.txt`, and `.html`: `HOST (bm_fable)` → `HOST` (27 each) and
   `EXPERT (Emma)` → `EXPERT (Owen)` (27 each), plus the `.md`/`.txt` bylines. The host
@@ -149,6 +251,27 @@ visible in the diff and would otherwise evaporate.
   message that names what actually failed.
 
 ### Findings
+
+- **Bash 3.2 — what macOS ships and what runs these hooks — mis-parses a `case`
+  statement inside `$( … )`, and `bash -n` does not catch it.** The substitution is
+  scanned for its closing paren without understanding `case`, so the unbalanced `)` in a
+  pattern like `tee)` terminates the substitution early. The symptom is a *runtime*
+  `syntax error near unexpected token 'newline'` reporting a line number from a
+  completely different part of the file, while `bash -n` reports the script as clean.
+  Found while building the #48 write-detection: the guard silently allowed every
+  `tee`/`cp`/`mv` case until this was traced. Two fixes work — write patterns as
+  `(tee)` with a leading paren, or move the block into a function defined outside the
+  substitution. The function was chosen, because a function body is parsed once at
+  definition and is immune by construction. **Consequence for this repo: `bash -n` is
+  not sufficient verification for a hook. Execute it.**
+
+- **A `while read` loop silently discards the last line when the input has no trailing
+  newline.** `printf '%s' "$x" | tr … | while read -r seg` dropped the final segment of
+  every command, so `echo x | tee AGENTS.md` was allowed — the `tee AGENTS.md` half was
+  the part thrown away. The guard's own test matrix caught it; the fix is `printf
+  '%s\n'`. Worth recording because the failure is *silent and asymmetric*: it only ever
+  loses the last item, so a rule looks like it works right up until the case that
+  matters is at the end of the line.
 
 - **The two ElevenLabs v3 voices came out ~2 dB apart, and −16 LUFS is the delivery
   target (#46).** Measured over their trimmed stems, Jofra (EXPERT) sat at −16.8 LUFS and

@@ -8,8 +8,12 @@ name: Quality gates
 #   - full-history secret re-scan (the pre-commit gitleaks hook scans the
 #     working tree, so a secret added AND removed inside one PR would slip past)
 #   - JS/TS lint + build once the community voting app exists
-#   - pytest gating (pipeline/tests/ exists now; wire it in once the suite is
-#     load-bearing enough that a red run should block merge)
+#
+# pytest now runs (the `tests` job below, #30 Gap 4). Note carefully: RUNNING is not
+# GATING. `Tests (pipeline)` is NOT in main's required-status-checks list, so it can
+# go red while the PR stays mergeable. Making it binding is a branch-protection
+# change, which is the maintainer's call and is tracked in #30 §4 — do not present
+# this job as a gate until that decision is recorded and applied.
 # The `environments` matrix is an explicit list, not a glob — add each new uv
 # subproject to it by name or its lockfile drift goes unchecked.
 
@@ -76,3 +80,49 @@ jobs:
       - name: Verify lockfile resolves
         working-directory: ${{ matrix.project }}
         run: uv sync --locked
+
+  tests:
+    name: Tests (pipeline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      # Five tests are gated on ffmpeg/ffprobe being present and skip silently
+      # without them — so a green run would cover less than it appears to. Install
+      # them rather than let the coverage quietly shrink. Bounded retries because
+      # this leaves the process for a network mirror; a transient apt failure is an
+      # external condition, not a defect in this repo.
+      - name: Ensure ffmpeg is available
+        run: |
+          if command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null; then
+            echo "ffmpeg already present on the runner image"
+          else
+            for attempt in 1 2 3; do
+              if sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; then
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "::error::Could not install ffmpeg after 3 attempts. This is an" \
+                     "external/connectivity condition, not a code or setup defect."
+                exit 1
+              fi
+              sleep $((attempt * 5))
+            done
+          fi
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+
+      # -ra prints the skip reasons, so the log always shows how much of the suite
+      # actually ran. A silent skip reads as coverage it does not have.
+      - name: Run pytest
+        working-directory: pipeline
+        run: uv run pytest -q -ra
