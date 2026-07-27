@@ -7,10 +7,14 @@ Usage (from pipeline/):
     uv run voicelab account                # voices already on the account
     uv run voicelab browse --gender male --accent british --min-users 10000
     uv run voicelab browse ... --download --purpose cohost-candidate
+    uv run voicelab screentest                 # dry-run: quote + ledger, no spend
+    uv run voicelab screentest --confirm-spend # render the shortlist (spends credits)
 
-All of the above are FREE — none call /v1/text-to-speech. Synthesis (which spends
-credits) is a library call (`ElevenLabsClient.synthesize`), deliberately not wired to
-a one-shot CLI flag so a render is always a considered action.
+`models`/`rates`/`account`/`browse` are FREE — none call /v1/text-to-speech.
+`screentest` is the one subcommand that can spend, and only with `--confirm-spend`; it
+defaults to a dry-run that quotes the cost and refuses to render. General synthesis stays
+a library call (`ElevenLabsClient.synthesize` / `screentest.render_screentest`) so a
+credit spend is always a considered action.
 """
 
 from __future__ import annotations
@@ -23,6 +27,14 @@ from rich.table import Table
 
 from .client import ElevenLabsClient
 from .models import ACCOUNT_RATE_FACTOR, DEFAULT_TIER, MODELS, TIERS
+from .screentest import (
+    LINES,
+    SCREENTEST_VOICES,
+    SELF_SERVE_MAX_CREDITS,
+    estimate,
+    render_screentest,
+    set_measured_credits,
+)
 
 console = Console()
 
@@ -159,6 +171,134 @@ def cmd_browse(args: argparse.Namespace) -> None:
                 console.print(f"  [red]✗ {v.name}: {exc}[/red]")
 
 
+def _ledger(client: ElevenLabsClient, when: str) -> None:
+    remaining, limit = client.credits_remaining()
+    used = limit - remaining
+    colour = "green" if remaining > limit * 0.2 else "yellow"
+    console.print(
+        f"[dim]Ledger ({when}):[/dim] "
+        f"[{colour}]{remaining:,}[/{colour}] of {limit:,} credits remaining "
+        f"({used:,} used this cycle)"
+    )
+
+
+def cmd_screentest(args: argparse.Namespace) -> None:
+    """Render the co-host shortlist on real Ep01 dialogue (#38).
+
+    Dry-run by default: prints the quote and the ledger and refuses to spend. Renders
+    only with ``--confirm-spend``, then reconciles the actual spend from /v1/history.
+    """
+    # eleven_v3 at 192 kbps: the production tier's bitrate, model swapped to v3 at equal
+    # cost (docs/elevenlabs.md § Tiers) — casting at production quality on purpose.
+    client = ElevenLabsClient(tier="production")
+    client.override_model("v3")
+    if not _require_key(client):
+        return
+
+    voices, lines = SCREENTEST_VOICES, LINES
+    est = estimate(client, voices, lines)
+
+    console.print(
+        f"[bold]Screen test[/bold] — {len(voices)} voices × {len(lines)} lines = "
+        f"{est['n_renders']} renders on [cyan]{client.model.model_id}[/cyan] @ "
+        f"{client.output_format}"
+    )
+    q = Table(title="Quote (before)")
+    for col in ("chars/voice", "voices", "total chars", "× rate", "≈ credits"):
+        q.add_column(col)
+    q.add_row(
+        f"{est['per_voice_chars']:,}",
+        str(len(voices)),
+        f"{est['total_chars']:,}",
+        f"{est['rate']:.2f}×",
+        f"{est['credits']:,}",
+    )
+    console.print(q)
+    _ledger(client, "before")
+
+    # Pre-flight spend gate: never spend past the self-serve threshold on this spec's
+    # word alone (spec §4). Estimate is ~1,762; this is the hard stop if that ever grows.
+    if est["credits"] > SELF_SERVE_MAX_CREDITS:
+        console.print(
+            f"[red]STOP:[/red] estimate {est['credits']:,} credits exceeds the "
+            f"{SELF_SERVE_MAX_CREDITS:,}-credit self-serve threshold. Hand this to the "
+            "maintainer before spending — do not proceed on a spec-quoted lower number."
+        )
+        return
+
+    planned = Table(title="Planned renders")
+    for col in ("#", "voice", "voice_id", "line", "chars", "≈ credits"):
+        planned.add_column(col)
+    for i, v in enumerate(voices):
+        for ln in lines:
+            planned.add_row(
+                str(i),
+                v.name,
+                v.voice_id[:8] + "…",
+                ln.slug,
+                f"{len(ln.text):,}",
+                f"{round(len(ln.text) * est['rate']):,}",
+            )
+    console.print(planned)
+
+    if not args.confirm_spend:
+        console.print(
+            "[yellow]DRY RUN[/yellow] — nothing rendered, zero credits spent. "
+            "Re-run with [bold]--confirm-spend[/bold] to render."
+        )
+        return
+
+    # --- spend path ---------------------------------------------------------- #
+    console.print("[bold]Rendering…[/bold] (a retry can re-bill; attempts capped at 2)")
+    before_ids = {r["id"] for r in client.history_rows()}
+    result = render_screentest(
+        client, voices, lines, purpose=args.purpose, console=console
+    )
+
+    # Reconcile from /v1/history — the authoritative per-generation record, NOT
+    # /v1/user/subscription (which lags and misattributes back-to-back calls).
+    after = client.history_rows()
+    new_v3 = [
+        r for r in after if r["id"] not in before_ids and r["model_id"] == "eleven_v3"
+    ]
+    actual = sum(r["billed"] for r in new_v3)
+
+    # Attribute per-render measured credits by zipping the new history rows (oldest
+    # first) to the renders in call order. v3 omits text in history, so this order-based
+    # attribution is the only per-call measurement available; it is 1:1 only when the
+    # counts match, otherwise we keep the estimate and flag it.
+    rendered = result.rendered
+    if len(new_v3) == len(rendered) and rendered:
+        for rec, row in zip(rendered, list(reversed(new_v3)), strict=True):
+            set_measured_credits(rec.voice, rec.digest, row["billed"])
+        attribution = "per-render measured (history rows matched 1:1)"
+    else:
+        attribution = (
+            f"batch-total only — {len(new_v3)} new v3 history rows vs "
+            f"{len(rendered)} rendered; per-render credits left as estimate"
+        )
+
+    _ledger(client, "after")
+    delta = actual - est["credits"]
+    console.print(
+        f"[bold]Reconciliation (from /v1/history):[/bold] measured "
+        f"[cyan]{actual:,}[/cyan] credits vs estimate {est['credits']:,} "
+        f"(Δ {delta:+,}); {attribution}"
+    )
+    if result.failures:
+        console.print(f"[red]{len(result.failures)} render(s) failed:[/red]")
+        for rec in result.failures:
+            console.print(
+                f"  [red]✗ {rec.voice.name} · {rec.line.slug}: {rec.error}[/red]"
+            )
+    console.print(
+        f"[green]{len(result.rendered)} rendered, "
+        f"{sum(1 for r in result.records if r.cached)} cached, "
+        f"{len(result.failures)} failed.[/green] "
+        "Listen: [dim]find output/auditions/samples/elevenlabs -name '*screentest*'[/dim]"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="voicelab", description="ElevenLabs voice tooling"
@@ -192,6 +332,24 @@ def main() -> None:
     )
     p_browse.add_argument("--purpose", help="Required with --download; names the files")
     p_browse.set_defaults(func=cmd_browse)
+
+    p_screen = sub.add_parser(
+        "screentest",
+        help="Render the co-host shortlist on real Ep01 dialogue (#38). Dry-run by "
+        "default; spends only with --confirm-spend.",
+    )
+    p_screen.add_argument(
+        "--confirm-spend",
+        action="store_true",
+        dest="confirm_spend",
+        help="Actually render and spend credits. Without it this is a dry run.",
+    )
+    p_screen.add_argument(
+        "--purpose",
+        default="ep01",
+        help="Names what the batch is for; becomes part of every filename.",
+    )
+    p_screen.set_defaults(func=cmd_screentest)
 
     args = parser.parse_args()
     args.func(args)

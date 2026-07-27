@@ -46,6 +46,11 @@ table, update `ACCOUNT_RATE_FACTOR` in `pipeline/audition/helpers.py`.
 - `/v1/history` — authoritative per generation, via
   `character_count_change_to - character_count_change_from`. Note `eleven_v3`
   does not log its text, so its rate must be derived from known input length.
+  It *does* log the `character_count_change` delta, so batch spend is still
+  measurable. **The newest generation has a brief indexing lag here too** — an
+  18-render batch showed 17 rows immediately after, all 18 seconds later
+  (#38). Reconcile a beat after the last call, and diff the row **set** rather
+  than trusting an immediate count.
 
 ## Tiers
 

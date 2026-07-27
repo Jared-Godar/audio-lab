@@ -11,6 +11,27 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Screen-test render path + the Ep01 co-host screen test (#38).** M2 stage two.
+  `pipeline/core/screentest.py` adds a library entry point (`render_screentest`) that
+  renders an ordered set of `(voice, line)` pairs at the client's model/format, and a
+  `voicelab screentest` subcommand over it. The PR #29 rule — "synthesis stays a library
+  call, never a one-shot flag, so a credit spend is always deliberate" — is honoured, not
+  dropped: the subcommand **defaults to a dry-run** that prints the quote and the ledger
+  and **refuses to spend without `--confirm-spend`**, and a pre-flight gate hard-stops any
+  batch whose estimate exceeds the 2,000-credit self-serve threshold. `purpose` is a
+  mandatory argument on the render function (self-describing artifacts). It reuses the
+  existing machinery wholesale — the tier system, `ACCOUNT_RATE_FACTOR`, the bounded-retry
+  wrapper, `attempts=2` on synthesis, and the descriptive-filename + digest-manifest cache
+  (the digest keying and filename minting were extracted to `naming.render_digest` /
+  `naming.descriptive_render_name` so both callers share one cache identity). Covered by
+  `pipeline/tests/test_screentest.py` (network fully stubbed, sample tree redirected to
+  `tmp_path` — zero credits). **The renders:** the top-5-by-adopters shortlist plus the
+  premade-Daniel control read three real Ep01 EXPERT lines on `eleven_v3` @ 192 kbps — 18
+  files under `output/auditions/samples/elevenlabs/` (gitignored), each folder carrying a
+  digest manifest with `voice_id`, line slug, chars, and measured credits. The two Daniels
+  are disambiguated in folder and filename (`daniel-premade-control-onwK4e9Z` vs
+  `daniel-deep-african-8dvhVJc8`). **Spend: 1,758 credits measured from `/v1/history` vs a
+  1,762 estimate (Δ −4).**
 - **`infra/` — CloudFormation DNS for `toldstraight.com` (#13).** `infra/dns.yaml`
   manages RecordSets **inside** the existing Route 53 hosted zone: `HostedZoneId` is a
   `Parameter` and the template never creates or owns the zone — an owned zone is
@@ -261,6 +282,17 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **`/v1/history` has a brief propagation lag on the *newest* generation, not just
+  `/v1/user/subscription` (#38).** `docs/elevenlabs.md` § "Measuring spend" already notes
+  the subscription counter lags by tens of seconds; this refines it. Immediately after an
+  18-render `eleven_v3` batch, a `/v1/history` query returned only **17** of the 18 rows —
+  the last generation had not yet been indexed — so the in-run reconciliation reported
+  1,680 credits. A re-query seconds later returned all 18 (`6×157 + 6×78 + 6×58 = 1,758`),
+  matching the 1,762 estimate within Δ −4 (pure per-generation rounding; the 0.55× account
+  rate holds exactly). Takeaway: reconcile from `/v1/history` a few seconds after the last
+  call, or diff the row **set** rather than trusting an immediate post-render count. This
+  also confirms `eleven_v3` logs a `character_count_change` delta in history even though it
+  omits its text, so batch spend is measurable there despite the per-call text being absent.
 - **ECG's `dependabot-autofill.yml` cannot be "ported, not varied" into this repo —
   the instruction was impossible, not merely hard (#28).** The workflow is inseparable
   from ECG-specific machinery absent here: it calls `scripts/github/`
