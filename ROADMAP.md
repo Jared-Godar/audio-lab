@@ -84,6 +84,18 @@ Rewrite Ep01/Ep02 into the hybrid format, record host lines, render, republish.
 - Blocked by: M2 (voices), M3 (settings).
 - The record-host/record-guest scaffolding already exists in the working copies.
 - Publish as staged v2 first; do not overwrite the live feed until heard end to end.
+- **Ep01 v2.0 interim render — built and rendered 2026-07-27 (#43).**
+  `pipeline/core/episode.py` renders the transcript as **54 per-turn stems** on
+  `eleven_v3` @ 192 kbps — Daniel (host) reads the 27 HOST turns, Jofra (co-host) the 27
+  EXPERT turns (character **Owen**) — read from `episodes/cast.json`, then assembles a
+  single master via `ffmpeg` with a 350 ms inter-turn gap. Per-turn stems are the point:
+  the host is a **placeholder** for the maintainer's own narration (#44), so swapping it
+  re-renders only the 27 host turns (~1,163 credits), not a second full pass. `uv run
+  voicelab render-episode` is dry-run by default; spending needs `--confirm-spend`, and a
+  batch over the 2,000-credit self-serve threshold needs an explicit, auditable
+  `--authorize-ceiling`. Speaker labels dropped the TTS voice id from the transcript
+  (`HOST (bm_fable)` → `HOST`, `EXPERT (Emma)` → `EXPERT (Owen)`) across `.md`/`.txt`/
+  `.html`. Still ahead: record the real host lines and rebuild the host track; Ep02.
 
 ### M5 — Web presence
 

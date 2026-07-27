@@ -32,6 +32,8 @@ RESULTS_PATH = AUDITION_DIR / "voices.json"
 # New shared-library previews land here. The hand-built sweep in
 # artifacts/voice-previews/ is authoritative and is never written to by this tool.
 PREVIEWS_DIR = OUTPUT_DIR / "shared-previews"
+# Assembled episodes (per-turn stems + master) land here (#43).
+EPISODES_DIR = OUTPUT_DIR / "episodes"
 
 
 def slug(s: str, limit: int = 40) -> str:
@@ -82,6 +84,70 @@ def descriptive_render_name(
         model,
         slug(voice.name, 24),
         slug(purpose or text, 40),
+    ]
+    if fmt:
+        parts.append(f"{fmt}k")
+    base = "-".join(p for p in parts if p)
+
+    name, n = f"{base}.mp3", 2
+    while name in taken:
+        name, n = f"{base}-{n}.mp3", n + 1
+    return name
+
+
+# --------------------------------------------------------------------------- #
+# Per-turn episode stems (#43)
+#
+# Unlike the sample cache above (one folder per voice, digest = text+variant), an
+# episode is an *ordered* thing: two turns can carry identical text (e.g. "Double."),
+# and the host and expert can read the same words. So the episode cache key includes
+# the turn index AND the voice id — a turn is its own cache slot, and a re-run of the
+# same turn re-bills nothing while never colliding two turns onto one file.
+# --------------------------------------------------------------------------- #
+
+
+def episode_render_digest(
+    turn_index: int, voice_id: str, text: str, variant: str
+) -> str:
+    """Cache key for one episode stem: turn index + voice + text + variant.
+
+    Turn index and ``voice_id`` join the key precisely because episode dialogue is not
+    unique the way a screen-test line is — without them, two turns with the same words
+    would share one file, and the assembly would play a stem twice.
+    """
+    raw = f"{turn_index}\x00{voice_id}\x00{text}\x00{variant}"
+    return hashlib.sha1(raw.encode()).hexdigest()[:12]
+
+
+def episode_stem_name(
+    turn_index: int,
+    voice: Voice,
+    role: str,
+    variant: str,
+    purpose: str,
+    taken: set[str],
+) -> str:
+    """Descriptive stem filename that ALSO sorts into playback order.
+
+    Shape: ``tNN-YYYYMMDD-VENDOR-MODEL-ROLE-VOICE-PURPOSE[-BITRATE]k.mp3``. The
+    zero-padded ``tNN`` leads so a plain lexical sort of the folder is turn order (#43
+    §4.C); everything after it is the usual DATE-VENDOR-MODEL-VOICE-PURPOSE the naming
+    rule wants (``CLAUDE.md``). ``role`` (host/expert) and the voice both appear, so the
+    file says *who plays whom* at a glance. Collisions get a numeric suffix, never a
+    hash fallback.
+    """
+    model = variant.split("|")[0].replace("eleven_", "")
+    fmt = variant.split("|")[1].replace("mp3_44100_", "") if "|" in variant else ""
+    # First word of the voice name — "Jofra – Expressive…" → "jofra", "Daniel" → "daniel".
+    voice_short = slug(voice.name.split()[0], 16) if voice.name.split() else "voice"
+    parts = [
+        f"t{turn_index:02d}",
+        datetime.now().strftime("%Y%m%d"),
+        VENDOR,
+        model,
+        slug(role, 12),
+        voice_short,
+        slug(purpose, 24),
     ]
     if fmt:
         parts.append(f"{fmt}k")

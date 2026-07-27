@@ -55,9 +55,74 @@ visible in the diff and would otherwise evaporate.
   clone can reproduce access — porting the operative content out of the two gitignored
   `artifacts/aws-identity-center-*.md` notes, with **no secret committed** (account id and
   role names are configuration; no token, key, or `~/.aws/` contents).
+- **Ep01 v2.0 rendered as 54 per-turn stems + a single master (#43).** M4.
+  `pipeline/core/episode.py` parses `episodes/ToldStraight-Ep01/transcript.md` into 54
+  ordered turns (27 HOST / 27 EXPERT, 9,225 chars — verified against spec §2 as a hard
+  gate, not incidental output), renders each as its own stem on `eleven_v3` @ 192 kbps —
+  **Daniel** (host) reads the 27 HOST turns, **Jofra** (co-host) the 27 EXPERT turns
+  (character **Owen**), both read from `episodes/cast.json` — then concatenates them with
+  `ffmpeg` into one **11.5-minute master** (350 ms inter-turn gap). Per-turn stems are the
+  deliverable, not just the master: the host is a **placeholder** for the maintainer's own
+  narration (#44), so swapping it re-renders only the 27 host turns (~1,163 credits), and a
+  single bad turn costs ~40 credits to redo rather than a second full pass. `uv run
+  voicelab render-episode` is dry-run by default; spending needs `--confirm-spend`, and a
+  batch over the 2,000-credit self-serve threshold hard-stops unless an explicit, auditable
+  `--authorize-ceiling` names the cap (a `SpendGate` that refuses both a missing ceiling and
+  an estimate above it — proven by a negative test). A digest-manifest cache keyed on turn
+  index + voice + text + variant makes a re-run after a mid-batch failure re-bill nothing
+  (proven: the completion re-run rendered 0, cached 54, measured 0). **Cost: 5,076 credits
+  measured from `/v1/history`** against the 5,074 estimate (Δ +2), inside the 5,600
+  authorised ceiling; ledger 128,120 → 123,041 remaining across the session. Stems land
+  under `output/episodes/` (gitignored) with turn-index-led descriptive names so a lexical
+  sort is playback order, plus a sibling `manifest.json` per turn (index, speaker, role,
+  `voice_id`, chars, `credits_est`, `credits_measured`, digest). Control: an episode Daniel
+  stem is codec-identical (`mp3/44100/mono/192k`) to the #38 screen-test Daniel render, so a
+  broken pipeline and a bad read stay distinguishable. `episodes/cast.json` gains the
+  interim `host` role (Daniel `onwK4e9Z`, `interim:true`, `replaced_by` the maintainer's
+  narration); the `cast.py` loader needed no change (extra fields ride along in
+  `Voice.meta`).
+
+### Changed
+
+- **Ep01 transcript speaker labels drop the TTS voice id and rename the expert (#43).**
+  Across `transcript.md`, `.txt`, and `.html`: `HOST (bm_fable)` → `HOST` (27 each) and
+  `EXPERT (Emma)` → `EXPERT (Owen)` (27 each), plus the `.md`/`.txt` bylines. The host
+  label had named a *TTS voice id* (`bm_fable`) — worse than a wrong character name, and
+  wrong again the moment the maintainer records — so the transcript now names people and
+  roles while voices live only in `cast.json`. **Owen** is a PM proposal the maintainer
+  confirmed; it is held as a single constant (`episode.EXPERT_CHARACTER`) so a later change
+  is one edit. Note the `.txt` carried the label as `HOST (bmfable)` (the underscore was
+  stripped when that file was generated), handled explicitly rather than left as a stray
+  voice id. `transcript.vtt` (bare `HOST:`/`EXPERT:`, no voice id, no name) and
+  `captions-autosync.txt` (no speaker labels) do **not** carry the targeted labels and were
+  left untouched, as spec §4E directed — checked and reported either way.
+- **`net.py` now surfaces ElevenLabs' own error message on a permanent failure, instead of
+  a canned hint (#43).** The 401 handler previously reported "API key rejected — check
+  ELEVENLABS_API_KEY", which was actively misleading during the Ep01 render: the real body
+  was `quota_exceeded` on a **key-scoped credit cap**, not a bad key. `request_with_retry`
+  now prefers the provider's `detail.message`/`detail.code` when present (falling back to
+  the static hint), so `ElevenLabs 401: quota_exceeded: This request exceeds your API key
+  (…) quota of 5000` reaches the caller verbatim. Diagnose before suppressing — a clear
+  message that names what actually failed.
 
 ### Findings
 
+- **A 401 from ElevenLabs can mean an exhausted *key-scoped* credit quota, not a bad key
+  (#43).** During the authorised Ep01 render the batch rendered 32 of 54 turns, then every
+  subsequent call returned **HTTP 401** — while `GET /v1/user/subscription` with the *same
+  key* kept returning 200 (125k+ credits on the account). The 401 body was
+  `{"detail":{"code":"quota_exceeded","message":"This request exceeds your API key
+  (dpotify-claude) quota of 5000. You have 4 credits remaining…"}}`: the **API key** carried
+  its own 5,000-credit cap, independent of the account balance and of the render's 5,600
+  authorised ceiling, and it was ~4,996 spent from prior work before this render even
+  started. Takeaways: (1) ElevenLabs returns **401** (not 402) for a key-scoped quota
+  breach, so 401 must be read from the response body, not assumed to be an auth failure —
+  hence the `net.py` change above; (2) a key's own quota is a separate wall from the account
+  cycle and the per-render ceiling, and a single small probe call can slip through on the
+  last few credits and mislead (a 5-char "Test." succeeded while a 16-credit turn 401'd);
+  (3) the maintainer raised the `dpotify-claude` key cap to 40,000 to finish, and the
+  digest-manifest cache made resuming cost only the 22 unrendered turns (2,515 credits),
+  re-billing nothing for the 32 already done.
 - **Synthesis against a shared-library voice consumes neither a general voice slot nor
   the Professional Voice Clone slot (#40).** Measured by the PM thread 2026-07-27
   (issue #40 Gap 4, relayed here rather than re-verified by this zero-credit executor
