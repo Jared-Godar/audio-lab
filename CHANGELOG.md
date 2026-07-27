@@ -7,6 +7,59 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-07-27
+
+### Added
+
+- **DNS security records deployed for `toldstraight.com` (#22).** M5. The `infra/dns.yaml`
+  template authored in #13 is now **live**: SPF (`v=spf1 -all`), null MX (`0 .`), DMARC
+  (`p=reject; sp=reject; adkim=s; aspf=s`), and CAA (`issue`/`issuewild` restricted to
+  `amazon.com`) — four `AWS::Route53::RecordSet`s written **into** the pre-existing hosted
+  zone `Z09608783EP48AD8RCAL5`, which stays a **parameter**, never a stack resource.
+  Deployed as CloudFormation stack `toldstraight-dns` via a **change-set** (type `CREATE`),
+  never a bare `create-stack`/`deploy`: the change-set was described and confirmed to hold
+  **exactly four RecordSet additions and no `AWS::Route53::HostedZone` resource** before
+  execution — the zone-ownership trap (an owned zone destroyed on `delete-stack`, four new
+  NS records that dark the domain) cannot be sprung by a change-set that provably touches
+  no zone. Reached `CREATE_COMPLETE`. Site records (apex + `vote`) stay **gated off**
+  (`DeploySiteRecords=false`). Verified two independent directions — `aws route53
+  list-resource-record-sets` and a direct authoritative `dig @ns-235.awsdns-29.com` — with
+  a `google.com` control returning all four record types through the identical path, and
+  negative checks confirming apex `A` and `vote` still resolve to nothing. Cost **$0**
+  (RecordSets are free; the zone's $0.50/mo was already billed at registration). Mail is
+  now locked hard: nothing can send as this domain until the records change.
+  `infra/README.md` records the deployed stack, the exact change-set commands, and the
+  rollback (`delete-stack` removes records, not the zone), and gains a **tracked
+  AWS-access section** (Identity Center org instance, the `AudioLabDeploy` permission set,
+  both customer-managed policies incl. JSON, the `aws configure sso` profile) so a fresh
+  clone can reproduce access — porting the operative content out of the two gitignored
+  `artifacts/aws-identity-center-*.md` notes, with **no secret committed** (account id and
+  role names are configuration; no token, key, or `~/.aws/` contents).
+
+### Findings
+
+- **Route 53 never increments the SOA serial on record changes, so the serial is not a
+  proof-of-write (#22).** The deploy spec's acceptance check "confirm the SOA serial
+  incremented from 1" rests on a **false premise about Route 53**. Measured: the zone's SOA
+  serial read `1` before the deploy and `1` after (both `aws route53
+  list-resource-record-sets` and authoritative `dig`), despite four records being
+  successfully written and `CREATE_COMPLETE` reached. Route 53 does not support zone
+  transfers, so — unlike BIND — it does not auto-increment the SOA serial when records
+  change, and the static serial does not affect propagation or external recognition
+  (AWS re:Post "SOA serial number set to 1 … does not update"; `ChangeResourceRecordSets`
+  API reference). Takeaway: prove a Route 53 write with `list-resource-record-sets` or an
+  authoritative `dig` against the zone's own nameserver — never the SOA serial. The spec's
+  SOA-serial criterion was therefore **not satisfiable and was not met**; stronger proof
+  was substituted and this is flagged in the PR body.
+- **Public resolvers can lag a fresh Route 53 write by up to the SOA minimum TTL because a
+  pre-deploy query seeds a negative cache.** The pre-state control block queried the apex
+  TXT/MX/CAA/DMARC while absent; the SOA minimum (last field, `86400`) is the negative-cache
+  TTL, so a default resolver may return `(no output)` for the new records for a while even
+  though they are live. Querying the zone's authoritative nameserver directly
+  (`dig @ns-...awsdns...`) sidesteps this and is the right way to verify immediately after a
+  deploy — report `(no output)` from the public resolver honestly rather than retrying it
+  until green.
+
 ## 2026-07-26
 
 ### Added
