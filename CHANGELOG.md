@@ -11,6 +11,28 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Voice-capture guide promoted from a gitignored working note to a tracked reference,
+  and extended with hardware, software, and room guidance (#44).**
+  `artifacts/voice-cloning-guide.md` moved to `docs/voice-capture.md` — it now has to be
+  usable on a phone, next to a microphone, which is what a gitignored file can't be. Every
+  account claim was re-verified live (`GET /v1/user/subscription`, `GET /v1/models`):
+  7,511/130,552 credits used, 0/30 voice slots, **0/1 professional clone slots** — an exact
+  reconfirmation of the 2026-07-26 baseline, zero credits spent by this PR. Three new
+  sections cover what the original guide never named: **Hardware** (HyperX QuadCast vs Zoom
+  H2essential, recommending QuadCast pending a real A/B shootout — the maintainer's existing
+  gear is sufficient, no purchase suggested), **Software and settings** (Adobe Audition over
+  GarageBand over Voice Memos, 48 kHz/24-bit WAV mono, and naming the specific trap that
+  Adobe Podcast Enhance / Audition Speech Enhancement is a generative reconstruction that
+  must never touch cloning source audio), and **Choosing the room** (the bathroom ruled out
+  for flutter echo, the living/dining room loses despite housing the gear because it adjoins
+  the kitchen, the bedroom wins on soft mass) with two ASCII plan/side-view diagrams and a
+  reversal condition stated honestly (furnishing beats floor plan — a clap test settles it,
+  not the document). "Where this interacts with the pipeline" is rewritten against #43's
+  actual per-turn-stem architecture: it now names both host-replacement routes without
+  picking one — narrate directly (zero credits, `episodes/cast.json`'s `host` role is marked
+  `interim: true`) versus clone-then-synthesize (~1,163 credits, the measured 27-turn host
+  share of the #43 render). `artifacts/voice-cloning-guide.md` is left as a one-line pointer
+  rather than deleted; it stays gitignored, unchanged by this PR.
 - **`render-episode` bakes in the Ep01 v2 mastering chain (#46).** The assembly step
   was a uniform-gap concatenator; the post-production recipe the maintainer approved for
   the Ep01 v2 master lived only in a gitignored scratch script, so nothing in the repo
