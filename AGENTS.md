@@ -214,6 +214,20 @@ outward-facing:
 force-push, **`enforce_admins: true`** — the maintainer cannot bypass it either
 without relaxing protection in Settings.
 
+**Start from the templates, not from nothing.** Every spec, launch block and task
+brief here is copied from a tracked scaffold rather than hand-rolled — re-deriving
+the structure per task is what produced inconsistent, individually-wrong specs:
+
+| Writing… | Copy from | Deeper reference |
+| --- | --- | --- |
+| An executor spec | `artifacts/specs/TEMPLATE.md` | `docs/PM-WORKFLOW.md` § 4 |
+| The launch block the maintainer pastes | `prompts/EXECUTOR-SEED-PROMPT-TEMPLATE.md` | `docs/PM-WORKFLOW.md` § 5 |
+| A lightweight single-task brief | `templates/task-spec.md` | — |
+
+They are **scaffolds, not gates**: nothing enforces their use, and a template nobody
+opens is exactly the artifact-is-not-the-behavior failure. Saying so is part of using
+them honestly.
+
 1. **Sync, then branch.** `git fetch`; confirm `git log --oneline main..origin/main`
    is empty (fast-forward first if not); cut the branch.
 2. **Write the continuity walkthrough** immediately after branching.
@@ -385,6 +399,24 @@ wholesale; a small repo may correctly skip much, but skipping is recorded as a
 decision. Destructive or outward-facing gaps — deleting labels, changing merge
 settings, choosing a licence, altering visibility — are the maintainer's call, not the
 agent's.
+
+### Recorded divergences from the reference repositories
+
+Parity runs both ways: something this repo has that the others do not is also a
+divergence, and it is recorded here rather than left to be discovered.
+
+- **`contract-reinjection.sh` (`UserPromptSubmit`) is net-new — not a port (#33).** No
+  context-injecting hook exists in `macos-system-health`, `ecg_anomaly_detection`, or
+  `github-portfolio-modernization`; every hook in all four repositories is `PreToolUse`
+  and denies an action. This one injects a generated digest of the contract files on
+  every turn and escalates when one changes mid-session. It was built here because the
+  failure was observed here: on 2026-07-26 a session spent half an hour citing an
+  `AGENTS.md` that had been rewritten thirty minutes earlier, in that same session, by
+  a PR the session had itself verified. **Deliberate divergence, adopted.** It costs
+  roughly 2.6 KB (~645 tokens) per turn, permanently, while registered — see
+  `CLAUDE.md` § "Contract re-injection" for the measured numbers and the rollback.
+  It **cannot** make an agent read what it injects; it removes the excuse, not the
+  possibility.
 
 ## Engineering discipline
 

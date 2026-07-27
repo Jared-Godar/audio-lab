@@ -41,10 +41,19 @@ your mode — **it makes the boundary structural**:
 | Declared by | nothing — absence of the flag | `AUDIO_LAB_EXECUTOR=1` |
 | Write/Edit **inside this repo** | only under `artifacts/` | anywhere |
 | Write/Edit **outside this repo** | allowed | allowed |
+| Write/Edit under `~/.aws`, `~/.ssh`, `~/.gnupg` | **denied** | **denied** — the flag does not lift this |
+| Write/Edit under `~/.claude/` | allowed | allowed |
+| Shell writes to in-repo paths outside `artifacts/` — `>`, `>>`, `tee`, `sed -i`, `cp`, `mv`, `dd`, `truncate` | **denied** | allowed |
+| Shell writes elsewhere (`/tmp`, `~`, `/dev/null`) and read-side `cp`/`sed -n` | allowed | allowed |
 | `gh issue/label create\|edit\|close\|comment` | **allowed** — writing issues is the PM's job | allowed |
 | `git commit/push/merge/branch -D` | **denied** | allowed |
 | `gh pr create\|merge\|edit`, `gh repo edit`, `gh api -X` (POST/PUT/PATCH/DELETE) | **denied** | allowed |
-| `git log/diff/status`, `gh * view/checks` | allowed | allowed |
+| `git log/diff/status`, `gh * view/checks`, `git merge-base` | allowed | allowed |
+| `aws configure`, `ssh-keygen`, `gpg` | allowed — they are shell commands, not file-writing tools | allowed |
+
+**Every row above was verified by running the guard**, both directions, on 2026-07-27
+under #48 — 51 paired permit/deny cases, each deny shipped with the permit it must not
+have broken. No row claims enforcement the hook does not have.
 
 Launch an executor with:
 
@@ -64,15 +73,36 @@ executor's work is the PM's job, and it cannot do that blind. Writes outside the
 are ungated so a PM session can persist a standing rule to `~/.claude/` the moment it
 is made, as the global contract requires.
 
-**Known hole, stated plainly.** The guard's `Write|Edit` matcher denies the PM every
-path inside the repo except `artifacts/` — including `.claude/hooks/pm-lane-guard.sh`
-itself. So the guard cannot be narrowed through the `Edit` tool: the 2026-07-26
-narrowing that produced the table above (adding `gh issue`/`gh label` to the PM lane)
-was applied by a **Bash write** to the file, which the command-matcher does not
-inspect. That is a real gap — a PM session can edit any in-repo file by shelling out
-with `printf`/`tee` instead of using `Edit`. It is recorded here, not closed in this
-change; tightening the Bash matcher to catch in-repo file writes is its own tracked
-work.
+**Credential paths are denied for every session, executor included.** `~/.aws`,
+`~/.ssh` and `~/.gnupg` are refused by the `Write`/`Edit` tools regardless of the
+flag — that check runs *before* the executor early-exit. No agent-authored workflow
+here needs to write them, and the tools that own them (`aws configure`, `ssh-keygen`,
+`gpg`) manage their own files and are not blocked. `~/.claude/` stays writable on
+purpose, because the global contract requires a standing rule to be persistable in the
+same turn it is agreed.
+
+**What remains open, stated plainly. This is a lane marker, not a sandbox.** The
+2026-07-26 hole — a PM session writing any tracked file with `printf`/`tee` because
+the Bash matcher inspected verbs only — is closed as of #48, and the guard was
+verified refusing exactly that. But the closure is heuristic and can never be
+complete. All of these still work, and were **run to confirm they still work** rather
+than assumed:
+
+- `bash -c "printf x > AGENTS.md"` — the wrapper hides the redirect from the matcher
+- a script file: `./deploy.sh`, `fish script.fish`, `make target`
+- any interpreter: `python3 -c`, `perl -i -pe`, `ruby -e`, `node -e`, `awk` + redirect
+- a symlink pointing out of the repo, since path normalisation is textual only
+
+What the hardening changes is the bar: from *trivially bypassed by the obvious method*
+to *requires deliberate circumvention*. It constrains accident and convenience. It
+does not constrain an adversary, and nothing in this repository should be read as
+claiming otherwise.
+
+Historical note, because it is the reason the hole mattered: **the guard was once
+narrowed by using the hole in the guard.** The 2026-07-26 change that added
+`gh issue`/`gh label` to the PM lane was applied by a Bash write to the hook file,
+which the command matcher did not inspect. That is documented history, not a
+hypothetical.
 
 **Why this exists.** The split lived as prose here for a whole session while a PM chat
 made ~15 commits, opened 5 PRs, created 11 issues and set branch protection. Nothing
@@ -83,6 +113,58 @@ cold-start, cloud and fresh-clone sessions inherit it — a guard living only in
 
 **If the guard blocks something it should not:** say so and ask. Do not weaken it
 unilaterally, and do not report the blockage as a finished answer.
+
+## Contract re-injection (`UserPromptSubmit`)
+
+`.claude/hooks/contract-reinjection.sh` is a tracked `UserPromptSubmit` hook. On every
+turn it injects a **generated** digest of `AGENTS.md`, `CLAUDE.md` and
+`~/.claude/CLAUDE.md` — their SHAs, sizes and section headings, computed from the files
+at hook time. Nothing in it is hand-maintained; a hand-written digest is one more
+artifact that can lie.
+
+**When a SHA differs from what this session last saw, it escalates**: it says which
+sections were added, modified or removed, injects the changed sections' full text
+(bounded), and instructs the session to re-read the file before citing it. That is the
+entire point — the observed failure was mid-session drift, and a `SessionStart` hook
+would not have caught it.
+
+**Measured cost, 2026-07-27 — this is paid on every turn, permanently, while the hook
+is registered:**
+
+| Turn | Injected `additionalContext` | ~tokens (4 bytes/token) |
+| --- | --- | --- |
+| First of a session | 2,794 bytes | ~700 |
+| Steady state (nothing changed) | 2,575 bytes | ~645 |
+| Escalation (1 section added, 2 modified in `AGENTS.md`) | 4,040 bytes | ~1,010 |
+
+Measured against the contract files as of this commit — 45 sections across the three.
+The steady-state figure scales with the **number of section headings**, not with file
+size, so adding a section to `AGENTS.md` costs roughly one line per turn forever. Verify
+the current number rather than trusting this table if it matters:
+`printf '{"session_id":"x"}' | bash .claude/hooks/contract-reinjection.sh | wc -c`.
+
+Escalation is bounded at 16,000 bytes total; a changed file over 8,000 bytes degrades
+to its changed sections plus an explicit instruction to re-read, and says so in the
+injection. `AGENTS.md` is ~26 KB, so changed-sections is the normal path, not the
+exception.
+
+**It fails open, always.** A missing contract file, an absent `python3`, a corrupt state
+file, garbage on stdin, a deleted helper — every one exits 0 and injects nothing. A hook
+that runs before every prompt must never be the reason a prompt fails, and it never
+exits 2, which would block and erase the prompt. All six failure modes were demonstrated
+under #33, not asserted.
+
+**What it does not do:** it cannot make an agent read what it injects. It removes the
+excuse, not the possibility. Calling it a fix for stale-contract citation would be the
+artifact-is-not-the-behavior failure it was built in response to.
+
+Session state lives in `.claude/contract-state/` (gitignored), one file per session,
+pruned after seven days. **To disable:** delete the `"UserPromptSubmit"` key from
+`.claude/settings.json`; nothing else references the hook.
+
+This is a **deliberate divergence** from the other three repositories, none of which
+has any context-injecting hook — recorded as one in `AGENTS.md` § "Recorded divergences
+from the reference repositories", per the parity checklist.
 
 ## Executor specs must begin with the contract read
 
