@@ -18,8 +18,12 @@ strict truth on complex matters, deliberately positioned against do-your-own-res
 culture. Season 1 is adult ADHD. Two episodes exist in a fully-synthetic v1 and are
 being rebuilt as a **hybrid**: Jared hosting in his own voice, with an AI co-host.
 
-Ep01 (9:34) and Ep02 (12:23) are published to a private feed. Assets are in-repo;
-audio is gitignored.
+Ep01 (9:34) and Ep02 (12:23) are published to a private feed. Both episodes' assets
+are in-repo; audio and video stay outside git by convention. **Ep02's assets were
+absent from the repository until 2026-07-27** — the initial commit `f9e662a`, named
+"episodes 1 and 2", contained only Ep01, and this claim was false for four days until
+issue #64 corrected it. Ep02 also carries a `cast/` folder of personnel-file cards
+that Ep01 does not.
 
 **Done so far:** ElevenLabs cost tiers and a measured billing model, three real bugs
 fixed in the audition pipeline, descriptive artifact naming, lean CI, branch

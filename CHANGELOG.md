@@ -11,6 +11,24 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`episodes/ToldStraight-Ep02/` committed — 23 files, closing a four-day gap where the
+  repository held half the published season (#64).** The initial commit `f9e662a`, named
+  "episodes 1 and 2", contained only Ep01; Ep02's complete asset set — seven 1600×1600
+  chapter/cover PNGs, a `cast/` folder of three personnel-file cards Ep01 does not have,
+  four transcript formats, both show-notes formats, `alt-text.md`,
+  `captions-autosync.txt`, `episode-copy.txt`, `youtube-description.txt`,
+  `transcript-markup.txt`, and both `record-*.txt` files — existed only in a working
+  directory on one disk. Measured before committing: `find … | wc -l` = 23, every PNG
+  1600×1600 via `sips`. **Excludes** `session-one-skills.mp3` (17.8 MB) and
+  `told-straight-ep02.mp4` (16.4 MB), consistent with `CLAUDE.md` § "Repo shape" keeping
+  episode audio outside git — verified with the negative test
+  `git ls-files episodes/ToldStraight-Ep02 | grep -c -E '\.(mp3|mp4)$'` = 0. The `cast/`
+  cards (`host_des_fable.png`, `guest_michael_voss.png`, `studio_disclaimer.png`) satisfy
+  #60 §5's requirement that the synthetic co-host never be presented as a real person, and
+  predate that requirement being written down. `ROADMAP.md` § "Where we are" corrected: it
+  had claimed both episodes' assets were in-repo, true of Ep01 and false of Ep02 for four
+  days.
+
 - **`README.md` rewritten for a listener and a developer, and the repository's empty
   discovery fields filled (#58).** The old file's second heading was `## Setup` and its
   first line described "podcast generation via the Save to Spotify CLI" — nothing above

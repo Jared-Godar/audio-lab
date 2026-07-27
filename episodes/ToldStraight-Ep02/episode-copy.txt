@@ -1,0 +1,34 @@
+=========================================================
+TOLD STRAIGHT — EPISODE 2 — COPY/PASTE FIELDS
+=========================================================
+
+--- AUDIO FILE ---
+~/ToldStraight-Ep02/session-one-skills.mp3   (12.4 min, 6 chapters embedded)
+
+--- TITLE ---
+Session One: The Skills That Complement the Pills
+
+--- SEASON / EPISODE ---
+Season 1, Episode 2
+
+--- EPISODE ARTWORK ---
+~/ToldStraight-Ep02/cover.png   (or ch3.png / ch6.png for a punchier per-episode image)
+
+--- SUMMARY / SHORT DESCRIPTION ---
+Session one. The pills quiet the ADHD noise; they don't touch the 40 years of conclusions you drew while nobody knew. A first-session, told-straight tour of the skills that complement the pills - CBT, ACT, the two therapies confusingly both called "MCT," and Young's schemas - with the honest evidence on each. Homework included.
+
+--- FULL SHOW NOTES (big editor) ---
+~/ToldStraight-Ep02/show-notes.html   (12 DOI-linked references + chapter timestamps + YSQ homework link)
+
+--- TRANSCRIPT (Transistor, after saving) ---
+~/ToldStraight-Ep02/transcript.txt
+
+--- YOUTUBE CAPTIONS (Auto-sync, "Without timing") ---
+~/ToldStraight-Ep02/captions-autosync.txt
+
+--- YOUTUBE DESCRIPTION (paste; makes chapters + sources) ---
+~/ToldStraight-Ep02/youtube-description.txt
+
+--- YOUTUBE VIDEO FILE (upload Unlisted) ---
+~/ToldStraight-Ep02/told-straight-ep02.mp4   (thumbnail: cover.png)
+=========================================================

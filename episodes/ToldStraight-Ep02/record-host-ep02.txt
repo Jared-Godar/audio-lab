@@ -1,0 +1,47 @@
+=== HOST RECORDING SCRIPT - Ep.02 - you (or a human guest) voice the HOST ===
+Episode: Session One: The Skills That Complement the Pills
+If you DON'T record this role, I generate it with AI: Des Fable (bm_fable, British)
+
+HOW TO RECORD (pick one):
+  A) One file per numbered line -> save as H01.wav/.m4a/.mp3 ... in narration/
+     (e.g. H01.wav, H02.wav)  <- cleanest.
+  B) One continuous take -> read all HOST lines in order, ~2s silence between each;
+     save as narration/host-full-take.wav . I auto-split on the gaps.
+TIPS: quiet room, steady mic distance, a breath before & after each line.
+======================================================================
+
+--- Session one ---
+[H01]  So. Session one. I'm in the chair - fine, it's a video call, but let's pretend there's a chair, it's more cinematic. I'm in my mid-forties. I got the ADHD diagnosis a few months ago, I've been on the medication, and here's the strange part: the pills work. The noise drops. The world stops shouting all at once. But there's a problem the pills don't touch. Forty years of wiring upstairs. Four decades of quietly deciding what kind of person I must be to keep losing my keys and missing deadlines and disappointing people who love me. The pills quiet the symptom. They don't rewrite the story I built on top of it.
+[H02]  So what is ADHD therapy, actually? Because when I hear therapy I picture a couch and someone asking how my mother made me feel.
+[H03]  Okay. I'm listening.
+
+--- CBT and ACT, quickly ---
+[H04]  You're about to throw a pile of three-letter acronyms at me, aren't you.
+[H05]  And the second one?
+[H06]  I appreciate that, actually. Everyone online is so damn sure about everything.
+
+--- The two MCTs, told straight ---
+[H07]  My therapist called it MCT. Metacognitive therapy. That's the one I wrote down.
+[H08]  Of course it does.
+[H09]  So the thing with my name on it has no ADHD evidence behind it?
+[H10]  That is genuinely unhinged. So which one did my therapist mean?
+
+--- The tools, out loud ---
+[H11]  Good, because I've got the notes right here. First thing my therapist gave me: "I'm having a thought that - blank."
+[H12]  My notes also say: thoughts aren't facts. Black-and-white thinking is a distortion. Negative thoughts drive negative emotions.
+[H13]  That's weirdly freeing. I've spent my whole life treating every anxious thought like a memo from management that demanded an answer.
+
+--- The patterns underneath ---
+[H14]  But some of them don't feel like spam. Some feel true. The "you're a failure" one - that doesn't feel like a random thought. It feels like a conclusion I earned.
+[H15]  Which ones?
+[H16]  Because -
+[H17]  Yeah. That one lands.
+
+--- What to do about them ---
+[H18]  So what do I actually do with a forty-year-old belief that I'm a failure?
+[H19]  So the belief isn't exactly a lie. It's a - misfiled conclusion.
+[H20]  And the homework?
+[H21]  Which is the whole point of the paperwork.
+[H22]  Welcome to the club.
+
+TOTAL HOST LINES: 22
