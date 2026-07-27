@@ -1,0 +1,104 @@
+ Session One: The Skills That Complement the Pills
+Transcript - Told Straight, Ep.02 - Des Fable (host) & Dr. Michael Voss (expert). Both synthetic voices.
+
+ Content note: candid discussion of ADHD, shame, self-esteem, and negative core beliefs. Orientation, not therapy or medical advice.
+
+TL;DR. 'Pills plus skills' is real - CBT is the best-evidenced skills therapy for adult ADHD; ACT, Wells' MCT, and schema therapy are promising but not ADHD-outcome-tested. 'MCT' confusingly names two different therapies. Underneath passing thoughts sit deep negative core beliefs (Young's schemas) - many built while ADHD was undiagnosed, on a false premise.
+
+---
+
+ [0:00] Session one
+
+DES (Host): So. Session one. I'm in the chair - fine, it's a video call, but let's pretend there's a chair, it's more cinematic. I'm in my mid-forties. I got the ADHD diagnosis a few months ago, I've been on the medication, and here's the strange part: the pills work. The noise drops. The world stops shouting all at once. But there's a problem the pills don't touch. Forty years of wiring upstairs. Four decades of quietly deciding what kind of person I must be to keep losing my keys and missing deadlines and disappointing people who love me. The pills quiet the symptom. They don't rewrite the story I built on top of it.
+
+DR. VOSS (Expert): That's exactly why you're here - and it's the right instinct. Last episode you heard the phrase pills plus skills. This is the skills half. The medication changes the chemistry. Therapy goes after the forty years of conclusions you drew while nobody knew what was actually going on.
+
+DES (Host): So what is ADHD therapy, actually? Because when I hear therapy I picture a couch and someone asking how my mother made me feel.
+
+DR. VOSS (Expert): For ADHD, mostly not that. The best-evidenced ADHD therapy is skills-based and practical - building external systems for a brain that won't hold them internally, and dismantling the beliefs that stop you using them. There's a landmark trial - Safren and colleagues, twenty ten, in JAMA - adults already on medication, still struggling, who added twelve sessions of this kind of therapy. Two-thirds responded, versus a third in the comparison group. On top of the pills. That's the whole premise: the pills get you to the starting line; the skills teach you to run.
+
+DES (Host): Okay. I'm listening.
+
+ [1:43] CBT and ACT, quickly
+
+DES (Host): You're about to throw a pile of three-letter acronyms at me, aren't you.
+
+DR. VOSS (Expert): A few. Let me do the two you'll hear first, fast. CBT - cognitive behavioural therapy. For ADHD it's less about your childhood and more about your calendar. Catch the thought that sabotages you - "why bother starting, I'll just fail" - test it against reality, and build the boring external scaffolding: one list, one system, break the task down, schedule the start, not the finish. It's the best-evidenced skills therapy we've got for adult ADHD. A twenty seventeen meta-analysis by Knouse and colleagues - thirty-two studies - found large improvements. Honesty clause, because this is that kind of show: the effect shrinks when you measure it against other active therapies instead of a wait-list. It's real. It's just not magic.
+
+DES (Host): And the second one?
+
+DR. VOSS (Expert): ACT - acceptance and commitment therapy. Different philosophy. CBT argues with the thought; ACT stops wrestling it. You have the thought "I'm a failure," and instead of fighting it, you learn to say "I'm having the thought that I'm a failure" - you unhook from it, and go do the thing that matters anyway. For ADHD specifically the evidence is thin - genuinely thin. The one adult study had no control group, and its own main measure didn't even move. So: a useful stance, weak proof. I'm not going to pretend otherwise.
+
+DES (Host): I appreciate that, actually. Everyone online is so damn sure about everything.
+
+DR. VOSS (Expert): Certainty is cheap. Now let's do the one your notes are actually about.
+
+ [3:24] The two MCTs, told straight
+
+DES (Host): My therapist called it MCT. Metacognitive therapy. That's the one I wrote down.
+
+DR. VOSS (Expert): Right. And here's where I have to stop and tell you something genuinely confusing, because this show doesn't paper over the confusing bits. "MCT" points at two completely different therapies. Two. Same three letters, different planets.
+
+DES (Host): Of course it does.
+
+DR. VOSS (Expert): The first is Adrian Wells' Metacognitive Therapy. Its whole idea is that suffering comes from how you handle thoughts, not their content. There's a mental engine Wells calls the Cognitive Attentional Syndrome - worry, rumination, constantly scanning for threat. His MCT teaches you to step back and let thoughts pass without feeding them - detached mindfulness, attention training. And the evidence is genuinely strong - a twenty eighteen review by Normann and Morina found very large effects. But here's the catch: all of that is for anxiety and depression. When I went looking for trials applying Wells' MCT to ADHD, I found none. Zero. It's a powerful therapy that has never actually been tested on ADHD.
+
+DES (Host): So the thing with my name on it has no ADHD evidence behind it?
+
+DR. VOSS (Expert): The Wells version - correct. Now the second MCT. Mary Solanto built a program she also called metacognitive therapy, but specifically for adults with ADHD - and it is not Wells' therapy at all. It's basically CBT executive-skills training - time management, organisation, planning - wearing the metacognitive name. And that one does have an ADHD trial behind it, twenty ten, American Journal of Psychiatry. So follow this: one MCT is genuinely metacognitive and has zero ADHD evidence. The other has the ADHD evidence and isn't really metacognitive. Same three letters. Opposite animals.
+
+DES (Host): That is genuinely unhinged. So which one did my therapist mean?
+
+DR. VOSS (Expert): Honestly? Probably neither, in the branded sense - and this is the part that matters. Your therapist used metacognitive in the plain-English sense: thinking about your thinking. Stepping outside a thought to look at it instead of from inside it. That skill is real, it's useful, and it borrows from all of these. The label is a mess. The skill underneath is not. So let's stop worshipping the acronym and actually learn the skill.
+
+ [6:04] The tools, out loud
+
+DES (Host): Good, because I've got the notes right here. First thing my therapist gave me: "I'm having a thought that - blank."
+
+DR. VOSS (Expert): That's a beautiful little tool - and, told straight, it's not originally MCT at all. It's defusion, straight out of ACT. But it doesn't matter whose it is; it works. Watch what it does. "I'm a failure" is a verdict. "I'm having the thought that I'm a failure" is just weather. You put four words in front of it and suddenly there's a gap between you and the thought - enough room to not obey it.
+
+DES (Host): My notes also say: thoughts aren't facts. Black-and-white thinking is a distortion. Negative thoughts drive negative emotions.
+
+DR. VOSS (Expert): All true, all useful - and now you can see the seams. "Thoughts aren't facts," and spotting all-or-nothing thinking, that's classic CBT - Beck's cognitive distortions. "You don't have to act on a thought, just watch it pass" - that's the metacognitive stance, the genuinely Wells-flavoured part. "Negative thoughts drive negative emotions" - CBT again. Your therapist handed you a Swiss Army knife and didn't stop to say which country made each blade. And for an ADHD brain, that knife is worth a fortune - because the ADHD mind throws thoughts like a broken firehose, and the move isn't to catch every one and argue with it. It's to notice you don't have to grab each thought that flies past. You can let most of them go by.
+
+DES (Host): That's weirdly freeing. I've spent my whole life treating every anxious thought like a memo from management that demanded an answer.
+
+DR. VOSS (Expert): It's not management. It's spam. You can leave it in the folder.
+
+ [7:45] The patterns underneath
+
+DES (Host): But some of them don't feel like spam. Some feel true. The "you're a failure" one - that doesn't feel like a random thought. It feels like a conclusion I earned.
+
+DR. VOSS (Expert): Now we're at the deep part - and this is the other thing in your notes: the Young Schema Questionnaire. Different person entirely - Jeffrey Young - different idea. Underneath the passing thoughts, Young says we each carry a handful of deep, early-formed core beliefs he calls schemas. Eighteen of them, sorted into five broad domains. They're not thoughts you have; they're lenses you see through. And there's real data here - two studies, Philipsen's group in twenty sixteen and Kiraz in twenty twenty-one - both found adults with ADHD score dramatically higher on these schemas than people without.
+
+DES (Host): Which ones?
+
+DR. VOSS (Expert): The cluster is grimly predictable. Failure - "I haven't measured up, and I never will." Defectiveness and shame - "something is wrong with me at the core." Insufficient self-control. Unrelenting standards - the flip side, "I have to be perfect or I'm nothing." And approval-seeking. Honesty clause again: these studies show the schemas are elevated in ADHD; they do not prove schema therapy fixes ADHD. Nobody has run that trial. But the correlation is loud, and it makes brutal sense.
+
+DES (Host): Because -
+
+DR. VOSS (Expert): Because think about where a Failure schema even comes from. A kid who tries as hard as everyone else and keeps coming up short. Who gets called lazy, careless, not living up to his potential - for years - by teachers, by parents, by himself. Nobody knew the wiring was different. So the kid drew the only conclusion on offer: it's me. I'm the problem. And that belief got laid down, decade after decade, in a brain that had no idea it had ADHD.
+
+DES (Host): Yeah. That one lands.
+
+ [9:41] What to do about them
+
+DES (Host): So what do I actually do with a forty-year-old belief that I'm a failure?
+
+DR. VOSS (Expert): Here's the reframe - and it might be the most important sentence in this whole session. That belief was built on a false premise. You concluded you were defective. But you weren't defective - you were undiagnosed. All that evidence you gathered your entire life, all that proof that you were lazy and broken - it was real behaviour, but you filed it under the wrong cause. It wasn't character. It was an untreated neurodevelopmental condition nobody had named yet. You were, to borrow from last time, running the marathon without shoes and calling yourself slow.
+
+DES (Host): So the belief isn't exactly a lie. It's a - misfiled conclusion.
+
+DR. VOSS (Expert): Misfiled. Perfect word. And schema work is basically re-filing it. Three moves. One - name it. When the feeling hits: "this is my Failure schema, not a fact." That's the metacognitive skill again - the gap between you and the thought. Two - trace it. See the undiagnosed kid it belongs to, and understand he had a reason. Three - break the pattern on purpose. The schema predicts you'll fail, so it tells you not to try, so you don't, so it never gets disproven. You beat it by doing the thing anyway - finishing the imperfect project, hitting send - and letting reality cast a vote. And the honesty clause, one last time: I can't hand you a trial proving this reattribution cures anything. What I can tell you is the shame is real and documented, self-esteem is a legitimate target of this work, and the belief is demonstrably built on a misread.
+
+DES (Host): And the homework?
+
+DR. VOSS (Expert): The homework is the questionnaire. Go take the Young Schema Questionnaire - the YSQ. It's free, it's online, it's already on your to-do list. It'll show you which of the eighteen schemas are loudest in you - not so you feel worse, but so you can finally see the lenses you've been looking through and forgetting you had on. That's session one. You don't fix forty years today. You just find out what you're actually working with.
+
+DES (Host): Which is the whole point of the paperwork.
+
+DR. VOSS (Expert): Now you're getting it. And - real talk, because this show doesn't fake it - I'm a voice in your ears, not your clinician. This is orientation. The actual work happens with a real therapist who knows your actual life. Go find one, or keep the one you've got. The skills are real. The pills are real. And you - the guy in the chair - were never the failure. You were just the last person in the room to get the memo.
+
+DES (Host): Welcome to the club.
+
+DR. VOSS (Expert): We saved you a seat.
