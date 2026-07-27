@@ -47,6 +47,20 @@ blind head-to-head → cast and pin voice IDs.
 
 - Blocked by: M1, and **the model bake-off** (see Open decisions).
 - Cost: ~4,400 credits. The sweep stage is free.
+- **Stage one (free preview sweep) — complete** (#7): 12 candidates on disk in
+  `artifacts/voice-previews/`.
+- **Stage two (paid screen test) — complete** (#38, PR ⟨PR⟩): the top-5-by-adopters
+  shortlist plus the premade-Daniel control read three real Ep01 EXPERT lines
+  (dense-stat / warm aside / emotional handoff) on `eleven_v3` @ 192 kbps. 18 renders
+  under `output/auditions/samples/elevenlabs/`, each folder self-describing with a
+  digest manifest carrying `voice_id`, line, chars, and measured credits. **Spend:
+  1,758 credits measured from `/v1/history` vs a 1,762 estimate (Δ −4, pure
+  per-generation rounding — the 0.55× rate holds exactly).** The control rendered
+  through the same voice_id and path as the #10 bake-off, so the render path is sound;
+  the aural judgement (which candidates survive) is the maintainer's, next.
+- **Stage three (blind head-to-head) — pending** the maintainer's listen. Reversal
+  condition on the shortlist: if fewer than two of the five survive, screen the
+  remaining seven before trusting the adopter-count proxy (#38 §3).
 
 ### M3 — Tuning app (Phase II)
 

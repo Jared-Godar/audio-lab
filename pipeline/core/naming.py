@@ -54,6 +54,45 @@ def voice_dir(voice: Voice) -> Path:
     return SAMPLES_DIR / VENDOR / f"{slug(voice.name, 24)}-{voice.voice_id[:8]}"
 
 
+def render_digest(text: str, variant: str) -> str:
+    """The cache key for one rendered sample: text + variant (model|format).
+
+    Both text and variant are in the key so a draft render and a master render of the
+    same line never collide — the exact bug the manifest cache was built to fix. Shared
+    by :func:`sample_path` and the screen-test recorder so there is one cache identity,
+    not two.
+    """
+    return hashlib.sha1(f"{text}\x00{variant}".encode()).hexdigest()[:12]
+
+
+def descriptive_render_name(
+    voice: Voice, variant: str, purpose: str, text: str, taken: set[str]
+) -> str:
+    """Mint the human-readable filename for a render, avoiding ``taken`` collisions.
+
+    Shape: ``YYYYMMDD-VENDOR-MODEL-VOICE-PURPOSE[-BITRATE]k.mp3`` (``CLAUDE.md``). A
+    readable-name collision gets a numeric suffix, never a hash fallback. Reused by
+    both the sample cache and the screen test so the naming rule lives in one place.
+    """
+    model = variant.split("|")[0].replace("eleven_", "")
+    fmt = variant.split("|")[1].replace("mp3_44100_", "") if "|" in variant else ""
+    parts = [
+        datetime.now().strftime("%Y%m%d"),
+        VENDOR,  # vendor first — whose engine made this, at a glance
+        model,
+        slug(voice.name, 24),
+        slug(purpose or text, 40),
+    ]
+    if fmt:
+        parts.append(f"{fmt}k")
+    base = "-".join(p for p in parts if p)
+
+    name, n = f"{base}.mp3", 2
+    while name in taken:
+        name, n = f"{base}-{n}.mp3", n + 1
+    return name
+
+
 def _manifest_path(voice: Voice) -> Path:
     return voice_dir(voice) / "manifest.json"
 
@@ -82,7 +121,7 @@ def sample_path(voice: Voice, text: str, variant: str = "", purpose: str = "") -
     cached path if this exact (text, variant) was rendered before; otherwise mints a
     fresh descriptive name and records it in the sibling manifest.
     """
-    digest = hashlib.sha1(f"{text}\x00{variant}".encode()).hexdigest()[:12]
+    digest = render_digest(text, variant)
     folder = voice_dir(voice)
     folder.mkdir(parents=True, exist_ok=True)
 
@@ -90,23 +129,8 @@ def sample_path(voice: Voice, text: str, variant: str = "", purpose: str = "") -
     if digest in manifest:
         return folder / manifest[digest]["file"]
 
-    model = variant.split("|")[0].replace("eleven_", "")
-    fmt = variant.split("|")[1].replace("mp3_44100_", "") if "|" in variant else ""
-    parts = [
-        datetime.now().strftime("%Y%m%d"),
-        VENDOR,  # vendor first — whose engine made this, at a glance
-        model,
-        slug(voice.name, 24),
-        slug(purpose or text, 40),
-    ]
-    if fmt:
-        parts.append(f"{fmt}k")
-    base = "-".join(p for p in parts if p)
-
-    name, n = f"{base}.mp3", 2
     taken = {v["file"] for v in manifest.values()}
-    while name in taken:
-        name, n = f"{base}-{n}.mp3", n + 1
+    name = descriptive_render_name(voice, variant, purpose, text, taken)
 
     manifest[digest] = {
         "file": name,

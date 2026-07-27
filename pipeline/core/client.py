@@ -94,6 +94,35 @@ class ElevenLabsClient:
     def estimate_credits(self, text: str) -> int:
         return round(len(text) * self.effective_rate)
 
+    def history_rows(self, limit: int = 80) -> list[dict]:
+        """Raw per-generation rows from `/v1/history`, newest first.
+
+        Each row carries its ``id`` (``history_item_id``), ``model_id`` and ``billed``
+        (the ``character_count_change`` delta = credits actually charged). Reconciliation
+        diffs the id set before and after a batch, so a spend is attributed from the
+        authoritative per-generation record — never from ``/v1/user/subscription``, which
+        lags by tens of seconds and misattributes back-to-back calls. ``eleven_v3`` omits
+        its text here, but the ``billed`` delta is always present.
+        """
+        r = request_with_retry(
+            "GET",
+            f"{API}/history",
+            headers=self._headers(),
+            params={"page_size": limit},
+            timeout=20,
+        )
+        rows = []
+        for h in r.json().get("history", []):
+            rows.append(
+                {
+                    "id": h.get("history_item_id"),
+                    "model_id": h.get("model_id") or "?",
+                    "billed": h.get("character_count_change_to", 0)
+                    - h.get("character_count_change_from", 0),
+                }
+            )
+        return rows
+
     def recent_rates(self, limit: int = 40) -> list[dict]:
         """Per-generation billing straight from history — the source of truth.
 
