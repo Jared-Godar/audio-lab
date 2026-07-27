@@ -1,5 +1,20 @@
 [
   {
+    "role": "host",
+    "episode": "ToldStraight-Ep01",
+    "vendor": "elevenlabs",
+    "voice_id": "onwK4e9ZLuTAKqWW03F9",
+    "name": "Daniel",
+    "model": "eleven_v3",
+    "output_format": "mp3_44100_192",
+    "source": "premade",
+    "chosen_by": "maintainer",
+    "chosen_on": "2026-07-27",
+    "interim": true,
+    "replaced_by": "the maintainer's own narration (#44)",
+    "provenance": "#43 Ep01 v2.0 interim host placeholder; the #10/#38 bake-off premade Daniel"
+  },
+  {
     "role": "co-host",
     "episode": "ToldStraight-Ep01",
     "vendor": "elevenlabs",
