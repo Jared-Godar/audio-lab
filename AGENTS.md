@@ -326,6 +326,9 @@ compliance never depends on an agent remembering.
 - [ ] Labels per `.github/labels.json` — ≥1 `type:`, ≥1 `area:`, `priority:` where
       meaningful; every name verified to exist, never assumed.
 - [ ] CHANGELOG entry in the same PR, or an explicit `skip-changelog` justification.
+- [ ] A PR closing a milestone's **last open issue** also refreshes the README status
+      section and its `Last updated:` date — check with `gh api
+      repos/Jared-Godar/audio-lab/milestones --jq '.[]|select(.open_issues==0)|.title'`.
 - [ ] Issue linked via `Closes #N` — a multi-issue PR repeats the keyword per number
       (`Closes #A` / `Closes #B`), never the combined form that closes only the first.
 - [ ] Assignee `Jared-Godar`; milestone where the linked issue has one.

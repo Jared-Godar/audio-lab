@@ -11,6 +11,43 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`README.md` rewritten for a listener and a developer, and the repository's empty
+  discovery fields filled (#58).** The old file's second heading was `## Setup` and its
+  first line described "podcast generation via the Save to Spotify CLI" — nothing above
+  the fold said there was a show, what it was about, or that `toldstraight.com` existed.
+  The new one opens with *Told Straight* and Season 1's subject, carries a dated status
+  table (first commit 2026-07-22, public 2026-07-23, domain 2026-07-26, mail and the
+  54-stem/10:29 Ep01 rebuild both 2026-07-27), then a developer section on the four
+  things here that are genuinely unusual — per-turn stems and why they pay for
+  themselves, the measured 0.55× billing rate, the hosted zone as a CloudFormation
+  parameter, and the agent contract's hooks — with setup moved **below** it. The
+  `pre-commit install` warning survived verbatim, including its both-directions
+  verification; it was moved, not lost, because a tracked `.pre-commit-config.yaml`
+  installs nothing and CI only catches a secret after it is already in local history.
+  **The truthfulness constraint outranked the tone and is stated bluntly in the file:**
+  "Nothing here is listenable, and that is not a soft 'not yet'." There is no public
+  feed, no player, no link, and `git check-ignore` confirms the master sits under the
+  gitignored `output/` tree — the v1 private feed is named as `ROADMAP.md`'s claim
+  rather than restated as fact. `description` and six `topics` set via
+  `gh repo edit` and verified by read-back; **`homepage` deliberately left empty**
+  because the apex has no `A` record, and `has_wiki` left alone as the maintainer's call.
+  Two badges adopted, both reading live from the Actions API (`Quality gates` on `main`,
+  `Full-history secret scan`); a licence badge **rejected** because `LICENSE` is a
+  *scoped* MIT with `episodes/` all-rights-reserved and GitHub reports `licenseInfo` as
+  `other`, and a tests badge rejected because `Tests (pipeline)` is not among the four
+  required checks on `main`.
+
+- **`AGENTS.md` § "Definition of done" gained the milestone-closure trigger for the
+  README status section (#58 §4C option 1, chosen by the maintainer).** A PR that closes
+  a milestone's last open issue also refreshes the status section and its
+  `Last updated:` date, checkable with
+  `gh api repos/Jared-Godar/audio-lab/milestones --jq '.[]|select(.open_issues==0)|.title'`.
+  **Written, not in force** — it is a line in a contract file with nothing gating it,
+  exactly the weak form `AGENTS.md` § "The artifact is not the behavior" names. Option 2
+  (a scheduled staleness workflow, the only variant that would actually catch drift) was
+  offered and not chosen; recording that here so the gap is a decision rather than an
+  accident.
+
 - **`toldstraight.com` now sends and receives mail at iCloud+, and the anti-spoofing
   guarantee survived the change (#54).** M5. The mail lockdown deployed six hours earlier
   in #22 was **deliberately, partially undone** — the RFC 7505 null MX (`0 .`) and
@@ -289,6 +326,19 @@ visible in the diff and would otherwise evaporate.
   message that names what actually failed.
 
 ### Fixed
+
+- **Two overclaims in `README.md` that had gone stale, found by running the commands
+  instead of trusting the prose (#58).** The file documented an entire `uv run audition`
+  workflow — `--engines`, `--shortlist`, `--cast`, `--tier`, `--check-rates`,
+  `--list-models` — none of which exists: `uv run audition` fails with
+  `Failed to spawn: audition`, because the entry point moved to `voicelab` when the v1
+  tool was archived to `archive/audition-v1/` in #29. And the first line advertised
+  "Spotify listening-data analysis" as a headline capability, while `spotify/main.py` is
+  a five-line stub that prints `Hello from spotify!`; the layout table now calls it a
+  scaffold with a `spotipy` dependency and a 2022 export, with no analysis written yet.
+  **`CLAUDE.md` § "Repo shape" still says "`uv run audition` is the CLI" and was left
+  alone** — issue #58 §5 scopes this change out of the contract files beyond §4C, so it
+  is reported as an owed follow-up rather than fixed off-spec.
 
 - **A test that could only ever pass on one machine — caught within minutes of wiring
   pytest into CI (#30 Gap 4).** `test_manifest_entry_matches_sweep_schema` read its
