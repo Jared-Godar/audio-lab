@@ -11,6 +11,27 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`render-episode` bakes in the Ep01 v2 mastering chain (#46).** The assembly step
+  was a uniform-gap concatenator; the post-production recipe the maintainer approved for
+  the Ep01 v2 master lived only in a gitignored scratch script, so nothing in the repo
+  could regenerate it or apply it to Ep02. `pipeline/core/episode.py` gains
+  `master_from_stems`, which runs the full chain in its physics-fixed order —
+  **per-speaker loudness match → concat with structure-aware gaps → high-pass + gentle
+  compression → tempo → loudness-normalize (last)** — and returns the per-speaker
+  loudness *before and after* matching plus the final integrated loudness, so callers
+  prove the gap closed and the target was hit, not merely that ffmpeg exited 0. The
+  parser now flags **chapter-start turns** (`Turn.chapter_start`; 0/8/16/24/32/40 for
+  Ep01), and `smart_gap_ms` gives them a section beat (500 ms), snaps quick replies
+  around short interjections (180 ms), and leaves normal handoffs at 300 ms — structure,
+  not speaker, since the dialogue strictly alternates. `render-episode --assemble` now
+  produces the finished master by default (`--tempo 1.08`, trim, smart gaps, `--loudnorm
+  -16`, polish), each step overridable (`--no-trim`, `--no-smart-gaps`, `--no-polish`,
+  `--no-loudnorm`, `--tempo`) or bypassed wholesale with `--raw`. Verified by
+  regenerating the real Ep01 master from the 54 cached stems (**zero credits**):
+  `ebur128` measured **−16.4 LUFS** (target −16 ±1) and the Daniel/Jofra gap closed from
+  **2.0 dB → 0.0 dB**; 10.49-min master, `mp3/44100/mono/192k`. Five new tests
+  (55 total), ffmpeg-gated where they touch audio, network untouched, zero credits.
+
 - **Jofra pinned as the Ep01 co-host in a tracked cast record (#40).** The maintainer's
   choice — **Jofra – Expressive & Neutral Narrator**, `NuRyEq0OdD9mMOyd51UZ`, picked
   directly from the 18 stage-two screen-test renders — previously existed only in an
@@ -107,6 +128,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **The two ElevenLabs v3 voices came out ~2 dB apart, and −16 LUFS is the delivery
+  target (#46).** Measured over their trimmed stems, Jofra (EXPERT) sat at −16.8 LUFS and
+  Daniel (HOST) at −18.7 — a **2.0 dB** imbalance, audible on a quiet listen, that no
+  amount of master-level normalization fixes (it sets the *overall* loudness, not the
+  balance *between* speakers). The fix is a per-speaker gain match **before** concat,
+  because two voices can't be re-separated once glued into one file. The whole master is
+  then normalized to **−16 LUFS** (Apple/podcast standard, true-peak −1.5 dBTP), and
+  crucially that normalize is the **last** link: compression shifts loudness, so
+  normalizing before polishing would just be undone. Order is not stylistic here — it is
+  match → concat → polish → normalize, full stop.
 - **A 401 from ElevenLabs can mean an exhausted *key-scoped* credit quota, not a bad key
   (#43).** During the authorised Ep01 render the batch rendered 32 of 54 turns, then every
   subsequent call returned **HTTP 401** — while `GET /v1/user/subscription` with the *same

@@ -39,6 +39,7 @@ from .episode import (
     AssemblyError,
     SpendGate,
     assemble_master,
+    master_from_stems,
     parse_turns,
 )
 from .episode import estimate as episode_estimate
@@ -476,13 +477,32 @@ def cmd_render_episode(args: argparse.Namespace) -> None:
 
     if args.assemble and not result.failures:
         master = EPISODES_DIR / EPISODE_SLUG / _master_name(client.variant)
+        ordered = [
+            (rec.turn, rec.path)
+            for rec in sorted(result.records, key=lambda r: r.turn.index)
+            if rec.ok
+        ]
         try:
-            assemble_master(
-                result.ordered_stems(), master, gap_ms=args.gap_ms, console=console
-            )
+            if args.raw:
+                assemble_master(
+                    [p for _, p in ordered], master, gap_ms=args.gap_ms, console=console
+                )
+            else:
+                # The approved Ep01 v2 mastering chain (#46); flags override each step.
+                master_from_stems(
+                    ordered,
+                    master,
+                    tempo=args.tempo,
+                    trim=args.trim,
+                    smart_gaps=args.smart_gaps,
+                    gap_ms=args.gap_ms,
+                    loudnorm_i=args.loudnorm,
+                    polish=args.polish,
+                    console=console,
+                )
             console.print(f"[green]Master:[/green] {master}")
         except AssemblyError as exc:
-            console.print(f"[red]Assembly failed:[/red] {exc}")
+            console.print(f"[red]Assembly/mastering failed:[/red] {exc}")
     elif args.assemble and result.failures:
         console.print(
             "[yellow]Skipping assembly — some turns failed to render.[/yellow]"
@@ -565,14 +585,58 @@ def main() -> None:
     p_ep.add_argument(
         "--assemble",
         action="store_true",
-        help="After rendering, concatenate the stems into a single master via ffmpeg.",
+        help="After rendering, master the stems into a finished episode (#46): "
+        "trim + per-speaker loudness match + structure-aware gaps + polish + 1.08× + "
+        "-16 LUFS. Flags below override each step; --raw skips mastering.",
+    )
+    p_ep.add_argument(
+        "--raw",
+        action="store_true",
+        help="With --assemble, plain uniform-gap concat only — skip the mastering chain.",
+    )
+    p_ep.add_argument(
+        "--tempo",
+        type=float,
+        default=1.08,
+        help="Playback tempo, pitch preserved (default 1.08; 1.0 = unchanged).",
+    )
+    p_ep.add_argument(
+        "--no-trim",
+        dest="trim",
+        action="store_false",
+        help="Do not trim head/tail silence from each stem before assembly.",
+    )
+    p_ep.add_argument(
+        "--no-smart-gaps",
+        dest="smart_gaps",
+        action="store_false",
+        help="Use a uniform --gap-ms instead of structure-aware gaps.",
+    )
+    p_ep.add_argument(
+        "--no-polish",
+        dest="polish",
+        action="store_false",
+        help="Skip the high-pass + gentle compression polish.",
+    )
+    p_ep.add_argument(
+        "--loudnorm",
+        type=float,
+        default=-16.0,
+        help="Integrated loudness target in LUFS (default -16.0, podcast standard).",
+    )
+    p_ep.add_argument(
+        "--no-loudnorm",
+        dest="loudnorm",
+        action="store_const",
+        const=None,
+        help="Skip loudness matching + normalization entirely.",
     )
     p_ep.add_argument(
         "--gap-ms",
         type=int,
         default=350,
         dest="gap_ms",
-        help="Inter-turn silence in the assembled master (default 350 ms).",
+        help="Uniform inter-turn silence when --no-smart-gaps or --raw (default 350 ms).",
     )
     p_ep.add_argument(
         "--pause",

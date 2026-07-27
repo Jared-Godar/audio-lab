@@ -96,6 +96,13 @@ Rewrite Ep01/Ep02 into the hybrid format, record host lines, render, republish.
   `--authorize-ceiling`. Speaker labels dropped the TTS voice id from the transcript
   (`HOST (bm_fable)` → `HOST`, `EXPERT (Emma)` → `EXPERT (Owen)`) across `.md`/`.txt`/
   `.html`. Still ahead: record the real host lines and rebuild the host track; Ep02.
+- **Ep01 v2.0 mastering chain baked into `render-episode` — 2026-07-27 (#46).**
+  `render-episode --assemble` now produces a finished master, not a raw concat:
+  per-speaker loudness match → structure-aware gaps (chapter/interjection/normal) →
+  high-pass + gentle compression → 1.08× tempo → −16 LUFS. Approved by A/B this session;
+  the real master regenerates from the cached stems at −16.4 LUFS with the Daniel/Jofra
+  gap closed 2.0 → 0.0 dB. Each step is flag-overridable so Ep02 can be tuned, not
+  re-derived.
 
 ### M5 — Web presence
 
