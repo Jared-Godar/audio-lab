@@ -1,7 +1,7 @@
 # Voice capture — hardware, room, cloning, and the host-replacement pipeline
 
-Written 2026-07-26 for the "Told Straight" hybrid-host rebuild; promoted from
-`artifacts/voice-cloning-guide.md` to a tracked reference 2026-07-27 (#44) once it grew
+Written 2026-07-26 for the "Told Straight" hybrid-host rebuild; promoted from a gitignored
+working note to a tracked reference 2026-07-27 (#44) once it grew
 hardware, software, and room guidance meant to be read on a phone, next to a microphone.
 Durable ElevenLabs account/rate findings that aren't specific to recording live in
 `docs/elevenlabs.md`.

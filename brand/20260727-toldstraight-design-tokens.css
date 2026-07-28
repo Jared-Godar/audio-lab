@@ -1,0 +1,281 @@
+/* ==========================================================================
+   TOLD STRAIGHT — design tokens
+   ==========================================================================
+   The handoff artifact between the print/Illustrator system and the web MVP.
+   Everything here traces to something measured or decided on 2026-07-27; the
+   provenance is stated per block so nothing has to be re-derived.
+
+   Issue #60, deliverable 11 of the static-site element kit.
+
+   STATUS: working draft in artifacts/ (gitignored). It becomes real when an
+   executor lands it on a tracked path alongside the brand sheet. Written, not
+   in force.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   FONTS — Adobe Fonts web project `zol6gng`
+   --------------------------------------------------------------------------
+   Add to <head> BEFORE this stylesheet:
+
+     <link rel="stylesheet" href="https://use.typekit.net/zol6gng.css">
+
+   Family names are Adobe's, taken verbatim from the project's own CSS on
+   2026-07-27 — not guessed. Each family carries 400 and 700 only, so there is
+   no heavier cut available at any width. Design within that.
+
+   NOT IN THE SYSTEM, deliberately: `tgn-soft-round`, `tgn-soft-round-comp`,
+   `tgn-soft-round-con`. Trade Gothic Next SR Pro has rounded terminals. It is
+   friendlier and softer, which is precisely wrong for a show whose visual
+   premise is an institutional medical record. They are in the kit; they are
+   not in the system. Recorded so a future session does not reach for one just
+   because it is available.
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Display / titles. The chosen face — shootout run 2, 2026-07-27.
+     Desktop PostScript equivalent: TradeGothicNextLTPro-BdCn */
+  --ts-font-display: "trade-gothic-next-condensed", "Helvetica Neue", Arial, sans-serif;
+
+  /* Captions and UI. Same family, full width — one typeface at two widths,
+     which is the DoD field-manual idiom rather than a second family. */
+  --ts-font-sans: "trade-gothic-next", "Helvetica Neue", Arial, sans-serif;
+
+  /* Reserved. Compressed is tighter than condensed; use only where a line
+     genuinely will not fit, never for effect. */
+  --ts-font-compressed: "trade-gothic-next-compressed", "Helvetica Neue", Arial, sans-serif;
+
+  /* The record voice: form fields, document numbers, stamps, citations.
+     Letter Gothic is a TYPEWRITER face, not a code face — that distinction
+     is the difference between "typed paperwork" and "terminal output", and
+     it is why Source Code Pro was rejected even though it is monospace.
+     CONFIRMED on both sides 2026-07-27: web family "letter-gothic-std" at
+     400 and 700, added to project zol6gng; desktop PostScript LetterGothicStd,
+     verified resolving in Illustrator. Weight 700 exists — use it for stamps
+     and field keys where the record needs emphasis. */
+  --ts-font-mono: "letter-gothic-std", "Letter Gothic Std", "Courier New", monospace;
+
+  /* Body copy for transcripts and long-form. */
+  --ts-font-serif: "source-serif-4", Georgia, "Times New Roman", serif;
+}
+
+
+/* --------------------------------------------------------------------------
+   COLOUR — MEASURED, not chosen
+   --------------------------------------------------------------------------
+   Sampled by pixel histogram from episodes/ToldStraight-Ep01/{cover,ch2,
+   show-cover}.png on 2026-07-27. The red is a SINGLE canonical value across
+   all three source images — there is no second red to reconcile.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --ts-paper:    #EDE9E0;   /* 87.06% of the v1 cover */
+  --ts-ink:      #111111;   /*  9.52% */
+  --ts-red:      #B02A28;   /*  1.17% — underline, stamp, exhibit rule */
+  --ts-grey:     #78746C;   /*  0.37% — PRINT ONLY, see the warning below */
+  --ts-hairline: #C8C4BA;   /*  0.30% — decorative rules only, never text */
+
+  /* ---- WEB-ONLY GREY. Read this before "simplifying" it away. ----
+     --ts-grey (#78746C) on --ts-paper is 3.84:1. That PASSES WCAG AA for
+     large text and FAILS it for body text, which needs 4.5:1. In a 1600px
+     PNG the field labels and citations render as large text and pass; in
+     HTML at 14-16px they do not.
+
+     --ts-grey-web is #78746C darkened to clear 4.5:1 while keeping the same
+     warm-neutral character (channel deltas 4 and 11, against the original's
+     4 and 12). Measured 4.71:1.
+
+     Use --ts-grey-web for ANY text on the web. Use --ts-grey only where the
+     asset is print or a large-format image. Do not unify them — the print
+     system and the accessible web system genuinely need different values,
+     and collapsing them silently breaks one or the other. */
+  --ts-grey-web: #6A665F;
+}
+
+/* Contrast ratios against --ts-paper. HAND-COMPUTED with the WCAG 2.x
+   relative-luminance formula, because the scripted check was refused by the
+   repository's lane guard (issue #56). Verify with a checker before relying
+   on them; the failures below are not marginal.
+
+     ink       #111111  on paper   15.59:1   AA pass · AAA pass
+     red       #B02A28  on paper    5.40:1   AA pass · AAA FAIL
+     grey-web  #6A665F  on paper    4.71:1   AA pass · AAA fail
+     grey      #78746C  on paper    3.84:1   AA FAIL for body · large-text only
+     hairline  #C8C4BA  on paper    1.44:1   decorative only, never text
+     red       #B02A28  on ink      2.88:1   FAILS EVERYTHING
+
+   Two rules fall out of that table:
+     · The hairline never carries text. It is a rule, not a colour.
+     · Red type never sits on ink. The red works on paper, not on black.
+       Red-on-ink is the most likely accidental combination in a dark theme,
+       which is why it is called out rather than left to be discovered. */
+
+
+/* --------------------------------------------------------------------------
+   TYPE SCALE
+   --------------------------------------------------------------------------
+   EYEBALLED from the v1 renders, NOT measured. The pixel measurement of the
+   original artwork was refused by the lane guard (#56), so no value here is
+   derived from the source. They are internally consistent, which makes them
+   a usable starting point and not a reconstruction. Say so if asked.
+
+   Ratio is roughly 1.333 (perfect fourth), which suits a system whose display
+   sizes are enormous and whose body sizes are small, with little in between.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --ts-size-display:  clamp(3rem, 12vw, 8rem);   /* wordmark, cover titles */
+  --ts-size-stat:     clamp(2.5rem, 9vw, 6rem);  /* Exhibit figures */
+  --ts-size-h1:       2.369rem;
+  --ts-size-h2:       1.777rem;
+  --ts-size-h3:       1.333rem;
+  --ts-size-body:     1rem;
+  --ts-size-small:    0.833rem;   /* citations, field labels */
+  --ts-size-micro:    0.75rem;    /* document numbers, distribution line */
+
+  /* Tracking. Display caps need negative; spaced institutional lines need a
+     lot of positive. Mono is the exception — see the warning. */
+  --ts-track-display: -0.015em;
+  --ts-track-caps:     0.3em;     /* authority lines, subtitles */
+  --ts-track-label:    0.12em;    /* document numbers, field keys */
+  --ts-track-body:     0;
+
+  /* NEVER track the mono. Fixed advance width is what makes it read as
+     TYPED; letterspacing destroys that and turns it into decoration. If a
+     mono line needs more presence, change its size, not its tracking. */
+  --ts-track-mono:     0;
+
+  --ts-leading-display: 0.9;
+  --ts-leading-body:    1.55;
+
+  /* Rule weights, proportional to the 1600pt artboard they came from. */
+  --ts-rule-hair:   1px;
+  --ts-rule-thin:   2px;
+  --ts-rule-medium: 4px;
+  --ts-rule-heavy:  8px;   /* the red underline under a title or a figure */
+
+  /* Live-area inset. 6% of the canvas, matching the v1 cover's frame. */
+  --ts-margin: 6%;
+}
+
+
+/* --------------------------------------------------------------------------
+   DARK THEME
+   --------------------------------------------------------------------------
+   The system is paper-and-ink by nature, so dark mode is an inversion of
+   stock rather than a recolour. The red is the problem: #B02A28 on #111111 is
+   2.88:1 and fails everything. It must lighten in dark mode or it cannot
+   carry text — and if it only ever draws rules, it still needs to be visible.
+   The value below is a STARTING POINT and has not been contrast-verified.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ts-paper:    #14140F;
+    --ts-ink:      #EDE9E0;
+    --ts-red:      #E4564F;   /* UNVERIFIED — lightened so it survives on ink */
+    --ts-grey-web: #9A968E;   /* UNVERIFIED */
+    --ts-grey:     #9A968E;
+    --ts-hairline: #3A3830;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   COMPONENT PRIMITIVES
+   --------------------------------------------------------------------------
+   Not a component library — the four devices the print system already uses,
+   expressed so the site inherits them instead of reinventing them.
+   -------------------------------------------------------------------------- */
+
+/* The red rule that sits under a title or an Exhibit figure. */
+.ts-rule-red {
+  border: 0;
+  height: var(--ts-rule-heavy);
+  background: var(--ts-red);
+  margin: 0;
+}
+
+/* The hairline that divides a form-field row. Decorative — never text. */
+.ts-rule-hair {
+  border: 0;
+  height: var(--ts-rule-hair);
+  background: var(--ts-hairline);
+  margin: 0;
+}
+
+/* Document number / issuing authority / distribution line. */
+.ts-record {
+  font-family: var(--ts-font-mono);
+  font-size: var(--ts-size-micro);
+  letter-spacing: var(--ts-track-label);
+  text-transform: uppercase;
+  color: var(--ts-grey-web);
+}
+
+/* An Exhibit figure. On the web this must be REAL TEXT, not a PNG — the v1
+   cards shipped as images, which makes every figure unselectable,
+   unsearchable and invisible to a screen reader. For a show whose entire
+   argument is "here is the evidence, with its source attached", shipping the
+   evidence as pixels is the wrong call twice over. */
+.ts-exhibit__figure {
+  font-family: var(--ts-font-display);
+  font-size: var(--ts-size-stat);
+  line-height: var(--ts-leading-display);
+  letter-spacing: var(--ts-track-display);
+  color: var(--ts-ink);
+}
+
+.ts-exhibit__caption {
+  font-family: var(--ts-font-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ts-ink);
+}
+
+/* The citation is a LINK, always. The source being reachable is the point. */
+.ts-exhibit__cite {
+  font-family: var(--ts-font-mono);
+  font-size: var(--ts-size-small);
+  letter-spacing: var(--ts-track-label);
+  text-transform: uppercase;
+  color: var(--ts-grey-web);
+}
+
+/* The CAUTION box — a ruled frame of numbered restrictions, lifted from the
+   SF 66 personnel folder. It carries the synthetic-voice disclosure that
+   issue #60 §5 requires wherever the AI co-host appears. Keeping it as a
+   native design device rather than a footnote is what makes the disclosure
+   something the system wanted anyway. Do not delete it to tidy a layout. */
+.ts-caution {
+  border: var(--ts-rule-thin) solid var(--ts-ink);
+  padding: 1.5rem;
+  font-family: var(--ts-font-mono);
+  font-size: var(--ts-size-small);
+  color: var(--ts-ink);
+}
+
+.ts-caution__title {
+  font-family: var(--ts-font-display);
+  letter-spacing: var(--ts-track-caps);
+  text-transform: uppercase;
+  color: var(--ts-red);
+  border-bottom: var(--ts-rule-hair) solid var(--ts-hairline);
+}
+
+
+/* --------------------------------------------------------------------------
+   OPEN — do not treat these as settled
+   --------------------------------------------------------------------------
+   1. Every dark-theme value is unverified for contrast.
+   2. The type scale is eyeballed, per the note above.
+   3. RESOLVED 2026-07-27 — the fonts are confirmed on both sides. Web project
+      zol6gng carries trade-gothic-next (400/700), -condensed (400/700 plus
+      italics), -compressed (400/700), letter-gothic-std (400/700) and
+      source-serif-4; desktop activation verified by successful resolution in
+      Illustrator. No cut heavier than 700 exists at any width — design within
+      that rather than reaching for a Black that is not there.
+   4. RESOLVED 2026-07-27 — cover variant B (field manual) chosen. The header
+      lockup and section-divider rhythm follow its structure: document number,
+      double rule, stacked wordmark, red rule, subtitle.
+   -------------------------------------------------------------------------- */

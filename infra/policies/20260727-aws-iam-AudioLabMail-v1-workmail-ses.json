@@ -1,0 +1,100 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WorkMailOrganization",
+      "Effect": "Allow",
+      "Action": [
+        "workmail:CreateOrganization",
+        "workmail:DeleteOrganization",
+        "workmail:DescribeOrganization",
+        "workmail:ListOrganizations",
+        "workmail:RegisterMailDomain",
+        "workmail:DeregisterMailDomain",
+        "workmail:ListMailDomains",
+        "workmail:UpdateDefaultMailDomain",
+        "workmail:CreateUser",
+        "workmail:DeleteUser",
+        "workmail:DescribeUser",
+        "workmail:ListUsers",
+        "workmail:UpdateUser",
+        "workmail:RegisterToWorkMail",
+        "workmail:DeregisterFromWorkMail",
+        "workmail:ResetPassword",
+        "workmail:CreateAlias",
+        "workmail:DeleteAlias",
+        "workmail:ListAliases",
+        "workmail:ListGroups",
+        "workmail:DescribeEntity",
+        "workmail:GetMailDomain",
+        "workmail:PutEmailMonitoringConfiguration",
+        "workmail:DescribeEmailMonitoringConfiguration",
+        "workmail:TagResource",
+        "workmail:UntagResource",
+        "workmail:ListTagsForResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WorkMailDirectoryBacking",
+      "Effect": "Allow",
+      "Action": [
+        "ds:CreateIdentityPoolDirectory",
+        "ds:DeleteDirectory",
+        "ds:DescribeDirectories",
+        "ds:CreateAlias",
+        "ds:AuthorizeApplication",
+        "ds:UnauthorizeApplication",
+        "ds:ListAuthorizedApplications",
+        "ds:DescribeDomainControllers"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "MailDomainIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "ses:CreateEmailIdentity",
+        "ses:DeleteEmailIdentity",
+        "ses:GetEmailIdentity",
+        "ses:PutEmailIdentityDkimAttributes",
+        "ses:PutEmailIdentityDkimSigningAttributes",
+        "ses:PutEmailIdentityMailFromAttributes",
+        "ses:PutEmailIdentityFeedbackAttributes",
+        "ses:SendEmail",
+        "ses:SendRawEmail",
+        "ses:TagResource",
+        "ses:UntagResource"
+      ],
+      "Resource": [
+        "arn:aws:ses:us-east-1:448795057993:identity/toldstraight.com",
+        "arn:aws:ses:us-east-1:448795057993:identity/*@toldstraight.com",
+        "arn:aws:ses:us-east-1:448795057993:configuration-set/audiolab-*"
+      ]
+    },
+    {
+      "Sid": "MailAccountVisibility",
+      "Effect": "Allow",
+      "Action": [
+        "ses:ListEmailIdentities",
+        "ses:GetAccount",
+        "ses:PutAccountDetails",
+        "ses:GetSendQuota",
+        "ses:GetSendStatistics",
+        "ses:ListConfigurationSets",
+        "ses:CreateConfigurationSet",
+        "ses:GetConfigurationSet",
+        "ses:DeleteConfigurationSet"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "WhoAmI",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

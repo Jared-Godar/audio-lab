@@ -390,20 +390,27 @@ policy's *contents*, which takes effect immediately.
 > sending for Cognito invitations. **Trimming the dead statements is a maintainer console
 > action, deliberately not done by an executor** (see the note below on the JSON gap).
 
-**Not recorded here yet: the verbatim JSON for `AudioLabSiteInfra` v4 and `AudioLabMail`
-v1.** Stated plainly rather than papered over — this executor could not read it and did
-not invent it:
+**The verbatim JSON for both policies is tracked in this repository:**
 
-- `iam:ListPolicies` / `iam:GetPolicyVersion` are **denied** to `AudioLabDeploy`
-  (`AccessDenied … not authorized to perform: iam:ListPolicies`), and **widening IAM to
-  unblock the documentation would be exactly the wrong fix.**
-- The gitignored working notes (`artifacts/aws-iam-setup.md`,
-  `artifacts/aws-identity-center-roles.md`) predate the split and contain only the old
-  two-policy structure — so the claim that all three policies "live in gitignored notes"
-  is false for two of them. They exist only in the console.
+- [`infra/policies/20260727-aws-iam-AudioLabSiteInfra-v4-platform.json`](policies/20260727-aws-iam-AudioLabSiteInfra-v4-platform.json)
+  — 16 statements, 5,072 characters minified
+- [`infra/policies/20260727-aws-iam-AudioLabMail-v1-workmail-ses.json`](policies/20260727-aws-iam-AudioLabMail-v1-workmail-ses.json)
+  — 5 statements, 2,116 characters minified
 
-The `AudioLabDnsDomains` JSON below is complete and current. To finish this section, paste
-the other two from **IAM → Policies → select the policy → the Permissions tab → JSON**.
+Both match the statement counts and minified sizes in the table above, measured
+independently of the session that wrote those numbers.
+
+> **This passage previously denied that the two policies existed anywhere but the IAM
+> console, and asked a human to paste them in.** That was false when written (#68): the
+> files were already
+> on disk under the gitignored `artifacts/` zone, timestamped roughly an hour *before* the
+> commit that claimed they did not exist. The underlying access limit is real and still
+> stands — `iam:ListPolicies` / `iam:GetPolicyVersion` are **denied** to `AudioLabDeploy`
+> (`AccessDenied … not authorized to perform: iam:ListPolicies`), and **widening IAM to
+> unblock documentation would be exactly the wrong fix.** The policies here were captured
+> by a principal that could read them, not by relaxing `AudioLabDeploy`.
+
+The `AudioLabDnsDomains` JSON below is complete and current.
 
 **`AudioLabDnsDomains`** — `route53domains` is us-east-1 only and has no resource-level
 permissions, so `"Resource": "*"` is the service's constraint, not sloppiness:
@@ -674,5 +681,10 @@ is **never** committed and lives only on the maintainer's machine:
   setup and is not recorded in a tracked file.
 
 The fuller walkthrough (GitHub Actions OIDC for CI, an optional CloudFormation service
-role, and the Identity Center console click-through) lives in the gitignored working
-notes `artifacts/aws-identity-center-setup.md` and `artifacts/aws-identity-center-roles.md`.
+role, and the Identity Center console click-through) is tracked in
+[`docs/aws-identity-center-setup.md`](../docs/aws-identity-center-setup.md) and
+[`docs/aws-identity-center-roles.md`](../docs/aws-identity-center-roles.md).
+
+Billing access under an admin principal has its own failure mode that looks like a
+permissions gap and is not one — see
+[`docs/aws-billing-access-finding.md`](../docs/aws-billing-access-finding.md).

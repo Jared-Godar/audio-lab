@@ -10,6 +10,18 @@ repos:
         args: [--fix=lf]
       - id: check-added-large-files
         args: [--maxkb=1024]
+        # The 1024 KB gate stays for everything else — it is what catches an
+        # accidental binary on a public repo. The one exclusion below is a
+        # deliberate, maintainer-approved artifact (#68): a 7060x10700 type-specimen
+        # contact sheet, 1229 KB, that is the visual evidence behind the typeface
+        # decision. It cannot be downscaled without destroying its only purpose
+        # (reading type at size), and re-encoding it makes it larger, not smaller.
+        # Do not "fix" this by raising --maxkb — that weakens the gate everywhere to
+        # admit one file. Add a path here instead, and say why.
+        exclude: |
+          (?x)^(
+            brand/20260727-adobe-illustrator-toldstraight-type-shootout-contact-sheet\.png
+          )$
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-json

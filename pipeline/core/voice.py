@@ -79,8 +79,8 @@ class SharedVoice:
 
     ``users`` is ``cloned_by_count`` — the adopter count Round-I screening sorts on.
     The field set is deliberately the exact set the hand-built 12-candidate sweep
-    recorded in ``artifacts/voice-previews/manifest.json`` (#7 §2), so a manifest this
-    tool writes is schema-compatible with that authoritative sweep.
+    recorded in ``pipeline/tests/fixtures/voice-preview-sweep-manifest.json`` (#7 §2),
+    so a manifest this tool writes is schema-compatible with that authoritative sweep.
     """
 
     voice_id: str
