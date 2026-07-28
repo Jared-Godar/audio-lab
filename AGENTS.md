@@ -334,6 +334,11 @@ compliance never depends on an agent remembering.
 - [ ] Assignee `Jared-Godar`; milestone where the linked issue has one.
 - [ ] Every deliberately-omitted or exempted field named explicitly.
 - [ ] Verification output shown for each claimed step — asserted is not shown.
+- [ ] A PR that adds or renames a CI job states in its body whether the check is
+      required or advisory — a check that cannot block a merge must never be
+      presented as a gate (#30, #31: `quality.yml` and `CLAUDE.md` both asserted the
+      opposite of live configuration for a full day after the gate that would have
+      caught it went unwritten).
 
 ## Issues are written to the house standard
 
@@ -420,6 +425,23 @@ divergence, and it is recorded here rather than left to be discovered.
   `CLAUDE.md` § "Contract re-injection" for the measured numbers and the rollback.
   It **cannot** make an agent read what it injects; it removes the excuse, not the
   possibility.
+
+- **Branch protection on `main` is the strictest of any repo in the portfolio, and
+  the gap widened while undecided (#31).** Required-checks count, measured live the
+  same session across all four repositories: **8** here vs **2** on
+  `macos-system-health` vs **none on `ecg_anomaly_detection`** (branch protection
+  returns HTTP 404 — it is not configured at all) vs `github-portfolio-modernization`
+  returning 403 (private repo, free plan, protection unavailable regardless).
+  `audio-lab` also uniquely runs `enforce_admins: true`, `required_linear_history:
+  true`, and `strict: true`. **Deliberate exception, decided 2026-07-27: keep as-is**
+  — `audio-lab` is the only public repository of the four, so the strictest settings
+  belong on the most exposed one; `enforce_admins: true` is the point, since nobody
+  bypasses, the maintainer included. **Reversal condition, verbatim:** reverse to
+  relaxing `strict` only if ≥2 PRs in a week need otherwise-unneeded rebases they
+  would not have needed without `strict: true` — not because the settings feel heavy.
+  The count doubled from 4 to 8 while this issue sat undecided (#30 §4 option 1 was
+  applied in the interim), which is itself the finding: a recorded-divergence issue is
+  a standing constraint on adjacent work, not a ticket worked in isolation.
 
 ## Engineering discipline
 

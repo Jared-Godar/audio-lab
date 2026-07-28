@@ -220,7 +220,7 @@ lands, not after.
 
 ## Repo shape
 
-- `pipeline/` — uv-managed Python. `uv run audition` is the CLI.
+- `pipeline/` — uv-managed Python. `uv run voicelab` is the CLI.
 - `docs/` — durable findings (`elevenlabs.md` has rates, tiers, account limits).
 - `artifacts/` — **gitignored** working zone: session handoffs, walkthroughs, guides.
   **It is scratch.** Anything load-bearing — tooling, fixtures, operating guides, evidence
@@ -236,7 +236,7 @@ lands, not after.
 ## ElevenLabs specifics
 
 - The account bills at **0.55x** the advertised `character_cost_multiplier`.
-  Verify with `uv run audition --check-rates`; see `docs/elevenlabs.md`.
+  Verify with `uv run voicelab rates`; see `docs/elevenlabs.md`.
 - `ELEVENLABS_API_KEY` lives in the shell environment, not in a `.env` and never
   in code. Don't add a dotenv dependency for it.
 - A model returning HTTP 200 does **not** mean it honoured your `voice_settings`.

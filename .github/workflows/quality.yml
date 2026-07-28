@@ -9,11 +9,11 @@ name: Quality gates
 #     working tree, so a secret added AND removed inside one PR would slip past)
 #   - JS/TS lint + build once the community voting app exists
 #
-# pytest now runs (the `tests` job below, #30 Gap 4). Note carefully: RUNNING is not
-# GATING. `Tests (pipeline)` is NOT in main's required-status-checks list, so it can
-# go red while the PR stays mergeable. Making it binding is a branch-protection
-# change, which is the maintainer's call and is tracked in #30 §4 — do not present
-# this job as a gate until that decision is recorded and applied.
+# pytest runs (the `tests` job below, #30 Gap 4) AND gates. `Tests (pipeline)` IS in
+# main's required-status-checks list as of 2026-07-27 (#30 §4 option 1, applied and
+# verified live) — a red run on this job blocks the merge like any other required
+# check. Updated 2026-07-28, #30: the prior version of this comment said the opposite
+# and stayed false for a day after the branch-protection change landed.
 # The `environments` matrix is an explicit list, not a glob — add each new uv
 # subproject to it by name or its lockfile drift goes unchecked.
 

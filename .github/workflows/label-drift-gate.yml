@@ -7,6 +7,16 @@ name: Label drift gate
 # label -- it reports drift for a human to reconcile (audio-lab retains GitHub's
 # stock labels by decision). Runs when labels.json changes, on any label
 # create/edit/delete, and on demand.
+#
+# Decided 2026-07-28 (#30 Gap 3, ratified at spec launch): stays post-merge BY
+# DESIGN -- this gate detects drift, it does not prevent it. Neither trigger below
+# sees a pull request, so a PR editing labels.json is never checked before it
+# merges; the `push` trigger only fires once the change has already landed on
+# main. A pre-merge `pull_request` check was the alternative and was rejected: it
+# would add a networked gate to every PR touching labels.json to close a
+# minutes-wide, main-only drift window, and that cost outweighs the risk here.
+# Revisit only if drift actually reaches main uncaught in practice, not on
+# principle.
 on:
   push:
     branches: [main]
