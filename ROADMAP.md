@@ -202,6 +202,45 @@ Direct commits are blocked for everyone, Jared included.
 **Constrains everything:** if CI breaks, nothing merges until protection is relaxed
 in Settings → Branches. Deliberate, but know the escape hatch exists.
 
+### Branch protection stays as-is — audio-lab is deliberately stricter than the rest of the portfolio (#31, decided 2026-07-27)
+
+Required-checks count, `enforce_admins`, `required_linear_history`, and `strict`,
+measured live across all four portfolio repos the same session:
+
+| | audio-lab | macos-system-health | ecg_anomaly_detection | github-portfolio-modernization |
+| --- | --- | --- | --- | --- |
+| Required checks | **8** | 2 | — (protection unset, HTTP 404) | — (403, private/free plan) |
+| `enforce_admins` | **true** | false | — | — |
+| `required_linear_history` | **true** | false | — | — |
+| `strict` | **true** | false | — | — |
+
+**Decision (maintainer, §4 option 1):** keep audio-lab's settings exactly as they
+are; record the divergence rather than relax it. Reasoning: audio-lab is the only
+**public** repository of the four, so the strictest settings belong on the most
+exposed one, and `enforce_admins: true` exists precisely so nobody — Jared included —
+bypasses the gate.
+
+**Reversal condition, verbatim from the decision:** reverse to relaxing `strict`
+only if ≥2 PRs in a week need otherwise-unneeded rebases they would not have needed
+without `strict: true` — *not* because the settings start to feel heavy.
+
+**The #30-widened-#31 finding:** this issue recorded 4 required checks when filed;
+by the time the decision was made it had grown to 8, because #30 §4 option 1 was
+applied — correctly, on its own terms — while #31 sat undecided. A
+"divergence from the reference repos" issue is a standing constraint on adjacent
+work, not a ticket that can be worked in isolation; nothing in the parity checklist
+re-fires the comparison when an unrelated PR changes the thing being compared.
+
+**ecg_anomaly_detection deferral:** `main` there has no branch protection at all
+(HTTP 404). Not filed as a cross-repo issue now — that repo's own house issue
+standard (3,000–6,000-character briefings) makes a drive-by filing from here the
+wrong artifact. Raise it when `ecg_anomaly_detection` work next resumes.
+
+**Constrains everything downstream of this repo's merge workflow:** the same
+lockout risk named above (`enforce_admins: true` + a broken required check = `main`
+unfixable without a Settings round-trip) is now backed by 8 required checks instead
+of 4, doubling the surface a bad check can jam shut.
+
 ### Descriptive artifact names, cache identity in a manifest
 
 `YYYYMMDD-VENDOR-MODEL-VOICE-PURPOSE[-BITRATE]`, vendor second.
