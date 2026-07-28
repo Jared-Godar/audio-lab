@@ -234,7 +234,14 @@ them honestly.
 3. **Implement, gating every commit** — `pre-commit run --all-files` green before
    each commit.
 4. **Update `CHANGELOG.md`** in the same PR.
-5. **Commit and push over SSH.**
+5. **Commit with a curated extended description, then push over SSH.** This repo squashes with
+   `squash_merge_commit_message: COMMIT_MESSAGES` and branches are single-commit, so **the
+   commit body is the permanent extended description under the merge commit on `main`.**
+   Write it with `git commit -F <file>` (file authored outside the repo): line 1 identical to
+   the PR title, blank line, then what changed and why, the decisions implemented, and
+   anything a `git log` reader needs without opening GitHub — curated (roughly 500–2,500
+   bytes), not a paste of the PR body. A bare `-m` subject leaves an empty body on `main` and
+   is a defect (maintainer, 2026-07-28, on finding #77's body empty).
 6. **Open the PR with full metadata**: assignee `Jared-Godar`, at least one `type:`
    and one `area:` label from `.github/labels.json`, priority where meaningful.
    Disclose in the body what was deliberately excluded and why.

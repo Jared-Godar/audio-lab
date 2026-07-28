@@ -71,6 +71,27 @@ visible in the diff and would otherwise evaporate.
   strength of a page rendering for somebody else. The IAM username and root click path from
   the original working note are deliberately omitted — this repository is public.
 
+- **`tools/brand/` gains the locked wordmark builder (#60); `docs/adr/0015` records the
+  dual-lockup decision.** The approval-run `…-wordmark-locked-builder.jsx` (21,289 bytes)
+  promotes byte-identical from `artifacts/brand-wip/`, matching the #68 pattern; the
+  companion options builder deliberately stays in `brand-wip/` as decision context, not
+  promoted. ADR 0015 quotes the maintainer's dual-lockup instruction and approval verbatim
+  from issue #60's two decision comments — horizontal lockup for wide surfaces, stacked for
+  square-leaning, the stamp as a device rather than a lockup, M1 (`TS` in a ruled box) as the
+  16px-degradation-winning compact mark, and the authority-line satellite as the default
+  (variant A). #60 stays open; this is the promotion slice, not the deliverables phase.
+
+- **The commit-body rule is landed and demonstrated by this PR's own commit** (`AGENTS.md` §
+  "Canonical work-item workflow" step 5, `artifacts/specs/TEMPLATE.md` Step N+1). Applied
+  verbatim from `artifacts/rules-pending/20260728-squash-commit-extended-description.md`,
+  which is removed in this same PR — promoted, not left pending. Measured basis: this repo
+  squashes with `squash_merge_commit_message: COMMIT_MESSAGES` on single-commit branches, so
+  a branch's commit body becomes the permanent extended description under the squash merge
+  on `main`; the last 8 squash bodies ran `1·128·1367·133·1·1·757·2522` bytes, and the
+  1-byte bodies trace exactly to specs whose commit step was a bare `git commit -m`. Every
+  future spec's commit step now reads `git commit -F <file>` with a curated 500–2,500-byte
+  body instead.
+
 ### Changed
 
 - **The four stale "blocked by the model decision" statements are retired (#62).**

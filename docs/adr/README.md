@@ -29,6 +29,7 @@ that trip.
 | [0012](0012-per-turn-stems.md) | Per-turn stems over a monolithic render, because the host track is temporary | accepted | 2026-07-27 | M4 |
 | [0013](0013-classic-branch-protection-signed-commits-declined.md) | Classic branch protection retained over Rulesets; signed commits declined | accepted | 2026-07-27 | repo governance |
 | [0014](0014-eleven-v3-default-multilingual-v2-case-by-case.md) | `eleven_v3` is the default model; `multilingual_v2` stays available case-by-case | accepted | 2026-07-28 | **M3** |
+| [0015](0015-wordmark-dual-lockup-system.md) | The wordmark system is a dual lockup, not a single primary | accepted | 2026-07-28 | M1, M5 |
 
 Dates marked *not recorded* were never dated in the migrated `ROADMAP.md` entries;
 inventing one after the fact would be worse than the gap.
