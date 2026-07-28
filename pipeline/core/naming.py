@@ -29,8 +29,10 @@ OUTPUT_DIR = REPO_ROOT / "output"
 AUDITION_DIR = OUTPUT_DIR / "auditions"
 SAMPLES_DIR = AUDITION_DIR / "samples"
 RESULTS_PATH = AUDITION_DIR / "voices.json"
-# New shared-library previews land here. The hand-built sweep in
-# artifacts/voice-previews/ is authoritative and is never written to by this tool.
+# New shared-library previews land here. The hand-built sweep is authoritative and is
+# never written to by this tool; its manifest is tracked at
+# pipeline/tests/fixtures/voice-preview-sweep-manifest.json (#68) and its preview mp3s
+# remain gitignored under artifacts/voice-previews/.
 PREVIEWS_DIR = OUTPUT_DIR / "shared-previews"
 # Assembled episodes (per-turn stems + master) land here (#43).
 EPISODES_DIR = OUTPUT_DIR / "episodes"

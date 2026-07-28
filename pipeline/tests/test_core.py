@@ -193,8 +193,8 @@ def test_browse_respects_max_results(monkeypatch):
 
 
 def test_manifest_entry_matches_sweep_schema():
-    # The reference is a TRACKED fixture, not the live sweep manifest under
-    # artifacts/voice-previews/ — that path is gitignored, so the original version of
+    # The reference is a TRACKED single-entry fixture. It replaced a read of the live
+    # sweep manifest, which then lived on a gitignored path — so the original version of
     # this test passed on the author's machine and could never pass anywhere else. It
     # went unnoticed until pytest was wired into CI (#30 Gap 4), which is exactly what
     # that issue predicted: "the 11/11 pass reported on PR #29 is a local result."

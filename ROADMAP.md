@@ -193,7 +193,7 @@ costs no credits.
 
 **Constrains M4:** record host lines live, build an **Instant** clone from those
 takes as a patch tool for one-line fixes. Hold the PVC slot unless cloned-Jared
-becomes a primary narrator. See `artifacts/voice-cloning-guide.md`.
+becomes a primary narrator. See [`docs/voice-capture.md`](docs/voice-capture.md).
 
 ### `enforce_admins: true` on `main`
 

@@ -7,6 +7,92 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-07-28
+
+### Added
+
+- **Fifteen load-bearing files promoted out of the gitignored `artifacts/` zone onto tracked
+  paths (#68).** They reached no fresh clone, no cloud session and no cold start, and were
+  single-copy on one laptop. Landed: four Adobe builder scripts for the visual system to
+  `tools/brand/`; the InDesign type-shootout guide, both Identity Center walkthroughs and
+  the domain-availability research to `docs/`; the design tokens and the type-decision
+  contact sheet to `brand/`; the two live IAM policy JSONs to `infra/policies/`; the
+  PM-lane-guard test harness to `scripts/pm_lane_guard_matrix.py`; the voice-preview sweep
+  manifest to `pipeline/tests/fixtures/`; and the Ep01 host read sheet to
+  `episodes/ToldStraight-Ep01/`. The `1x/` directory name and the PNG's bare
+  `told-straight-type-shootout.png` were renamed on the way to satisfy `CLAUDE.md`
+  § "Generated artifacts must be self-describing". **No deletions** — sources were moved,
+  and the two files excluded on security or pending-decision grounds were not touched.
+
+- **`docs/aws-billing-access-finding.md`** — an admin principal denied on a billing page is
+  never a permissions gap, because `AdministratorAccess` already grants every billing
+  action; it is an account-level switch only root can flip, and root is not gated by it,
+  which is why the same page can render for root and deny for an IAM admin simultaneously.
+  Carries the method as well as the fact: the finding was settled only by signing in **as
+  the affected principal**, after an earlier draft asserted the switch was active on the
+  strength of a page rendering for somebody else. The IAM username and root click path from
+  the original working note are deliberately omitted — this repository is public.
+
+### Changed
+
+- **`scripts/pm_lane_guard_matrix.py` discovers the repository root instead of hardcoding
+  it.** The file previously carried `REPO = "/Users/…/Code/audio-lab"` and ran on exactly
+  one machine — tracking it unfixed would have reproduced the defect #68 exists to close.
+  Discovery anchors on the **script's own location**, not the caller's working directory,
+  because a bare `git rev-parse --show-toplevel` resolves against the caller and breaks the
+  run-from-anywhere requirement; that reasoning is a comment at the function so a future
+  session doesn't "simplify" it back. Verified 51/51 green executed from `/tmp`, and the
+  not-a-repo path exits 1 with a clear message rather than a traceback.
+
+- **`check-added-large-files` keeps its 1024 KB limit and gains a single named exclusion.**
+  The type-shootout contact sheet is 1,229 KB and would be the first tracked file over a
+  megabyte — 5.4× the next largest. It is 7060×10700 and exists to be read at size, so
+  downscaling destroys its only purpose, and re-encoding through `sips` makes it *larger*
+  (2.3 MB). The gate was **not** raised: doubling `--maxkb` would weaken it for every future
+  commit on a public repo to admit one deliberate file. The exclusion carries its reasoning
+  as a comment at the line, and a control run confirms a fresh 1,200 KB file is still
+  rejected.
+
+- **`CLAUDE.md` § "Repo shape"** now states plainly that `artifacts/` is scratch and that
+  anything load-bearing gets promoted out, with the rule of thumb that a tracked file
+  needing to point into it is proof it does not belong there. `tools/brand/`, `brand/` and
+  `infra/policies/` added to the same list.
+
+### Fixed
+
+- **`infra/README.md` no longer tells readers the two IAM policies "exist only in the
+  console".** The passage at :393-405 is replaced with links to both files at their tracked
+  paths and their statement counts; the request for a human to paste the JSON from the IAM
+  console is gone. The real underlying access limit — `iam:ListPolicies` is denied to
+  `AudioLabDeploy` — is retained, along with the note that widening IAM to unblock
+  documentation would be the wrong fix.
+
+- **Two stale pointers into the gitignored zone.** `infra/README.md:676` sent a fresh clone
+  to `artifacts/aws-identity-center-{setup,roles}.md`, which it does not have; it now links
+  `docs/`. `ROADMAP.md:196` pointed at `artifacts/voice-cloning-guide.md` and now points at
+  `docs/voice-capture.md`. `CLAUDE.md`'s "51 paired permit/deny cases" claim now cites the
+  tracked harness that substantiates it.
+
+### Findings
+
+- **The `infra/README.md` falsehood was false at the moment it was written, not the result
+  of later drift.** The commit introducing "They exist only in the console" (`c26abab`,
+  under #54) landed at 11:35:09; the policy JSONs it denied the existence of were sitting
+  on disk beside it with mtimes of 10:19–10:28 — roughly an hour earlier. The #54 executor
+  correctly identified two *other* files in that directory as stale and did not look at the
+  four dated JSONs next to them. Worth recording because the failure mode is not "the
+  document went out of date": a tracked file asserted the absence of something it had not
+  checked for, and the assertion then asked a human to redo work already done.
+
+- **A credentials-hygiene gitignore pattern false-positives on design tokens.** The global
+  `**/*token*` rule (written for auth tokens) silently refused to stage
+  `brand/*-design-tokens.css`, a stylesheet measured clean of every secret pattern whose
+  only occurrence of the word is its title comment. `git add` reports nothing when a path is
+  ignored, so this surfaces as a file quietly missing from the commit rather than as an
+  error. Resolved on the maintainer's decision by narrowing the global pattern with a
+  documented negation; a control (`my-auth-token.json`) confirms genuine token filenames are
+  still blocked.
+
 ## 2026-07-27
 
 ### Added

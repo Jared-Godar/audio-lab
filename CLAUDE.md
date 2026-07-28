@@ -53,7 +53,9 @@ your mode — **it makes the boundary structural**:
 
 **Every row above was verified by running the guard**, both directions, on 2026-07-27
 under #48 — 51 paired permit/deny cases, each deny shipped with the permit it must not
-have broken. No row claims enforcement the hook does not have.
+have broken. No row claims enforcement the hook does not have. The harness is tracked at
+`scripts/pm_lane_guard_matrix.py`; run it from anywhere with
+`python3 scripts/pm_lane_guard_matrix.py` (exit 0 = 51/51).
 
 Launch an executor with:
 
@@ -221,6 +223,13 @@ lands, not after.
 - `pipeline/` — uv-managed Python. `uv run audition` is the CLI.
 - `docs/` — durable findings (`elevenlabs.md` has rates, tiers, account limits).
 - `artifacts/` — **gitignored** working zone: session handoffs, walkthroughs, guides.
+  **It is scratch.** Anything load-bearing — tooling, fixtures, operating guides, evidence
+  a tracked file cites — gets **promoted out** to a real tracked home, because nothing here
+  reaches a fresh clone, a cloud session, or a cold start. If a tracked file needs to point
+  at it, it does not belong here (#68).
+- `tools/brand/` — Adobe (Illustrator/InDesign) builder scripts for the visual system.
+- `brand/` — design tokens and the type-decision contact sheet.
+- `infra/policies/` — verbatim JSON of the live IAM policies.
 - `output/` — **gitignored** renders and audition results.
 - `episodes/` — tracked deliverables (art, transcripts, notes). Audio is ignored.
 
