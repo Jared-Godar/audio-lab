@@ -368,14 +368,30 @@ Straight" that means the register you'd use hosting — engaged, dry, conversati
 
 ## Practical checklist
 
+**Session mechanics — pre-flight, room-tone gate, Audition click-path, save/verify/handoff
+— live in `docs/recording-runbook.md`, the session document meant to be followed start to
+finish. This checklist stays a quick reference; that file is the authority on file naming.**
+
+Ep01's 27 host turns are the **even** indices `t00, t02, t04, … t52` — not a contiguous
+1..27 range, and not the old H-numbered scheme (`H01` through `H27`). The assembler
+(`ordered_stems()` in `pipeline/core/episode.py`) matches on turn id, so a take named by
+any other convention will not map onto the stem it is meant to replace. Turn-id-per-line
+is spelled out in `artifacts/20260727-ep01-v2-host-read-sheet.md`; the 27 lines also
+appear inline in `docs/recording-runbook.md` § "The Ep01 script."
+
+Ep02's host script (`episodes/ToldStraight-Ep02/record-host-ep02.txt`, 22 lines) legitimately
+uses `H01..H22` — it has no per-turn stem assembler yet (`ls output/episodes/` shows only
+`ToldStraight-Ep01-v2/`), so there is nothing for an `HNN` name to fail to map onto. Confirmed
+by the file's own naming, not corrected.
+
 ```text
 [ ] Quiet room booked (bedroom), phone silenced and in another room
 [ ] System sound effects off, Do Not Disturb on, AC/fan off
 [ ] Mic position set and marked so it survives a break
 [ ] Sample rate matched: Audio MIDI Setup -> QuadCast -> 48000 Hz
 [ ] Test render: 30 seconds, played back on QuadCast headphone jack, checked for hum/hiss
-[ ] Record Ep01 host lines (27)          -> narration/H01..H27
-[ ] Record Ep02 host lines (~20)         -> narration/H01..H20
+[ ] Record Ep01 host lines (27)          -> narration/t00.wav, t02.wav, ... t52.wav
+[ ] Record Ep02 host lines (22)          -> narration/H01.wav .. H22.wav
 [ ] Record 5 min of neutral reading      -> cloning corpus
 [ ] Pick the 3-5 cleanest minutes, trim silences, no processing, no Enhance
 [ ] Create IVC, name it clearly (e.g. "Jared - host v1")

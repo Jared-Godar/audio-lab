@@ -11,6 +11,25 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`docs/recording-runbook.md` — a new session document taking recording from zero to
+  handed-off takes (#69).** `docs/voice-capture.md` covered room, mic and cloning
+  decisions but had zero Fish blocks and no mechanics for producing a file —
+  `grep -ci fish docs/voice-capture.md` = 0. The runbook adds ten sections: pre-flight,
+  room options (bedroom ideal plus a documented in-situ desk variant with soft-mass
+  damping and the empirical room-tone gate), the room-tone probe itself, an Audition
+  zero-to-first-record click-path (marked **MANUAL** — authored from product knowledge,
+  not clicked this session), capture conventions for a continuous take, both episode
+  scripts inline (Ep01's 27 lines, Ep02's 22), an IVC voice-clone corpus section,
+  save/verify/handoff, and what not to do. Every Fish block that isn't the Audition
+  click-path was **executed this session against synthetic audio** — a digital-silence
+  WAV for the room-tone probe, a tone-plus-silence file for the trim command, two
+  format-matched WAVs for the ffprobe/peak-check loop — to prove the command syntax runs
+  on this machine's ffmpeg 8.1.2; the pass-bar numbers a real session measures (actual
+  room-tone dBFS, actual take peaks) are not reproduced here, since there's no QuadCast on
+  this machine. Ep01's 27 inline turn ids were verified against the real host stems on
+  disk: `ls output/episodes/ToldStraight-Ep01-v2/stems/ | grep host | grep -oE '^t[0-9]+'
+  | sort -u` produces the identical 27-id set the runbook lists.
+
 - **`episodes/ToldStraight-Ep02/` committed — 23 files, closing a four-day gap where the
   repository held half the published season (#64).** The initial commit `f9e662a`, named
   "episodes 1 and 2", contained only Ep01; Ep02's complete asset set — seven 1600×1600
@@ -345,6 +364,22 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **`docs/voice-capture.md:377` told the maintainer to name Ep01 host takes
+  `narration/H01..H27`, which the assembler cannot match (#69).**
+  `pipeline/core/episode.py`'s `ordered_stems()` sorts by `turn.index`, and Ep01's 27
+  host turns are the **even** indices `t00, t02, … t52` — not a contiguous 1..27 range.
+  Demonstrated with a negative test rather than asserted: a throwaway `H01.wav` matches
+  zero of the 54 stems in `output/episodes/ToldStraight-Ep01-v2/stems/`
+  (`grep -c '^H01'` = 0), while `t00` matches exactly one (`grep -c '^t00'` = 1). The
+  correct instruction already existed — in the gitignored
+  `artifacts/20260727-ep01-v2-host-read-sheet.md` — while the tracked guide, the one a
+  cold-start session or a fresh clone would read, carried the wrong one. Fixed in place;
+  the checklist now cross-references `docs/recording-runbook.md` and the read sheet by
+  path. Ep02's own `H01..H22` convention was checked against the same ground truth and
+  left as-is: `episodes/ToldStraight-Ep02/record-host-ep02.txt` (22 host lines) has no
+  per-turn stem assembler yet — `output/episodes/` holds only `ToldStraight-Ep01-v2/` —
+  so there is no stem for an `HNN` name to fail to map onto.
+
 - **Two overclaims in `README.md` that had gone stale, found by running the commands
   instead of trusting the prose (#58).** The file documented an entire `uv run audition`
   workflow — `--engines`, `--shortlist`, `--cast`, `--tier`, `--check-rates`,
@@ -377,6 +412,19 @@ visible in the diff and would otherwise evaporate.
   would have cut CI coverage to 54 while looking green.
 
 ### Findings
+
+- **Two scripts can carry the identical-looking naming shorthand and be correct for one,
+  wrong for the other — because "wrong" is defined by whether an assembler exists to
+  contradict it, not by the shorthand itself (#69).** Ep01's guide told the maintainer to
+  write `H01..H27`; that's provably wrong because `pipeline/core/episode.py` already has
+  54 rendered stems on disk keyed by turn id, and an `H01.wav` matches none of them.
+  Ep02's script tells the maintainer to write the same `H01..H22` shape, and it's
+  correct — not because the convention differs, but because nothing has rendered Ep02
+  into per-turn stems yet, so there is no ground truth for it to disagree with. **Auditing
+  one script's naming convention proves nothing about a sibling script's**, even when the
+  shorthand looks identical; each has to be checked against its own assembler state, not
+  against the other's verdict. This needs re-checking the moment Ep02 gets a per-turn
+  render.
 
 - **Apple's Custom Email Domain verifier string-matches the SPF record it issues, so
   `~all` is mandatory rather than advisory (#54).** The domain was deployed first with
