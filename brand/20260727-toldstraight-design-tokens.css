@@ -173,8 +173,11 @@
   :root {
     --ts-paper:    #14140F;
     --ts-ink:      #EDE9E0;
-    --ts-red:      #E4564F;   /* UNVERIFIED — lightened so it survives on ink */
-    --ts-grey-web: #9A968E;   /* UNVERIFIED */
+    /* Measured 2026-07-28 against a WCAG 2.x checker validated on five controls (#60).
+       Do NOT "restore brand accuracy" by putting the print red #B02A28 back here:
+       on #14140F it measures 2.82:1 and fails AA body, AA large and AAA. */
+    --ts-red:      #E4564F;   /* 5.05:1 on #14140F — AA body pass, AAA fail */
+    --ts-grey-web: #9A968E;   /* 6.27:1 on #14140F — AA body pass, AAA fail */
     --ts-grey:     #9A968E;
     --ts-hairline: #3A3830;
   }
