@@ -169,10 +169,16 @@ every new deny needs a paired, proven permit.⟩
 ```fish
 git add -A
 git status --short
-git commit -m "⟨imperative subject⟩ (#⟨A⟩, #⟨B⟩)"
+# Commit body = the permanent extended description on main (COMMIT_MESSAGES squash).
+# Author it outside the repo; line 1 = the PR title verbatim.
+git commit -F /tmp/commit-msg-issue-⟨A⟩.txt
 bash scripts/check >/tmp/gate.log 2>&1; echo "gate exit=$status"
 tail -5 /tmp/gate.log
 ```
+
+⟨PM: draft the body's content outline here before handing off — what changed and why, the
+decisions implemented, and anything a `git log` reader needs without opening GitHub, curated to
+roughly 500–2,500 bytes. Not a paste of the PR body.⟩
 
 Expected: `exit=0` and `All checks passed.` Name the commit SHA the gate ran against when you report
 it — the receipt is about that tree state only. ⟨`scripts/check --no-labels` skips the networked
