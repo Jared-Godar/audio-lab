@@ -11,6 +11,34 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`docs/adr/` — fourteen architecture decision records, a template, and an index (#62).**
+  Nine migrated from `ROADMAP.md` § "Decisions and what they constrain" (0001–0009,
+  each preserving its `**Constrains M<n>:**` linkage as `## Consequences`; 0006 is a
+  pointer to `AGENTS.md` § "Recorded divergences", which stays authoritative) and five
+  backfilled from decisions that previously survived only in issue comments (0010–0014,
+  each carrying a verbatim block quote of its named source: the SPF `~all` finding, #54's
+  iCloud+ criterion, #43's per-turn-stems decision, #30's Rulesets/signed-commits
+  declines, and the maintainer's 2026-07-28 model decision). `ROADMAP.md` § Decisions is
+  replaced by a pointer and a compact index; the governing principle, stated in
+  `docs/adr/README.md`: **a decided thing is an ADR; an undecided thing is roadmap.**
+  The migrated 0002 corrects the entry's stale `uv run audition --check-rates` to
+  `uv run voicelab rates` rather than migrating a command that errors (staleness already
+  on record under #30).
+
+- **`docs/runbook.md` — infrastructure and account procedures, sourced or honestly
+  stubbed (#62).** DNS-by-change-set (pointing at `infra/README.md` as authoritative),
+  billing-rate re-verification, Identity Center permission-set reprovisioning, and the
+  host-stem replacement path. Two parts are explicit **stubs** naming what is missing
+  rather than plausible commands: the ElevenLabs console click-path for key rotation
+  (never walked in a recorded session) and the recorded-take → stem substitution step
+  (no tracked command exists; `docs/recording-runbook.md` §9 hands off exactly there).
+
+- **A decision-capture habit in `AGENTS.md` § "Definition of done" and the PR template
+  (#62) — both labelled in-file as prose.** A PR that records or changes a decision
+  adds or updates an ADR. **Nothing enforces this**, and `gh pr create --body-file`
+  bypasses the PR template entirely; both files and `docs/adr/README.md` say so
+  plainly, per the maintainer's §4C decision that this is habit, not mechanism.
+
 - **Fifteen load-bearing files promoted out of the gitignored `artifacts/` zone onto tracked
   paths (#68).** They reached no fresh clone, no cloud session and no cold start, and were
   single-copy on one laptop. Landed: four Adobe builder scripts for the visual system to
@@ -34,6 +62,18 @@ visible in the diff and would otherwise evaporate.
   the original working note are deliberately omitted — this repository is public.
 
 ### Changed
+
+- **The four stale "blocked by the model decision" statements are retired (#62).**
+  `ROADMAP.md` M3 now records the decided architecture (markup editor with live
+  preview, ADR 0014) with the parameter-grid cost re-framed as the `multilingual_v2`
+  exception-path price; M2's blocker line records both original blockers resolved; the
+  § "Open decisions" bake-off entry is a one-line pointer to ADR 0014 — the
+  decided-is-ADR principle executing for the first time — with "Label taxonomy
+  refinements" untouched. The M3 and M5 milestone descriptions were corrected by the
+  maintainer directly before this PR ran; this PR added only the `ADR 0014` / `ADR 0008`
+  cross-references, verified by read-back. M5's description had been false
+  independently of the model decision — `ROADMAP.md` recorded it unblocked on
+  2026-07-26, filed as part of #75.
 
 - **`scripts/pm_lane_guard_matrix.py` discovers the repository root instead of hardcoding
   it.** The file previously carried `REPO = "/Users/…/Code/audio-lab"` and ran on exactly
@@ -111,6 +151,17 @@ visible in the diff and would otherwise evaporate.
   — out of this PR's scoped diff — and flagged as an owed follow-up in the PR body.
 
 ### Findings
+
+- **The repository asserted the `eleven_v3` model decision as both made and open at the
+  same time, in four places (#62).** #62 §2 Gap 2 listed "`eleven_v3` chosen over
+  `multilingual_v2`" as a decided thing (#10), while `ROADMAP.md` § "Open decisions"
+  carried the same bake-off as open and **blocking M3's entire architecture**, echoed
+  by `ROADMAP.md` lines 52/80 and the M3 milestone description. The PM raised the
+  contradiction on 2026-07-28 and the maintainer resolved it the same day, in session:
+  the v3-over-multilingual_v2 call was made personally and is real, **and**
+  `multilingual_v2` is not retired — it stays available for case-by-case calls. Both
+  halves are recorded verbatim in ADR 0014; a future session must not read "v3 was
+  chosen" as licence to delete the `multilingual_v2` path.
 
 - **The `infra/README.md` falsehood was false at the moment it was written, not the result
   of later drift.** The commit introducing "They exist only in the console" (`c26abab`,

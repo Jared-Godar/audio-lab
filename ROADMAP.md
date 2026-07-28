@@ -7,7 +7,7 @@ Update this when a milestone moves or a decision lands. Findings about external
 services still go to `CHANGELOG.md` under **Findings**; durable operating detail
 goes to `docs/`.
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 ---
 
@@ -49,7 +49,9 @@ library browsing.
 Three-stage funnel: free preview sweep → paid screen test on real script lines →
 blind head-to-head → cast and pin voice IDs.
 
-- Blocked by: M1, and **the model bake-off** (see Open decisions).
+- Blocked by: nothing — M2 is complete (below). Its original blockers are both
+  resolved: M1 landed in PR #29, and the model bake-off is decided
+  ([ADR 0014](docs/adr/0014-eleven-v3-default-multilingual-v2-case-by-case.md)).
 - Cost: ~4,400 credits. The sweep stage is free.
 - **Stage one (free preview sweep) — complete** (#7): 12 candidates on disk in
   `artifacts/voice-previews/`.
@@ -77,9 +79,15 @@ blind head-to-head → cast and pin voice IDs.
 
 Dial/markup app that persists tuned settings back to the cast record.
 
-- **Blocked by the model decision** — its entire architecture depends on it.
-- Full mixing-board feel needs a pre-rendered parameter grid; ~3,400 credits per
-  voice for a 5×5 grid over two dials.
+- **Unblocked — architecture decided 2026-07-28**
+  ([ADR 0014](docs/adr/0014-eleven-v3-default-multilingual-v2-case-by-case.md)):
+  `eleven_v3` is the default, so this is a **markup editor with live preview**, not a
+  mixing board — v3 accepts `style`/`speaker_boost` with HTTP 200 and discards them,
+  and is expressive via inline audio tags instead. `multilingual_v2` stays available
+  case-by-case, and the editor must not foreclose rendering a line or episode on it.
+- If a `multilingual_v2` slider path is ever taken under 0014's exception: full
+  mixing-board feel needs a pre-rendered parameter grid; ~3,400 credits per voice for
+  a 5×5 grid over two dials.
 
 ### M4 — Episodes v2
 
@@ -152,148 +160,36 @@ registration.
 
 ## Decisions and what they constrain
 
-The point of this section: each entry is a decision already made whose consequences
-reach forward. Re-litigating them is usually wrong; forgetting them is worse.
+The decision records moved to [`docs/adr/`](docs/adr/) (#62) — one file per decision,
+with context, the deciding text verbatim, consequences, and a reversal condition —
+because this section had become an ADR log inside a document whose job is sequencing
+work. The index below preserves the milestone linkage; if within a month it has drifted
+from the ADRs it lists, drop the table and keep only the pointer — a stale index is
+worse than no index.
 
-### Route 53 auto-creates the hosted zone → CloudFormation manages records, not zones
-
-Registering through Route 53 creates a hosted zone automatically, pre-wired to the
-domain's nameservers.
-
-**Constrains M5:** `infra/` templates take `HostedZoneId` as a **parameter** and
-manage `RecordSet`s inside it. The zone stays outside CloudFormation.
-
-**Why it matters:** if a stack owned the zone, `delete-stack` would destroy it, and
-recreation mints four new NS records that no longer match what the registrar
-publishes — the domain goes dark until nameservers are manually repointed. Keeping
-the zone out makes stack deletion survivable. Cost: $0.50/month.
-
-### ElevenLabs bills at 0.55× the advertised rate
-
-Measured, not documented. Real ceiling is ~237k characters/month of production
-audio, not the 130,552 credit figure.
-
-**Constrains M2/M3/M4:** budgets roughly halve. A full rebuild — casting, three
-draft passes, two masters — lands near 38,000 credits. Re-verify with
-`uv run audition --check-rates` if anything looks off.
-
-### Library voices work without being added to the account
-
-Confirmed by synthesizing with a voice whose `is_added_by_user` was false. Every
-library voice also ships a **free** `preview_url`.
-
-**Constrains M2:** the 30-slot voice cap and 95 add/edit budget are *not* limits on
-auditioning. Round I screening is free and unbounded — filter, page, play previews,
-spend nothing until the shortlist reads real script lines.
-
-### One Professional Voice Clone slot
-
-`professional_voice_limit: 1`. Instant cloning is unlimited within 30 slots and
-costs no credits.
-
-**Constrains M4:** record host lines live, build an **Instant** clone from those
-takes as a patch tool for one-line fixes. Hold the PVC slot unless cloned-Jared
-becomes a primary narrator. See [`docs/voice-capture.md`](docs/voice-capture.md).
-
-### `enforce_admins: true` on `main`
-
-Direct commits are blocked for everyone, Jared included.
-
-**Constrains everything:** if CI breaks, nothing merges until protection is relaxed
-in Settings → Branches. Deliberate, but know the escape hatch exists.
-
-### Branch protection stays as-is — audio-lab is deliberately stricter than the rest of the portfolio (#31, decided 2026-07-27)
-
-Required-checks count, `enforce_admins`, `required_linear_history`, and `strict`,
-measured live across all four portfolio repos the same session:
-
-| | audio-lab | macos-system-health | ecg_anomaly_detection | github-portfolio-modernization |
-| --- | --- | --- | --- | --- |
-| Required checks | **8** | 2 | — (protection unset, HTTP 404) | — (403, private/free plan) |
-| `enforce_admins` | **true** | false | — | — |
-| `required_linear_history` | **true** | false | — | — |
-| `strict` | **true** | false | — | — |
-
-**Decision (maintainer, §4 option 1):** keep audio-lab's settings exactly as they
-are; record the divergence rather than relax it. Reasoning: audio-lab is the only
-**public** repository of the four, so the strictest settings belong on the most
-exposed one, and `enforce_admins: true` exists precisely so nobody — Jared included —
-bypasses the gate.
-
-**Reversal condition, verbatim from the decision:** reverse to relaxing `strict`
-only if ≥2 PRs in a week need otherwise-unneeded rebases they would not have needed
-without `strict: true` — *not* because the settings start to feel heavy.
-
-**The #30-widened-#31 finding:** this issue recorded 4 required checks when filed;
-by the time the decision was made it had grown to 8, because #30 §4 option 1 was
-applied — correctly, on its own terms — while #31 sat undecided. A
-"divergence from the reference repos" issue is a standing constraint on adjacent
-work, not a ticket that can be worked in isolation; nothing in the parity checklist
-re-fires the comparison when an unrelated PR changes the thing being compared.
-
-**ecg_anomaly_detection deferral:** `main` there has no branch protection at all
-(HTTP 404). Not filed as a cross-repo issue now — that repo's own house issue
-standard (3,000–6,000-character briefings) makes a drive-by filing from here the
-wrong artifact. Raise it when `ecg_anomaly_detection` work next resumes.
-
-**Constrains everything downstream of this repo's merge workflow:** the same
-lockout risk named above (`enforce_admins: true` + a broken required check = `main`
-unfixable without a Settings round-trip) is now backed by 8 required checks instead
-of 4, doubling the surface a bad check can jam shut.
-
-### Descriptive artifact names, cache identity in a manifest
-
-`YYYYMMDD-VENDOR-MODEL-VOICE-PURPOSE[-BITRATE]`, vendor second.
-
-**Constrains M1/M3:** anything adding a render parameter must extend the manifest
-key, never the filename, and never fall back to a hash. Folders too:
-`samples/<vendor>/<voice>-<short-id>/`.
-
-### No Free Tier credits exist — Identity Center is free to enable
-
-Checked 2026-07-26 as root: Billing → Credits shows $0.00 remaining, $0.00 used, zero
-active credits. AWS's warning that creating an Organization expires Free Tier credits
-**permanently** is real but has nothing to consume here. Billing is already live —
-the domain purchase transacts on pay-as-you-go — so the Free Plan → Paid Plan upgrade
-is a no-op.
-
-**Unblocks M5.** The surviving constraint is not financial: Identity Center is
-**Region-locked per organization**. Set the console to `us-east-1` before enabling —
-changing it later means deleting the instance and losing every user, group, permission
-set, and assignment. `route53domains` and CloudFront certificates both require
-us-east-1 anyway.
-
-Note also that IAM users cannot see Billing at all until the root user activates
-**IAM user and role access to Billing information** (Billing → Account). That is an
-account-level switch, not a policy — `AdministratorAccess` does not bypass it.
-
-### `.fm` costs $122/yr
-
-Route 53 does sell it — the earlier uncertainty is resolved.
-
-**Constrains M6 and branding:** `toldstraight.fm` was skipped as a $610/5yr
-redirect. The print/journalism property should be a `.com`, which also fits it
-better. `vote.toldstraight.com` is a subdomain, costing nothing.
+| ADR | Decision | Constrains |
+| --- | --- | --- |
+| [0001](docs/adr/0001-route53-zone-as-parameter.md) | Route 53 auto-creates the hosted zone → CloudFormation manages records, not zones | M5 |
+| [0002](docs/adr/0002-elevenlabs-bills-at-055x.md) | ElevenLabs bills at 0.55× the advertised rate | M2, M3, M4 |
+| [0003](docs/adr/0003-library-voices-work-without-adding.md) | Library voices work without being added to the account | M2 |
+| [0004](docs/adr/0004-one-professional-voice-clone-slot.md) | One Professional Voice Clone slot | M4 |
+| [0005](docs/adr/0005-enforce-admins-on-main.md) | `enforce_admins: true` on `main` | everything |
+| [0006](docs/adr/0006-branch-protection-stays-strict.md) | Branch protection stays as-is — deliberately stricter than the portfolio (#31) | everything downstream of the merge workflow |
+| [0007](docs/adr/0007-descriptive-artifact-names.md) | Descriptive artifact names, cache identity in a manifest | M1, M3 |
+| [0008](docs/adr/0008-no-free-tier-credits.md) | No Free Tier credits exist — Identity Center is free to enable | M5 |
+| [0009](docs/adr/0009-dot-fm-costs-122.md) | `.fm` costs $122/yr | M6, branding |
+| [0010](docs/adr/0010-spf-softfail-mandatory.md) | SPF must stay `~all` — Apple string-matches the record it issues | M5 |
+| [0011](docs/adr/0011-icloud-mail-over-workmail-ses.md) | iCloud+ over WorkMail and over SES-plus-Lambda | M5 |
+| [0012](docs/adr/0012-per-turn-stems.md) | Per-turn stems over a monolithic render | M4 |
+| [0013](docs/adr/0013-classic-branch-protection-signed-commits-declined.md) | Classic branch protection over Rulesets; signed commits declined | repo governance |
+| [0014](docs/adr/0014-eleven-v3-default-multilingual-v2-case-by-case.md) | `eleven_v3` default; `multilingual_v2` available case-by-case | M3 |
 
 ---
 
 ## Open decisions
 
-### The model bake-off — blocks M3's entire architecture
-
-`eleven_v3` vs `eleven_multilingual_v2`. **Identical cost** (both 0.55× effective),
-so this is purely a quality call — and it decides whether the tuning app is a
-**mixing board** or a **markup editor**:
-
-- `multilingual_v2` honours `style` and `speaker_boost` → continuous dials → sliders.
-- `v3` ignores both (accepts them with HTTP 200 and discards them) but is more
-  expressive via inline audio tags → a markup editor with live preview.
-
-The existing `transcript-markup.txt` legend is already markup-shaped, which points
-at v3; the imagined slider UI points at multilingual_v2.
-
-**To resolve:** listen to the two renders already sitting in
-`output/auditions/samples/elevenlabs/daniel-onwK4e9Z/`.
+The model bake-off (`eleven_v3` vs `eleven_multilingual_v2`) was decided 2026-07-28 —
+see [ADR 0014](docs/adr/0014-eleven-v3-default-multilingual-v2-case-by-case.md).
 
 ### Label taxonomy refinements
 

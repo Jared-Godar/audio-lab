@@ -339,6 +339,9 @@ compliance never depends on an agent remembering.
       presented as a gate (#30, #31: `quality.yml` and `CLAUDE.md` both asserted the
       opposite of live configuration for a full day after the gate that would have
       caught it went unwritten).
+- [ ] A PR that records or changes a decision adds or updates an ADR under
+      `docs/adr/` (#62). **Prose with no gate behind it** — nothing rejects a PR
+      that skips this, the same limitation class as the CI-check line above.
 
 ## Issues are written to the house standard
 
