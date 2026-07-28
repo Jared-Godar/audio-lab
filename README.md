@@ -55,8 +55,9 @@ In rough order, and without dates it cannot keep:
 - A static site at `toldstraight.com`, and then a public feed.
 - `vote.toldstraight.com`, so listeners get a say in the voices.
 
-`ROADMAP.md` has the full picture, including the decisions that already constrain
-the ones ahead.
+`ROADMAP.md` has the full picture. The decisions that already constrain the ones
+ahead each have their own record under [`docs/adr/`](docs/adr/), and the
+operational procedures live in [`docs/runbook.md`](docs/runbook.md).
 
 ---
 
@@ -163,7 +164,7 @@ auditable `--authorize-ceiling`.
 | `pipeline/` | the `voicelab` CLI — ElevenLabs client, casting, episode render and mastering |
 | `episodes/` | *Told Straight* deliverables: transcripts, show notes, art, `cast.json`. Audio is gitignored |
 | `infra/` | CloudFormation for `toldstraight.com` DNS and mail |
-| `docs/` | durable findings — [ElevenLabs operating notes](docs/elevenlabs.md), [voice capture](docs/voice-capture.md), [the planning workflow](docs/PM-WORKFLOW.md) |
+| `docs/` | durable findings — [decision records](docs/adr/), [the ops runbook](docs/runbook.md), [ElevenLabs operating notes](docs/elevenlabs.md), [voice capture](docs/voice-capture.md), [the planning workflow](docs/PM-WORKFLOW.md) |
 | `spotify/` | a listening-data scaffold: a `spotipy` dependency and a 2022 export in `data/`. No analysis written yet |
 | `prompts/` | the specs agent sessions are handed, kept immutable after handoff |
 | `fish/`, `scripts/` | shell helpers and repository automation |
@@ -191,6 +192,6 @@ the split prevents that.
 
 ---
 
-**Last updated: 2026-07-27.** The status section above is refreshed by the pull
+**Last updated: 2026-07-28.** The status section above is refreshed by the pull
 request that closes a milestone's last open issue — see `AGENTS.md`
 § "Definition of done".
