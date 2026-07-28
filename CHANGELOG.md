@@ -92,6 +92,22 @@ visible in the diff and would otherwise evaporate.
   future spec's commit step now reads `git commit -F <file>` with a curated 500–2,500-byte
   body instead.
 
+- **The favicon set, README header, and both remaining brand builders land on tracked paths
+  (#79) — approved 2026-07-28, existed only on gitignored paths until now.** Two Illustrator
+  builders promoted to `tools/brand/` (favicon derivation, README-header-and-social-cards),
+  byte-identical to their `artifacts/brand-wip/` sources per pinned blob SHAs. Ten favicon files
+  land under `brand/favicon/` (16/32/180/512px light and dark, an SVG master, and the 900px M1
+  reference) and five cards under `brand/web/` (README header light/dark at 1280×400, GitHub
+  social preview stacked at 1280×640, OG card stacked at 1200×630 plus its dark alternative).
+  The rejected `favicon-32-framed.png` and five rejected web-card variants
+  (`readme-header-a/c/d`, `github-social-oneline`, `og-card-oneline`) stay untracked, per the
+  maintainer's decisions on #60. `README.md` now opens with the header behind a `<picture>` +
+  `prefers-color-scheme` switch, immediately above the `# audio-lab` heading.
+  [ADR 0016](docs/adr/0016-favicon-readme-header-and-card-surfaces.md) records all four
+  decisions — favicon framing, header variant, card treatment, and which two surfaces
+  theme-switch — quoting the maintainer verbatim from #60. Uploading the GitHub social preview
+  itself (Settings → General → "Social preview") stays a maintainer action, not a commit.
+
 ### Changed
 
 - **The four stale "blocked by the model decision" statements are retired (#62).**
@@ -152,6 +168,14 @@ visible in the diff and would otherwise evaporate.
   `pull_request` check was considered and rejected: it would add a networked gate to every PR
   touching `labels.json` to close a minutes-wide, main-only drift window, and that cost
   outweighs the risk here.
+
+- **`brand/20260727-toldstraight-design-tokens.css`'s two dark-theme `UNVERIFIED` hedges are
+  replaced with the measured ratios (#60, #79).** `--ts-red: #E4564F` (5.05:1 on `#14140F`) and
+  `--ts-grey-web: #9A968E` (6.27:1) both pass AA body text; measured against a WCAG 2.x checker
+  validated on five controls first. The justification is recorded at the value, per the
+  warnings-belong-at-the-point-of-use rule: the unchanged print red `#B02A28` measures **2.82:1**
+  on the same dark stock and fails AA body, AA large, and AAA, so a future session "restoring
+  brand accuracy" by putting it back would break accessibility.
 
 ### Fixed
 

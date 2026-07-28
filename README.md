@@ -1,3 +1,11 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)"
+          srcset="brand/web/20260728-adobe-illustrator-toldstraight-readme-header-b-dark-1280x400.png">
+  <img src="brand/web/20260728-adobe-illustrator-toldstraight-readme-header-b-oneline-1280x400.png"
+       alt="Told Straight — Dept. of Neurodevelopmental Affairs. Season One: Adult ADHD."
+       width="1280">
+</picture>
+
 # audio-lab
 
 The workshop behind **Told Straight** — the pipeline that renders the show, the
