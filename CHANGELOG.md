@@ -11,6 +11,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`episodes/ToldStraight-Ep01/_v1-archive/` — the eight v1 artwork PNGs archived, copy-not-move,
+  before issue #60's visual-system re-set touches them.** Satisfies one acceptance item of #60's
+  RE-SCOPE comment (§2, "the originals are archived, never overwritten"); #60 itself stays open
+  with seventeen-plus deliverables remaining. The eight PNGs (`cover.png`, `show-cover.png`,
+  `ch1.png`…`ch6.png`) and `alt-text.md` are copied byte-identical into the archive; the
+  originals are untouched and stay live under `episodes/ToldStraight-Ep01/`. A `README.md` in
+  the archive states at the point of use that the files are permanent and must never be deleted —
+  their provenance is unrecoverable (zero embedded metadata) and they are attached to an episode
+  already on the private feed.
+
 - **`docs/adr/` — fourteen architecture decision records, a template, and an index (#62).**
   Nine migrated from `ROADMAP.md` § "Decisions and what they constrain" (0001–0009,
   each preserving its `**Constrains M<n>:**` linkage as `## Consequences`; 0006 is a
