@@ -58,6 +58,30 @@ visible in the diff and would otherwise evaporate.
   needing to point into it is proof it does not belong there. `tools/brand/`, `brand/` and
   `infra/policies/` added to the same list.
 
+- **`AGENTS.md` § "Definition of done" gains the mechanism that would have caught #30's and
+  #31's falsehoods (#30, #31).** A PR that adds or renames a CI job now must state in its
+  body whether the check is required or advisory — a check that cannot block a merge must
+  never be presented as a gate. This is the shared root cause behind both issues: a tracked
+  file described CI/branch-protection state, the state changed, and nothing made the
+  description follow.
+
+- **#31's branch-protection divergence recorded in both `AGENTS.md` and `ROADMAP.md` (#31).**
+  Decision: keep audio-lab's settings exactly as they are — 8 required checks,
+  `enforce_admins: true`, `required_linear_history: true`, `strict: true` — against 2 on
+  `macos-system-health`, none on `ecg_anomaly_detection` (branch protection unset, HTTP 404),
+  and 403 on `github-portfolio-modernization` (private, free plan, unavailable regardless).
+  Reasoning: audio-lab is the only public repository of the four, so the strictest settings
+  belong on the most exposed one. Reversal condition recorded verbatim: relax `strict` only
+  if ≥2 PRs in a week need otherwise-unneeded rebases — not because the settings feel heavy.
+  ecg's unprotected `main` is recorded as a deferral in `ROADMAP.md` rather than filed as a
+  new cross-repo issue now, per that repo's own house issue standard.
+
+- **`label-drift-gate.yml` documents Gap 3's ratified decision (#30 Gap 3).** The gate stays
+  post-merge by design — it detects label drift, it does not prevent it. A pre-merge
+  `pull_request` check was considered and rejected: it would add a networked gate to every PR
+  touching `labels.json` to close a minutes-wide, main-only drift window, and that cost
+  outweighs the risk here.
+
 ### Fixed
 
 - **`infra/README.md` no longer tells readers the two IAM policies "exist only in the
@@ -72,6 +96,19 @@ visible in the diff and would otherwise evaporate.
   `docs/`. `ROADMAP.md:196` pointed at `artifacts/voice-cloning-guide.md` and now points at
   `docs/voice-capture.md`. `CLAUDE.md`'s "51 paired permit/deny cases" claim now cites the
   tracked harness that substantiates it.
+
+- **`.github/workflows/quality.yml` no longer asserts the opposite of live branch protection
+  (#30).** The comment at the top of the file said `Tests (pipeline)` was NOT in main's
+  required-status-checks list and instructed readers not to treat it as a gate — true when
+  written, false since 2026-07-27 when #30 §4 option 1 made it required, and left uncorrected
+  for a day. Replaced with a comment stating it IS required, dated, citing #30.
+
+- **`CLAUDE.md` documented a CLI entry point that errors (#30).** Both `uv run audition`
+  occurrences (§ Repo shape, § ElevenLabs specifics) replaced with `uv run voicelab` /
+  `uv run voicelab rates` — the entry point moved when the v1 tool was archived to
+  `archive/audition-v1/` in #29. Verified by running `uv run voicelab --help` from
+  `pipeline/`. `ROADMAP.md:178` carries the identical stale command and is left unfixed here
+  — out of this PR's scoped diff — and flagged as an owed follow-up in the PR body.
 
 ### Findings
 
@@ -92,6 +129,18 @@ visible in the diff and would otherwise evaporate.
   error. Resolved on the maintainer's decision by narrowing the global pattern with a
   documented negation; a control (`my-auth-token.json`) confirms genuine token filenames are
   still blocked.
+
+- **The falsehood class first named on #68 had two more tracked instances, and this PR closes
+  both (#30, #31).** #68 recorded a third instance (`infra/README.md`) of the same mechanism:
+  a tracked file describes CI or branch-protection state, the state changes, and nothing makes
+  the description follow. The first two instances — `quality.yml`'s stale required-check
+  comment and `CLAUDE.md`'s stale CLI reference — are fixed by this PR, closing #30 and #31.
+  Three instances in one week is the actual signal: `AGENTS.md` § "Definition of done" now
+  carries a general line (a PR that adds/renames a CI job states whether it's required), but
+  as recorded on #30, that line by construction catches only the CI-check-shaped instance —
+  neither `CLAUDE.md`'s CLI reference nor `infra/README.md`'s "exists only in the console"
+  claim involves a CI check. Widening the mechanism beyond CI checks is a live open question,
+  not resolved by this PR.
 
 ## 2026-07-27
 
