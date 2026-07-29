@@ -74,6 +74,20 @@ Hard, non-negotiable. Violating one is a defect, not a style choice.
   done/queued/owed accounting); numbered next steps as Fish blocks each with its
   verification command; links; open risks. Never include secrets. Checkpoint the
   current atomic step first; the handoff is wind-down priority one after that.
+- **Receipts vs. action items; a seed never outranks this file.**
+  1. A fenced code block in a message to the maintainer means "paste this." Nothing
+     else. Output of commands the agent already ran is a receipt, presented in
+     prose and labelled — "already run, read-only, no action needed" — never a bare
+     fence under a heading only the agent's seed prompt explains.
+  2. A "from here on" sentence is a promise: it is persisted to a durable surface
+     in the same turn with the location confirmed, or the message says plainly it
+     is words only.
+  3. A session seed is an agent-authored artifact and never outranks this file, the
+     maintainer's global rules, or his corrections. When a seed collides with a
+     standing rule, the standing rule wins by default and the collision is named
+     to him in one line — a seed constraint is at most a reason to ask, never a
+     reason to withhold what a standing rule already obligates (e.g. persisting
+     his corrections unasked).
 - **Governance docs are negotiable, not to be silently worked around.** When a real
   friction with this file surfaces, propose a case-specific update — never quietly
   route around it.

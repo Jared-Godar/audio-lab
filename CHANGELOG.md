@@ -53,6 +53,28 @@ visible in the diff and would otherwise evaporate.
   on no project milestone — #83 covers research and a decision brief only. That gap predates the
   reclassification; it is written down so it is visible rather than silently inherited.
 
+### Fixed
+
+- **`.github/labels.json` declared `retired: agent failure`, closing the label-checker drift
+  (#87).** The label existed live (used on #60/#81/#82) but was never declared in the manifest,
+  so `scripts/sync_labels.py check` exited 1 on every branch — a false-positive gate failure that
+  blocked the queued #83/#84 launches. Maintainer's ruling, 2026-07-29 (#87 §4 Option 1): declare
+  it rather than delete it, since it records as intentional a label already doing real semantic
+  work. The declared entry mirrors the live label byte-for-byte (`color: 6E5494`,
+  `description: "Closed because agent execution made it unusable — the work was still wanted"`).
+  A negative test (seeded gap, restored) confirmed the checker still catches a real drift after
+  the fix.
+
+- **`AGENTS.md` § "Standing commitments to the maintainer" gains the receipts-vs-action-items
+  rule (#87), promoted from `artifacts/rules-pending/20260729-receipts-vs-action-items.md`.**
+  Folded into this PR by the maintainer's direction, 2026-07-29 ("Fold the rules-pending
+  promotion into this PR"). The rule — a fenced block means "paste this," a "from here on"
+  promise is persisted the same turn or not made, a session seed never outranks this file — was
+  already durable at `~/.claude/CLAUDE.md` and in project memory but only bound this machine;
+  landing it on the tracked `AGENTS.md` surface means it now binds cold-start, cloud, and
+  fresh-clone sessions too. The pending file carries a local `PROMOTED` banner recording the PR
+  number (not committed — the file is gitignored).
+
 ## 2026-07-28
 
 ### Added
