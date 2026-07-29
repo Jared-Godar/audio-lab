@@ -18,9 +18,18 @@ repos:
         # (reading type at size), and re-encoding it makes it larger, not smaller.
         # Do not "fix" this by raising --maxkb — that weakens the gate everywhere to
         # admit one file. Add a path here instead, and say why.
+        #
+        # The second entry (#90) is the show-wide Archer-style cast portraits under
+        # episodes/cast/portraits/. These are deliberate, maintainer-approved visual
+        # deliverables (host identity + synthetic-character set), generated at 1:1 in
+        # Google Gemini; the source PNGs run ~1.0–1.9 MB each and downscaling or
+        # re-encoding degrades the approved art. Directory glob (not per-file) so the
+        # re-runnable commit procedure admits Owen/Des/Voss/Anna and future portraits
+        # without another gate edit. maxkb stays 1024 everywhere else.
         exclude: |
           (?x)^(
             brand/20260727-adobe-illustrator-toldstraight-type-shootout-contact-sheet\.png
+            | episodes/cast/portraits/.*\.png
           )$
       - id: check-case-conflict
       - id: check-executables-have-shebangs

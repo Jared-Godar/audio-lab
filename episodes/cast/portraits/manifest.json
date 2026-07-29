@@ -1,0 +1,63 @@
+{
+  "_note": "Provenance index for the show-wide Archer-style cast portraits. Filenames are self-describing (DATE-VENDOR-MODEL-SUBJECT-PURPOSE); this file carries the recipe. No seed is recorded because the consumer Gemini image UI does not expose one. Portraits were produced by iterative edits in a single Gemini thread starting from each canonical prompt below.",
+  "created": "2026-07-29",
+  "vendor": "google-gemini",
+  "model": "nano-banana-2",
+  "tool": "https://gemini.google.com/images",
+  "format": {
+    "aspect": "1:1 square, full-bleed (no baked-in circular crop)",
+    "framing": "3/4-view head-and-shoulders, centered, headroom above hair",
+    "background": "flat solid warm paper #EDE9E0, no scene",
+    "downstream": "circle/card crops applied per-asset at use time, not baked into the source"
+  },
+  "style_prompt": "Flat 2D vector illustration, clean ligne claire style. Bold uniform black outlines. Flat color fills with minimal hard-edged cel shading (single darker shadow tone), no gradients, no soft rendering, no photorealism. Angular geometric simplification: defined jaw, blocky chin, simplified straight nose, minimal facial detail, pale eyes with small white catchlight. Retro 1960s mid-century spy aesthetic, confident and deadpan. Muted slightly desaturated palette. 3/4 head-and-shoulders portrait, plain flat warm-paper background #EDE9E0. Ink-black #111111 outlines; accent red #B02A28 and warm grey #78746C used sparingly.",
+  "style_naming_note": "The 'Archer' show is never named in prompts (refused as copyrighted IP); the aesthetic is described instead, and a show screenshot may be uploaded as a visual style reference only.",
+  "portraits": [
+    {
+      "file": "20260729-gemini-nano-banana-2-jared-godar-host-cast-portrait-1x1.png",
+      "subject": "Jared Godar",
+      "role": "host (overall show)",
+      "real": true,
+      "generated": true,
+      "source": "derived from the maintainer's own reference photos, uploaded privately to Gemini; the photos are NEVER committed to this public repo",
+      "subject_prompt": "Lean-to-stocky man, late 40s, warm olive/tan skin, fuller rounder face and heavier build, near-black hair greying at the temples, full two-tone beard (dark with a grey-white chin), hazel-green eyes, warm slightly-smiling expression, open plaid flannel over a plain tee, thin pendant necklace."
+    },
+    {
+      "file": "20260729-gemini-nano-banana-2-owen-ep01-expert-cast-portrait-1x1.png",
+      "subject": "Owen",
+      "role": "expert co-host (Ep01)",
+      "real": false,
+      "generated": true,
+      "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
+      "subject_prompt": "Expert who studies ADHD and has it himself; mid-30s to 40s, glasses, tidy short hair, clean or lightly stubbled, bookish but warm. STARTER SKETCH — look not yet locked."
+    },
+    {
+      "file": "20260729-gemini-nano-banana-2-des-fable-ep02-host-cast-portrait-1x1.png",
+      "subject": "Des Fable",
+      "role": "host (Ep02)",
+      "real": false,
+      "generated": true,
+      "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
+      "subject_prompt": "British everyman co-host and 'fellow club member', lived-in and slightly scattered, warm and self-deprecating; late 30s-40s, slightly rumpled, expressive eyebrows, casual layered clothing. STARTER SKETCH — look not yet locked."
+    },
+    {
+      "file": "20260729-gemini-nano-banana-2-michael-voss-ep02-expert-cast-portrait-1x1.png",
+      "subject": "Dr. Michael Voss",
+      "role": "expert (Ep02)",
+      "real": false,
+      "generated": true,
+      "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
+      "subject_prompt": "American academic who 'speaks fluent effect size'; polished, credentialed, self-aware; 40s-50s, glasses, blazer or collared shirt, composed slightly-smug-but-likable expression. STARTER SKETCH — look not yet locked."
+    },
+    {
+      "file": "20260729-gemini-nano-banana-2-anna-sinclair-ep03-clinician-cast-portrait-1x1.png",
+      "subject": "Dr. Anna Sinclair",
+      "role": "expert / clinician (Ep03)",
+      "real": false,
+      "generated": true,
+      "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
+      "subject_prompt": "Clinician who treats and explains the condition at the bedside; warm, direct, reassuring authority; 40s-50s, auburn-brown hair with a grey streak pulled back off the face, small stud earrings, holding tortoiseshell glasses to her chin, maroon/burgundy blazer over a cream blouse, warm slight smile. STARTER SKETCH — look not yet locked."
+    }
+  ],
+  "synthetic_disclosure": "The four synthetic characters must stay identifiable as synthetic; the Ep02 personnel-file cards with the NOT REAL stamp remain the standing device."
+}
