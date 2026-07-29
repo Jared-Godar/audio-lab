@@ -428,3 +428,18 @@ not pick for you.
 Whichever route you pick, only the host stems change — `assemble_master()` works
 from stems alone, so neither route touches or re-renders a single one of Jofra's 27
 co-host turns.
+
+## Outcome — 2026-07-29
+
+The Ep01 leg of the checklist above was run to completion in the 2026-07-29 recording
+session, and the fork the checklist ends on is resolved: **the IVC is sufficient; the PVC
+slot stays held.**
+
+- Ep01's 27 host lines recorded per this guide (QuadCast, bedroom, 48 kHz/24-bit mono
+  WAV); continuous take 4:02, of which 2:38 is speech. Ep02's lines remain owed.
+- Two IVCs were built for a corpus A/B — silences-removed vs natural-pauses — and each
+  rendered on `eleven_multilingual_v2` and `eleven_v3` against the real t00 take.
+- Winner, in the maintainer's words: Jared 1.0 (de-gapped corpus) on
+  `eleven_multilingual_v2` — "the best mix of inflection, pauses and sounding like me."
+- The patch-tool config, both voice IDs, and the reversal conditions live in
+  `docs/elevenlabs.md` § "Cloned voices" and ADR 0017.
