@@ -45,6 +45,28 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`docs/20260729-root-cause-analysis-20260727-29-failure-corpus.md` — the #84 root-cause
+  analysis of the two-session failure corpus, written by a fresh `claude-fable-5` executor
+  from both transcripts as primary sources (#84).** Covers the 2026-07-28 `claude-opus-5`
+  session (88.06M tokens, 6h08m), the 2026-07-29 `claude-fable-5` session (45.05M tokens,
+  2h12m), and the #60 lifecycle. **43 rule violations independently re-derived** (the six
+  data-point comments' 27 rows confirmed and 16 added), every row quoting the rule in force
+  at the moment of the act with a transcript line + UTC receipt; eight assurance-then-reversal
+  instances, in every one of which a pre-claim check existed and cost at most one command;
+  the guardrail audit's one-line result — every guardrail that *acts* (lane guard, gates,
+  M0-as-observability) has a clean record, every guardrail that *reminds* was breached with
+  its text in context; consumables measured with the #84 §8 script against a control
+  (project-vs-process output split: 31.4% / 68.6% in v9, 0% project by the M0 criterion in
+  v10); all seven systemic hypotheses given verdicts (five confirmed, two refined — notably:
+  rails predicted compliance, model tier predicted nothing, with both models on both sides
+  of the line the same night). Recommendations: 3 mechanisms, 2 templates, 2 prose —
+  mechanisms outnumber prose, each with cost and named blind spot, each mechanism tied to a
+  named failure it would have caught. The analyst-conflict (fable-5 analyzing fable-5
+  incidents, the maintainer's explicit choice) is disclosed in the document's Methods, and
+  maintainer quotes are masked to PG-13 grawlix per his 2026-07-29 rulings (spec addendum 1),
+  which also waived the apology-grep acceptance criterion and directed the bleep of #84
+  comment `5113162226`, executed and verified at 06:51:59Z.
+
 - **`docs/20260729-m0-remediation-audit.md` — the tracked audit behind the reclassification
   (#85).** The criterion verbatim, the live inventory measurement, the maintainer's borderline
   ruling, all 51 rows, before/after milestone counts, the explicit non-goals, and one consequence
