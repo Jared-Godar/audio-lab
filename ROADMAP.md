@@ -7,7 +7,7 @@ Update this when a milestone moves or a decision lands. Findings about external
 services still go to `CHANGELOG.md` under **Findings**; durable operating detail
 goes to `docs/`.
 
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 ---
 
@@ -32,6 +32,27 @@ protection, `AGENTS.md`, and `toldstraight.com` registered.
 ---
 
 ## Milestones
+
+**Seven milestones exist, not six.** M0 was created 2026-07-29 and holds 31 of the
+repository's 51 issues. Read the M1–M6 sections below with that in mind: several items
+they describe are now filed under M0, and each such section says which.
+
+### M0 — Extra remediation effort unrelated to project goals
+
+Work that exists only because an agent did not follow guardrails that already existed,
+and the maintainer had to spend his time getting it to. **Not project progress.**
+
+- **Retroactively applied 2026-07-29** (#85), after an audit classified all 51 issues in
+  the repository against a single criterion: an issue is remediation if it exists because
+  an agent failed to follow an existing guardrail, asserted something false, left work
+  half-done, or because a guardrail itself was defective — as opposed to advancing the
+  show, its infrastructure, or its tooling.
+- **31 of 51 issues** — 8 open, 23 closed. The remaining 20 are project work.
+- Twenty-three were unambiguous; eight were genuinely borderline and the maintainer ruled
+  on all eight before anything moved (#85 §4d). The full table, with a one-line reason per
+  issue, is at [`docs/20260729-m0-remediation-audit.md`](docs/20260729-m0-remediation-audit.md).
+- **This is not a backlog to burn down.** It is a ledger. The useful question it answers is
+  whether the ratio improves.
 
 ### M1 — Tooling foundation
 
@@ -93,6 +114,10 @@ Dial/markup app that persists tuned settings back to the cast record.
 
 Rewrite Ep01/Ep02 into the hybrid format, record host lines, render, republish.
 
+- **Five issues moved to M0 on 2026-07-29** (#85): #44, #46, #64, #69, #82. The work
+  they describe still happened and the entries below are unchanged — what changed is
+  that it is no longer counted as episode progress. #46's mastering-chain bullet and
+  #44's host-swap dependency are both M0 items now.
 - Blocked by: M2 (voices), M3 (settings).
 - The record-host/record-guest scaffolding already exists in the working copies.
 - Publish as staged v2 first; do not overwrite the live feed until heard end to end.
@@ -121,6 +146,10 @@ Rewrite Ep01/Ep02 into the hybrid format, record host lines, render, republish.
 AWS Identity Center, DNS, static site at `toldstraight.com`, all IaC after
 registration.
 
+- **Four issues moved to M0 on 2026-07-29** (#85): #59, #60, #79, #81. The DMARC `rua=`
+  follow-up listed below is #59's and is an M0 item now; the visual-identity issues
+  (#60, #81) were withdrawn as agent failures, and #79's brand promotion existed only
+  because a day of approved work had been left on gitignored paths.
 - Blocked by: nothing. Unblocked 2026-07-26 — no Free Tier credits exist to lose.
 - `toldstraight.com` registered 2026-07-26, $16/yr, auto-renew on.
 - **DNS security records — deployed 2026-07-27** (#22): SPF, null MX, DMARC `p=reject`,

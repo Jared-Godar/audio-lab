@@ -29,7 +29,7 @@ described in the medical literature since 1775, genuinely dangerous untreated, a
 one of the most treatable conditions in psychiatry. A host and an expert who has it
 too walk through what the evidence actually says. Orientation, not medical advice.
 
-## Where this is — 2026-07-27
+## Where this is — 2026-07-29
 
 Five days old, built in public, one decision at a time.
 
@@ -52,6 +52,17 @@ to point it at.
 What does exist, and can be read right now: the episode 1
 [transcript](episodes/ToldStraight-Ep01/transcript.md) and
 [show notes](episodes/ToldStraight-Ep01/show-notes.md), with every claim DOI-linked.
+
+**And the part the issue tracker was quietly overstating: 31 of this repository's 51
+issues are not project work.** They exist because a coding agent did not follow
+guardrails that were already in place, asserted something false, or left work
+half-finished — and the maintainer had to spend his time getting it corrected. On
+2026-07-29 every issue was audited against that criterion and the 31 were moved to a
+milestone that says so, **M0 — Extra remediation effort unrelated to project goals**
+(#85). Before that they sat under the project's own milestones, where milestone
+completion read as progress on the show. The full table, one line of reasoning per
+issue, is at [`docs/20260729-m0-remediation-audit.md`](docs/20260729-m0-remediation-audit.md).
+An honest ledger showing that ratio is worth more than a clean one that hides it.
 
 ## What is coming
 
@@ -200,6 +211,6 @@ the split prevents that.
 
 ---
 
-**Last updated: 2026-07-28.** The status section above is refreshed by the pull
+**Last updated: 2026-07-29.** The status section above is refreshed by the pull
 request that closes a milestone's last open issue — see `AGENTS.md`
 § "Definition of done".

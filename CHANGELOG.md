@@ -7,6 +7,52 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-07-29
+
+### Changed
+
+- **31 of the repository's 51 issues moved off the project milestones onto a new
+  `M0 — Extra remediation effort unrelated to project goals` (#85).** Every issue in the
+  repository, open and closed, was audited against one criterion, quoted verbatim from #85 §2b:
+  an issue is remediation if it exists because an agent failed to follow an existing guardrail,
+  asserted something false, left work half-done, or because a guardrail itself was defective —
+  as opposed to advancing the show, its infrastructure, or its tooling. **31 met it; 20 did
+  not.** That is **61%**, against the "roughly 45%" #85 estimated from a 22-of-49 first pass.
+  The full table — one row per issue, a one-line reason each, previous milestone recorded — is
+  tracked at `docs/20260729-m0-remediation-audit.md`. Milestone counts moved M4 2/11 → 2/6 and
+  M5 3/12 → 2/9 (open/closed, PRs included); the other twenty-two reassigned issues were
+  previously unmilestoned. Every reassigned issue carries a comment naming the criterion and its
+  previous milestone, and no issue was reopened, relitigated, or edited — reclassifying is not
+  reversing.
+
+  Twenty-three of the 31 were unambiguous. **Eight were genuinely borderline** — #5, #8 and #62,
+  which #85 named, plus #44, #46, #58, #59 and #79, which the audit added as the same class as
+  issues already confirmed. The executor's recommendations split four/four; **the maintainer
+  ruled all eight remediation**, before anything moved, per #85 §4d. His ruling is quoted on the
+  issue rather than paraphrased.
+
+  **Why it took this long, in the maintainer's own words** (#85 §2c): *"the maintainer was naive
+  enough to think the 'one time fix' promised was sufficient and the lag between him blindly
+  believing that in spite of the mounting evidence to the contrary was the delay in correctly
+  milestoning this corpus of work for what it truly is."* Each remediation issue was filed
+  alongside an assurance that the underlying behaviour was now fixed. One at a time, each read as
+  a closing entry. Only in aggregate is the pattern visible — which is exactly what a milestone
+  view is for, and exactly what filing them under project milestones concealed.
+
+  `README.md` and `ROADMAP.md` are corrected accordingly: the README's status section now states
+  the ratio on the public front door instead of omitting it, and `ROADMAP.md` gains an M0 section
+  and per-milestone notes naming which of M4's and M5's listed items are M0 items now.
+
+### Added
+
+- **`docs/20260729-m0-remediation-audit.md` — the tracked audit behind the reclassification
+  (#85).** The criterion verbatim, the live inventory measurement, the maintainer's borderline
+  ruling, all 51 rows, before/after milestone counts, the explicit non-goals, and one consequence
+  recorded rather than absorbed: with #60, #81 and #82 on M0, the visual-identity deliverables the
+  maintainer explicitly asked for (host imagery, email signature, business card, stationery) sit
+  on no project milestone — #83 covers research and a decision brief only. That gap predates the
+  reclassification; it is written down so it is visible rather than silently inherited.
+
 ## 2026-07-28
 
 ### Added
