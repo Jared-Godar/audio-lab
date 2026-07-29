@@ -45,6 +45,15 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The Instant Voice Clone patch-tool config, recorded on tracked surfaces (#91).** Two
+  IVCs were built 2026-07-29 from the Ep01 host-line session; a four-cell A/B (2 corpora ×
+  2 models on the recorded t00 line, 828 credits) had the maintainer pick **"Jared 1.0"
+  (`55ZBPsQ4TUfilRuaftR9`) on `eleven_multilingual_v2`** as the host-line patch config.
+  Recorded in `docs/elevenlabs.md` § "Cloned voices", a dated outcome note resolving
+  `docs/voice-capture.md`'s open IVC-or-PVC fork, and ADR 0017 (an ADR 0014 case-by-case
+  model exception). "Jared 2.0" (`uRHCc17iD8J841Ag8zdr`, natural-pauses corpus) is kept as
+  a spare by maintainer decision; the PVC slot stays held (ADR 0004 unchanged).
+
 - **`docs/20260729-root-cause-analysis-20260727-29-failure-corpus.md` — the #84 root-cause
   analysis of the two-session failure corpus, written by a fresh `claude-fable-5` executor
   from both transcripts as primary sources (#84).** Covers the 2026-07-28 `claude-opus-5`
@@ -96,6 +105,21 @@ visible in the diff and would otherwise evaporate.
   landing it on the tracked `AGENTS.md` surface means it now binds cold-start, cloud, and
   fresh-clone sessions too. The pending file carries a local `PROMOTED` banner recording the PR
   number (not committed — the file is gitignored).
+
+### Findings
+
+- **The de-gapped cloning corpus beat the natural-pauses corpus.** Removing every
+  inter-line silence from identical source audio produced the clone the maintainer
+  preferred — the opposite of the intuition that joins would teach broken timing (#91).
+- **`eleven_multilingual_v2` beat `eleven_v3` for this cloned voice** on inflection and
+  pacing, against ADR 0014's repo default — hence the recorded exception in ADR 0017 (#91).
+- **The IVC upload wizard caps files at 10 MB each** (min 10 s total). At 48 kHz/24-bit
+  mono WAV that is ~69 s per file; a multi-file upload of lossless splits satisfies it.
+  ElevenLabs transcodes uploaded WAVs to MP3 server-side either way (#91).
+- **Scoped API keys fail voice creation closed:** `POST /v1/voices/add` without the
+  `create_instant_voice_clone` permission returns `missing_permissions` before doing
+  anything — a zero-cost probe for whether a key can clone. TTS with an existing cloned
+  voice needs no such permission (#91).
 
 ## 2026-07-28
 

@@ -19,6 +19,32 @@ The single PVC slot is the thing to plan around. Instant cloning needs only a fe
 minutes of audio and costs no PVC slot, which makes it the right tool for voice
 patches; save the professional slot for something that genuinely warrants it.
 
+## Cloned voices
+
+Two Instant Voice Clones exist on the account, both built 2026-07-29 from the Ep01
+host-line recording session (`~/ToldStraight-recordings/20260729-ep01-session/`).
+Decision record: ADR 0017.
+
+| Voice | ID | Corpus | Role |
+| --- | --- | --- | --- |
+| **Jared 1.0** | `55ZBPsQ4TUfilRuaftR9` | de-gapped 320k MP3 — 2:38 of speech, every inter-line silence removed | **The patch tool.** Host-line patches render with this voice on `eleven_multilingual_v2` |
+| Jared 2.0 | `uRHCc17iD8J841Ag8zdr` | raw 4-part 24-bit WAV, natural pauses intact | Kept spare — lost the 2026-07-29 A/B; retained by maintainer decision |
+
+**Model choice here is per-voice, not the repo default.** ADR 0014 makes `eleven_v3` the
+default with `multilingual_v2` available case-by-case, choice recorded; this is that case.
+In the 2026-07-29 four-cell A/B (both voices × both models, identical text from the
+recorded t00 line, the maintainer's real take as reference, 4 × 207 = 828 credits verified
+in `/v1/history`), the maintainer picked Jared 1.0 on `eleven_multilingual_v2` as "the
+best mix of inflection, pauses and sounding like me." Patching a host line on the v3
+default reproduces the timing defects that A/B ruled out.
+
+Corpus finding, recorded because it is counterintuitive: the corpus with **all silences
+removed beat the same audio with natural pauses left in.** Dense speech gave the clone
+more to learn from; the pauses taught it nothing.
+
+Cloning consumed no credits and no PVC slot (`professional_voice_slots_used: 0` — the
+single Professional slot stays held per ADR 0004). Two ordinary voice slots of 30 are used.
+
 ## Rates — advertised vs actual
 
 `/v1/models` reports a `character_cost_multiplier` that this account does **not**
