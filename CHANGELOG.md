@@ -7,6 +7,43 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-07-30
+
+### Changed
+
+- **The governance stack was audited, consolidated, and de-hooked (#94).** The three contract
+  files were rewritten from 41 overlapping rules into a six-rule conduct core plus repo
+  specifics: `AGENTS.md` 32,309 → 14,850 bytes (sole binding contract, Experiment A documented
+  as the operating model, tiered issue standard, one-line origin registers), `CLAUDE.md`
+  13,662 → 2,363 bytes (repo mechanics only), and the machine-local `~/.claude/CLAUDE.md`
+  36,411 → 4,965 bytes (personal facts + new-repo parity + cross-repo core reference). Both
+  enforcement hooks were **removed by recorded decision** — `pm-lane-guard.sh` (PreToolUse)
+  and `contract-reinjection.sh` (UserPromptSubmit, a measured 645–1,010 tokens injected every
+  turn) — along with `contract_digest.py`, the 51-case `scripts/pm_lane_guard_matrix.py`
+  harness, `docs/PM-WORKFLOW.md`, and `artifacts/specs/TEMPLATE.md`, all of which described
+  or tested the retired PM/executor apparatus. Rationale, measured in #94: 63% of all issues
+  were remediation-class *with* the hooks in force — they constrained accident, not intent,
+  and their cost exceeded their compliance yield. Re-introducing any hook is a maintainer
+  decision, never a silent re-add. Estimated saving ≈ 15,000 resident tokens per session plus
+  the per-turn injection (roughly 40–60k tokens per working session).
+
+- **The label schema is frozen at the current 14 labels (#94, closing #8).** The four pending
+  vocabulary refinements and the `effort:`/`risk:`/`status:` axes are formally declined;
+  `.github/labels.json` records the decision in its comment.
+
+### Added
+
+- **`readme-staleness.yml` scheduled workflow (#94, closing #63).** Weekly check: if any
+  milestone reached zero open issues after the README's `Last updated:` date, it opens one
+  issue (or comments on the existing one — never duplicates, never blocks). Advisory by
+  design; workflow_dispatch for on-demand runs.
+
+### Fixed
+
+- **The two `fish/` "SUPERSEDED by `uv run audition`" pointers now name `voicelab`** (#94,
+  the residue folded in from #74) — the last live references to the dead entry point outside
+  correct-in-context history.
+
 ## 2026-07-29
 
 ### Changed

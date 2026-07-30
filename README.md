@@ -120,18 +120,16 @@ verifier string-matches the value it issues instead of evaluating SPF; and two
 logical ids are misnamed on purpose, because renaming one is a delete-plus-create
 against a live DNS record.
 
-### The agent contract has a mechanism behind it, and admits where it does not
+### The agent contract is deliberately small, and says what enforces it
 
 `AGENTS.md` and `CLAUDE.md` are binding instructions for the coding agents that do
-most of the work here. The interesting part is what happens when prose is not
-enough: a tracked `PreToolUse` hook makes the planning/execution split structural
-rather than remembered, and a `UserPromptSubmit` hook injects a generated digest of
-the contract files every turn and escalates when one changes mid-session.
-
-Both document what they *do not* cover — the guard is a lane marker, not a sandbox,
-and the file says so, listing the bypasses that still work. Nearly every rule in
-those files exists because a specific failure happened first; `CHANGELOG.md` records
-which.
+most of the work here. The repository once ran two enforcement hooks — a
+`PreToolUse` lane guard and a per-turn contract-reinjection digest — and removed
+both by recorded decision (#94, 2026-07-30): they constrained accident rather than
+intent, and their measured cost exceeded their compliance yield. What remains is a
+consolidated six-rule contract that states plainly which parts are mechanism (CI
+gates, branch protection) and which are prose enforced by nothing. Nearly every rule
+exists because a specific failure happened first; `CHANGELOG.md` records which.
 
 ---
 

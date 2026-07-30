@@ -7,22 +7,19 @@ executor, cloud, or fresh clone — follows the same rails.
 
 ## Read the durable contracts first
 
-Before any change, read, in order: [`AGENTS.md`](AGENTS.md) (the standing contract),
-[`CLAUDE.md`](CLAUDE.md) (session modes and the PM/executor lane), `~/.claude/CLAUDE.md`
-(the maintainer's global rules), and the memory files. **A durable contract outranks any
-prompt or plan** — if they conflict, stop and surface it rather than resolving it
-quietly.
+Before any change, read, in order: [`AGENTS.md`](AGENTS.md) (the binding contract),
+[`CLAUDE.md`](CLAUDE.md) (repo mechanics), and the memory files where present. **A
+durable contract outranks any prompt or plan** — if they conflict, stop and surface it
+rather than resolving it quietly.
 
-## The PM / executor lane
+## Operating model
 
-Work is split into two session modes, enforced by
-`.claude/hooks/pm-lane-guard.sh` (a tracked `PreToolUse` hook), not merely remembered:
-
-- **PM thread** — plans, writes issues and labels, authors executor specs under
-  `artifacts/specs/`, and verifies output read-only. It does not commit, push, open PRs,
-  or merge.
-- **Executor** — launched with `AUDIO_LAB_EXECUTOR=1`, implements a spec exactly:
-  commits, pushes, and opens PRs with full metadata. **It never merges.**
+One session works the board directly (Experiment A, adopted 2026-07-29; consolidated
+2026-07-30, #94): per issue — propose → the maintainer picks → written brief → he
+approves → execute → receipts → merge HOLD → GREEN LIGHT → **he merges**. A handed-off
+brief is immutable; revisions go to a new dated file. The repo runs **no agent hooks**
+by recorded decision (#94) — re-introducing one is a maintainer decision, never a
+silent re-add.
 
 ## Local setup
 

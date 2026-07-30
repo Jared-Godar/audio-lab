@@ -1,0 +1,47 @@
+# Weekly README-staleness check (#63 → #94, decided 2026-07-30).
+# Fires when any milestone reached zero open issues AFTER the README's
+# "Last updated:" date — meaning the status section predates a milestone close.
+# Opens ONE issue, or updates the existing open one; never duplicates, never blocks.
+name: readme-staleness
+
+on:
+  schedule:
+    - cron: "17 13 * * 1" # Mondays 13:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Compare milestone closes against README date
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          readme_date=$(grep -oE 'Last updated: [0-9]{4}-[0-9]{2}-[0-9]{2}' README.md | grep -oE '[0-9-]{10}' || true)
+          if [ -z "$readme_date" ]; then
+            echo "::warning::README has no 'Last updated:' marker — treating as stale-unknown"
+            readme_date="1970-01-01"
+          fi
+          stale=$(gh api "repos/${GITHUB_REPOSITORY}/milestones?state=all" \
+            --jq "[.[] | select(.open_issues==0 and .closed_issues>0 and (.updated_at[:10] > \"$readme_date\")) | .title] | join(\"; \")")
+          echo "readme_date=$readme_date stale_milestones=${stale:-none}"
+          if [ -z "$stale" ]; then
+            echo "Clean — README date is newer than every fully-closed milestone."
+            exit 0
+          fi
+          title="README status section is stale — milestone(s) closed after its Last-updated date"
+          body="Automated weekly check (workflow: readme-staleness). Milestones at zero open issues updated after the README's Last-updated date ($readme_date): $stale. Refresh the README status section and its date. This issue is updated, not duplicated, on re-detection."
+          existing=$(gh issue list --state open --search "in:title README status section is stale" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Still stale as of $(date -u +%Y-%m-%d): $stale (README date: $readme_date)."
+          else
+            gh issue create --title "$title" --body "$body" --label "type: docs" --label "area: governance" --label "priority: low"
+          fi
