@@ -43,6 +43,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Episodes 1–3 completeness matrix (`episodes/EPISODE-COMPLETENESS.md`, #99).** An audit of
+  every episode against a fixed asset checklist (script, audio, cover, chapter/exhibit art,
+  transcript, show notes, metadata, distribution). Finding: content is largely complete; the
+  blocker to M4 is **audio on all three** (gated on #55/#117/#119), and the one content hole is
+  **E3's draft script** (split to #124). Small mechanical gaps (E2 cast-card rebuild, E1 metadata,
+  E3 show-notes.html + captions) are tracked as a checklist on #99.
+
 - **Three area labels — `area: brand`, `area: web`, `area: marketing` (release-planning build,
   2026-07-30).** The 2026-07-30 milestone plan (Branding M7, MVP-site M5, Marketing M9) produced
   work with no home in the existing area axis. The label schema, frozen earlier the same day
