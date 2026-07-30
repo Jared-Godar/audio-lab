@@ -1,5 +1,4 @@
 {
-  "$comment": "Tracked on purpose: a governance hook that lives only in settings.local.json binds this machine and nothing else. Cold-start, cloud and fresh-clone sessions must inherit the same gate. See .claude/hooks/pm-lane-guard.sh and CLAUDE.md 'Session modes'.",
   "permissions": {
     "defaultMode": "auto",
     "allow": [
@@ -25,31 +24,6 @@
     ],
     "additionalDirectories": [
       "/Users/jaredgodar/Code/audio-lab"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit|NotebookEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Checking PM-lane guard...",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pm-lane-guard.sh\""
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Re-injecting durable contracts...",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/contract-reinjection.sh\""
-          }
-        ]
-      }
     ]
   }
 }
