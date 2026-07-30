@@ -7,6 +7,6 @@ ch3.png - Exhibit 03 - The naming trap. "Two MCTs" / "Same acronym, opposite the
 ch4.png - Exhibit 04 - The tool. "Defusion" / "I'm having a thought that ___".
 ch5.png - Exhibit 05 - The patterns. "18 schemas" / "Elevated in adult ADHD". Philipsen 2016; Kiraz 2021.
 ch6.png - Exhibit 06 - The reframe. "False premise" / "Not defective - undiagnosed"; homework: take the YSQ.
-cast/host_des_fable.png - Brutalist personnel file, "Des Fable", host, synthetic silhouette, "Not real" stamp.
-cast/guest_michael_voss.png - Brutalist personnel file, "Dr. Michael Voss", expert, synthetic silhouette, "Not real" stamp.
+cast/host_des_fable.png - Brutalist personnel file, "Des Fable", host, colour portrait, "Not real" stamp.
+cast/guest_michael_voss.png - Brutalist personnel file, "Dr. Michael Voss", expert, colour portrait, "Not real" stamp.
 cast/studio_disclaimer.png - "Studio Disclaimer": only human harmed is Jared Godar; two turntables, no microphones.
