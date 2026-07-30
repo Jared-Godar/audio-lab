@@ -43,6 +43,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Three area labels — `area: brand`, `area: web`, `area: marketing` (release-planning build,
+  2026-07-30).** The 2026-07-30 milestone plan (Branding M7, MVP-site M5, Marketing M9) produced
+  work with no home in the existing area axis. The label schema, frozen earlier the same day
+  (#94/#8), was reopened under its own documented trigger — "reopen only if a filtered view fails
+  in practice" — since that failure was now concrete. `labels.json` and the live set are
+  reconciled at 8 areas; the frozen-schema comment records the reopen as a decision, not creep.
+
 - **`readme-staleness.yml` scheduled workflow (#94, closing #63).** Weekly check: if any
   milestone reached zero open issues after the README's `Last updated:` date, it opens one
   issue (or comments on the existing one — never duplicates, never blocks). Advisory by
