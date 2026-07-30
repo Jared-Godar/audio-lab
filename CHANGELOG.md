@@ -64,6 +64,14 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **The PR-metadata gate no longer hangs the merge box.** `pr-metadata-gate.yml` used
+  `concurrency: cancel-in-progress: true`, so the event burst at PR creation (opened +
+  labeled + assigned…) cancelled earlier in-flight runs, leaving a `cancelled` conclusion
+  on the **required** "PR metadata" context. GitHub branch protection treats a cancelled
+  required check as unsatisfied, so the merge box stuck at "waiting for status" even after a
+  later run passed (observed on PRs #98 and #125). Set `cancel-in-progress: false` so every
+  run completes; the immediate-unblock workaround is a single PR edit to fire one clean run.
+
 - **The two `fish/` "SUPERSEDED by `uv run audition`" pointers now name `voicelab`** (#94,
   the residue folded in from #74) — the last live references to the dead entry point outside
   correct-in-context history.
