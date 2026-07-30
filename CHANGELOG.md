@@ -11,6 +11,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **DMARC now reports as well as enforces (#59).** `DmarcRecord` gained
+  `rua=mailto:hello@toldstraight.com` — a same-domain target needing no cross-domain
+  authorization record. Every other tag (`p=reject; sp=reject; adkim=s; aspf=s`) is
+  byte-identical, verified against the authoritative nameserver after deployment.
+  Deployed by change-set (`add-dmarc-rua`, type `UPDATE`, exactly one `Modify`, no
+  `AWS::Route53::HostedZone`). `ruf=` stays deliberately omitted (low adoption;
+  reports can contain message content). Nothing parses the reports yet —
+  `infra/README.md` says so plainly rather than implying monitoring that no human
+  performs.
+
 - **The governance stack was audited, consolidated, and de-hooked (#94).** The three contract
   files were rewritten from 41 overlapping rules into a six-rule conduct core plus repo
   specifics: `AGENTS.md` 32,309 → 14,850 bytes (sole binding contract, Experiment A documented
@@ -43,6 +53,21 @@ visible in the diff and would otherwise evaporate.
 - **The two `fish/` "SUPERSEDED by `uv run audition`" pointers now name `voicelab`** (#94,
   the residue folded in from #74) — the last live references to the dead entry point outside
   correct-in-context history.
+
+### Findings
+
+- **Apple publishes the DKIM public key minutes-to-hours *after* domain verification,
+  not at verification (#54, recorded by #59).** In that window outbound mail carries a
+  DKIM signature no receiver can verify, so it can fail DMARC for a reason that is
+  transient and self-resolving — and looks identical to a misconfiguration. Wait out
+  the lag before diagnosing.
+- **iCloud uses the custom domain as the envelope sender, so SPF aligns under `aspf=s`
+  (#54, recorded by #59).** Measured by the maintainer's two-directional mail test,
+  2026-07-27: `dkim=pass · spf=pass · dmarc=pass` with `p=REJECT` and strict alignment
+  unrelaxed. This is why relaxing DMARC alignment on the first failure would have been
+  the wrong fix — the failure was the key-publication lag above, and weakening
+  `adkim=s; aspf=s` would have permanently degraded the domain's posture to work
+  around a condition that resolved itself.
 
 ## 2026-07-29
 

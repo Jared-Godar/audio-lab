@@ -185,9 +185,13 @@ Resources:
   # embeds this domain name by design; it is not a copy-paste error.
   #
   # This record is what makes DMARC survivable. Alignment is STRICT
-  # (adkim=s; aspf=s) and DMARC passes on EITHER aligned SPF or aligned DKIM;
-  # since Apple signs as d=toldstraight.com, DKIM is the path expected to hold
-  # even if iCloud's envelope sender does not align under aspf=s.
+  # (adkim=s; aspf=s) and DMARC passes on EITHER aligned SPF or aligned DKIM.
+  # MEASURED 2026-07-27 (maintainer's two-directional mail test, #54/#59): BOTH
+  # paths align — iCloud uses the custom domain as the envelope sender, so the
+  # result was dkim=pass + spf=pass + dmarc=pass under p=REJECT with alignment
+  # strict and unrelaxed. That measurement is why relaxing adkim/aspf on a
+  # failure would be the wrong fix: the one observed failure was Apple's DKIM
+  # key-publication lag (transient, self-resolving), not misalignment.
   DkimRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -206,12 +210,13 @@ Resources:
   # decision to be made on evidence from a FAILED test, by the maintainer, not
   # pre-emptively.
   #
-  # rua/ruf (aggregate/forensic report addresses) are still omitted, but the
-  # reason has now half-expired: a mailbox on THIS domain exists as of #54, and
-  # a same-domain rua target needs no cross-domain "_report._dmarc"
-  # authorization record. Adding "rua=mailto:..." is therefore now cheap and is
-  # a deliberate follow-up, out of scope for #54 (which changes only the three
-  # records mail requires).
+  # rua= (aggregate reports) added 2026-07-30 (#59, maintainer decision):
+  # enforcement without telemetry fails silently and expensively, and a
+  # same-domain rua target needs no cross-domain "_report._dmarc" authorization
+  # record. Reports arrive at hello@ as gzipped XML, one per receiver per day;
+  # nothing parses them yet (see infra/README.md). ruf= (per-message forensic
+  # reports) stays omitted DELIBERATELY: low receiver adoption, and reports can
+  # contain message content.
   DmarcRecord:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -222,7 +227,7 @@ Resources:
       Type: TXT
       TTL: "3600"
       ResourceRecords:
-        - '"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s;"'
+        - '"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; rua=mailto:hello@toldstraight.com;"'
 
   # --- Certificate issuance restriction ------------------------------------
   # CAA: only Amazon (ACM) may issue certificates for this domain, wildcard or

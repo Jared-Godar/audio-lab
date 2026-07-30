@@ -172,6 +172,22 @@ The change-set was described and reviewed before execution: **`Modify` SpfRecord
 `Modify` NullMxRecord, `Add` DkimRecord — three `AWS::Route53::RecordSet`s, no
 `AWS::Route53::HostedZone`.**
 
+### Update 2026-07-30 (issue #59) — DMARC aggregate reporting switched on
+
+`DmarcRecord` gained `rua=mailto:hello@toldstraight.com` (maintainer decision, #59 §4
+option 1 — same-domain target, so no cross-domain `_report._dmarc` authorization is
+needed and no third party sees sender metadata). Everything else in the record —
+`p=reject; sp=reject; adkim=s; aspf=s` — is byte-identical.
+
+**How the reports are read, stated honestly: nobody reads them yet.** Aggregate
+reports arrive at `hello@toldstraight.com` as gzipped XML attachments, roughly one
+per reporting receiver per day, from addresses like `noreply-dmarc-support@google.com`.
+They are the domain's only telemetry that enforcement is rejecting something — worth a
+glance when mail behaves oddly, and *the* place to look before ever considering
+relaxing alignment. If they prove unreadable in practice, the recorded next step is a
+hosted analyzer (#59 §4 option 2 — the DNS change is identical), filed as its own
+issue with evidence, not a silent switch.
+
 #### SPF must end `~all`. This is not a preference — do not "improve" it to `-all`
 
 Deployed first as `-all` (hard fail), on the reasoning that iCloud is the only sender so
