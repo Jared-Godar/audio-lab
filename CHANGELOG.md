@@ -43,6 +43,12 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`.vscode/settings.json` points the Python interpreter at `pipeline/.venv`.** The uv-managed
+  venv lives under `pipeline/`, not the repo root, so VS Code's default
+  `${workspaceFolder}/.venv/bin/python` couldn't resolve and warned on every refresh. A tracked
+  workspace override fixes it for this repo (and fresh clones) without touching the personal
+  global default, and enables pytest discovery against `pipeline/`.
+
 - **Episodes 1–3 completeness matrix (`episodes/EPISODE-COMPLETENESS.md`, #99).** An audit of
   every episode against a fixed asset checklist (script, audio, cover, chapter/exhibit art,
   transcript, show notes, metadata, distribution). Finding: content is largely complete; the
