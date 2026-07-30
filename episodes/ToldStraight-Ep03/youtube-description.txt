@@ -1,0 +1,29 @@
+Session Two: The Results Are In | Told Straight Ep03
+
+Last session's homework was the Young Schema Questionnaire — 232 questions about the stories you tell yourself. This session, the host's real, filled-out answer sheet is on the table, and Dr. Anna Sinclair walks him through it: the three schemas that light up, the fifteen that don't, what the (surprisingly thin) research actually supports, and a coping plan where every technique gets an honest evidence grade. Real results, real margin notes, one very punctual train.
+
+DISCLOSURE, TOLD STRAIGHT: The host is real and so are his results. Dr. Anna Sinclair is a synthetic character voiced with AI (ElevenLabs), and says so herself in the episode. The host's voice in this episode is an AI clone of his real voice, built from his own recordings. Orientation, not therapy or medical advice — the host discussed these same results with his actual physician.
+
+CHAPTERS
+0:00 The homework came back
+1:24 How to read a YSQ without scaring yourself
+2:48 Door one: Emotional Deprivation
+5:20 Door two: the brakes that only fail when it's boring
+8:48 Door three: Self-Sacrifice, and the trap
+10:30 The coping plan, graded — and homework
+12:57 The real doctor (next session's cliffhanger)
+
+KEY SOURCES (full list in show notes)
+• Philipsen et al. 2017 — schemas in adult ADHD — doi.org/10.1007/s12402-016-0211-8
+• Kiraz & Sertçelik 2021 — schemas in adult ADHD — doi.org/10.1002/cpp.2569
+• Hoza et al. 2005 — peer rejection (MTA) — doi.org/10.1037/0022-006X.73.3.411
+• Shaw et al. 2014 — emotion dysregulation in ADHD — doi.org/10.1176/appi.ajp.2013.13070966
+• Marx et al. 2021 — delay discounting meta-analysis — doi.org/10.1177/1087054718772138
+• Sergeant 2005 — state regulation — doi.org/10.1016/j.biopsych.2004.09.010
+• Gollwitzer & Sheeran 2006 — implementation intentions meta-analysis — doi.org/10.1016/S0065-2601(06)38002-1
+• Safren et al. 2010 — CBT for adult ADHD RCT — doi.org/10.1001/jama.2010.1192
+
+UPLOAD CHECKLIST (delete before publishing)
+[ ] Tick YouTube's "Altered content" / AI disclosure — both voices are synthetic in this cut
+[ ] Chapters above become clickable when the description keeps the 0:00 first line
+[ ] Cover/thumbnail: pending (Anna portrait exists in the cast set)

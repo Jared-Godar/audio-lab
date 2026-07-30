@@ -11,6 +11,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Cast-card image standard: the colour cartoon portrait replaces the brutalist silhouette**,
+  going forward and across all episodes (maintainer decision, 2026-07-29). Ep03's Anna card places
+  her committed portrait; Ep02's `host_des_fable.png` and `guest_michael_voss.png` are re-rendered
+  under the same filenames from the committed portraits. Episodes 1–3 are **drafts, not published**
+  (seen only by the maintainer and a small group of beta testers), so updating their art is a
+  normal draft change, not a replacement of shipped/feed content.
+
 - **31 of the repository's 51 issues moved off the project milestones onto a new
   `M0 — Extra remediation effort unrelated to project goals` (#85).** Every issue in the
   repository, open and closed, was audited against one criterion, quoted verbatim from #85 §2b:
@@ -45,6 +52,22 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Ep03 ("Session Two: The Results Are In") promoted from off-repo/gitignored zones into the
+  tracked zone.** `episodes/ToldStraight-Ep03/` now carries the full artwork set — `cover.png`,
+  `ch1.png`–`ch6.png`, `cast/clinician_anna_sinclair.png`, `alt-text.md` — the publish kit
+  (`show-notes.md`, `youtube-description.txt`, `episode-copy.txt`, `transcript.{txt,md,vtt}`, all
+  byte-identical from the session `publish/` folder, `cmp`-verified) and the recorded-from
+  `script-draft-v1.md`. Audio stays out of git (the 19 MB mix + 50 stems remain in
+  `~/ToldStraight-recordings/`); no `.html` twins (Ep02's are bespoke, no repeatable generator).
+- **Ep03 artwork built by three Adobe Illustrator JSX builders under `tools/brand/`** (exhibit
+  cards ch1–ch6; the SESSION TWO cover + Anna clinician card; a generic cast-cards builder),
+  authored by the agent and run by the maintainer where the licensed Trade Gothic Next / Letter
+  Gothic faces live — the agent does not render episode PNGs itself. The build scripts are tracked
+  under `episodes/ToldStraight-Ep03/build/`; `*.ai` source is gitignored.
+- **`episodes/cast.json` gains Ep03's two voices**, each with full provenance: Anna, the clinician
+  (shared-library "Emma", `56bWURjYFHyYyVf490Dp`, Australian, `eleven_multilingual_v2`), and the
+  host "Jared v3" (instant voice clone, `EY5FCjATHRuLwJJXcDmf`, from the 12-part corpus —
+  supersedes for Ep03 the #91 Jared 1.0 config, kept for Ep01).
 - **The five Archer-style host cast portraits and their provenance manifest, on the tracked
   path `episodes/cast/portraits/` (#90).** Flat-vector, *Archer*-adjacent 1:1 portraits generated
   by the maintainer in Google Gemini (Nano Banana 2): Jared Godar (host, the style/identity

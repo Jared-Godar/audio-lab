@@ -26,5 +26,32 @@
     "chosen_by": "maintainer",
     "chosen_on": "2026-07-27",
     "provenance": "#38 stage-two screen test, PR #39 (55f5b53)"
+  },
+  {
+    "role": "clinician",
+    "episode": "ToldStraight-Ep03",
+    "vendor": "elevenlabs",
+    "voice_id": "56bWURjYFHyYyVf490Dp",
+    "name": "Emma",
+    "accent": "Australian",
+    "model": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "source": "shared-library",
+    "chosen_by": "maintainer",
+    "chosen_on": "2026-07-29",
+    "provenance": "Ep03 casting, maintainer's ear-verdict; shared-library Emma"
+  },
+  {
+    "role": "host",
+    "episode": "ToldStraight-Ep03",
+    "vendor": "elevenlabs",
+    "voice_id": "EY5FCjATHRuLwJJXcDmf",
+    "name": "Jared v3",
+    "model": "eleven_multilingual_v2",
+    "output_format": "mp3_44100_192",
+    "source": "instant-voice-clone",
+    "chosen_by": "maintainer",
+    "chosen_on": "2026-07-29",
+    "provenance": "12-part long-form IVC corpus, 2026-07-29; supersedes-for-Ep03 the #91 Jared 1.0 patch-tool config, which remains recorded for Ep01"
   }
 ]

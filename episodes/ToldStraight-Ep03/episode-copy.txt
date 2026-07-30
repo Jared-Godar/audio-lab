@@ -1,0 +1,54 @@
+=== TRANSISTOR EPISODE COPY — Told Straight Ep03 ===
+
+TITLE
+Session Two: The Results Are In
+
+SEASON / NUMBER
+Season 1, Episode 3
+
+EPISODE TYPE
+Full
+
+SUMMARY (short — feed/preview)
+The host's real Young Schema Questionnaire results, read out loud by a
+clinician who does not exist. Three schemas light up; the evidence gets
+graded honestly (it's thinner than the internet thinks); homework follows.
+Also: a train.
+
+DESCRIPTION (long — Transistor supports basic HTML; paste show-notes.md
+rendered, or this plain version)
+Last session's homework was the Young Schema Questionnaire — 232 questions
+about the stories you tell yourself. This session the host's real answer
+sheet is on the table, margin notes and all, and Dr. Anna Sinclair — the
+show's synthetic clinician, disclosed as such by her own opening lines —
+walks through what it says: Emotional Deprivation loudest by a mile, a
+self-control score that is really an ADHD fingerprint, and Self-Sacrifice,
+the one that rings truest and measures worst. Every claim gets an evidence
+grade, including the honest headline that the adult schema-ADHD literature
+is two small studies that disagree. Closes with a three-experiment homework
+plan and next session's cliffhanger: the fake doctor's read versus the real
+one's.
+
+The host is real; his results are real; both voices in this cut are AI
+(the host's is a clone of his own voice, built from his own recordings).
+Orientation, not therapy or medical advice.
+
+KEYWORDS
+ADHD, adult ADHD, schema therapy, Young Schema Questionnaire, YSQ, emotional
+deprivation, self-sacrifice, executive function, delay discounting, CBT,
+metacognition, mental health, evidence-based
+
+ARTWORK
+Pending — episode cover via the cast-portrait flow (Anna portrait exists:
+episodes/cast/portraits/…anna-sinclair…png in the repo).
+
+TRANSCRIPT
+Upload publish/transcript.txt (Transistor accepts .txt/.srt/.vtt — the
+timed .vtt is best; timestamps are from the draft-1 mix and shift if stems
+are retaken).
+
+UPLOAD CHECKLIST (delete before publishing)
+[ ] Audio: 20260729-elevenlabs-mv2-jaredv3-emma-ep03-results-are-in-draft1-192k.mp3
+[ ] AI-content disclosure per platform policy (both voices synthetic)
+[ ] Transcript attached (.vtt)
+[ ] Episode artwork (pending)

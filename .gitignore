@@ -67,6 +67,9 @@ output/
 *.tar
 *.tar.gz
 *.tgz
+# Design source files (Adobe Illustrator etc.) — heavy binary, never tracked;
+# the exported *.png deliverables are tracked, the editable source is not.
+*.ai
 
 # NOTE: episode deliverables are intentionally TRACKED — cover/chapter art
 # (*.png), transcripts (*.md/*.txt/*.vtt/*.html), captions, and show notes.
@@ -87,6 +90,13 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 build/
+# ...but episode build-provenance SCRIPTS under episodes/*/build/ ARE tracked.
+# The slashless `build/` above (Python packaging) would otherwise swallow them.
+# Same convention holds for the upcoming E1/E2 rebuilds. Only .py/.md are
+# re-included — NOT .ai (Illustrator source saved here stays ignored via *.ai).
+!episodes/*/build/
+!episodes/*/build/*.py
+!episodes/*/build/*.md
 dist/
 wheels/
 .pytest_cache/
