@@ -64,6 +64,12 @@ completion read as progress on the show. The full table, one line of reasoning p
 issue, is at [`docs/20260729-m0-remediation-audit.md`](docs/20260729-m0-remediation-audit.md).
 An honest ledger showing that ratio is worth more than a clean one that hides it.
 
+**M0 was closed out on 2026-07-30** — 36 issues total, ending with a deliberate
+consolidation of the governance surface itself (#94: three contract files rewritten
+into a six-rule core, both enforcement hooks removed by recorded decision) and the
+DMARC telemetry gap (#59). Whether the remediation share actually falls now that the
+apparatus is smaller is the open question the ledger will answer.
+
 ## What is coming
 
 In rough order, and without dates it cannot keep:
@@ -209,6 +215,6 @@ the split prevents that.
 
 ---
 
-**Last updated: 2026-07-29.** The status section above is refreshed by the pull
+**Last updated: 2026-07-30.** The status section above is refreshed by the pull
 request that closes a milestone's last open issue — see `AGENTS.md`
 § "Definition of done".
