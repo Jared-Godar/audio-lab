@@ -11,6 +11,29 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Stood up static site hosting and shipped the wired Coming Soon page (#128).** New
+  `infra/site.yaml`: a **private** S3 bucket (public access blocked, no website endpoint, versioned,
+  SSE-AES256, `BucketOwnerEnforced`) served through **CloudFront with an Origin Access Control**, so
+  the bucket is never addressable directly — the bucket policy admits exactly one principal, gated on
+  `AWS:SourceArn` of this distribution. TLS via an **ACM certificate DNS-validated automatically in
+  Route 53** (apex + `www`), `redirect-to-https`, TLS 1.2_2021, HTTP/2+3, and the managed
+  `SecurityHeadersPolicy`. The distribution declares both aliases up front so the DNS cutover is a
+  records-only change. **No IAM resources, so no `CAPABILITY_IAM`.** CloudFront managed policy ids
+  were read from the live account rather than copied from memory. The prototype is promoted out of
+  the gitignored working zone into a tracked **`site/`**, and its form — previously
+  `onsubmit="return false"` — is **wired to the live #140 endpoint**: `fetch` POST, the hidden
+  `company` honeypot the Lambda already checks, client-side pre-validation, disabled/"Sending…"
+  state, distinct network-failure vs. server-error messaging, an `aria-live` status region, and
+  deliberate silence about whether an address was already on the list (saying so would leak
+  membership). Images are now `<picture>` with WebP sources and PNG fallbacks plus intrinsic
+  `width`/`height` against layout shift: **5.4 MB of PNGs → 408 KB of WebP**, hero alone 3.2 MB →
+  236 KB, and a first load that fetches **75 KB** of imagery. The cast PNGs are committed untouched
+  as fallbacks; the hero ships **WebP-only** because its 3.2 MB source trips the repo's 1 MB
+  `check-added-large-files` guardrail — the original stays in the gitignored working zone, and that
+  guardrail was respected rather than bypassed (see Findings).
+  New `docs/site-deploy-walkthrough.md` is the maintainer runbook. Deploy is billable and the
+  maintainer's; **DNS cutover is deliberately a separate PR** — see Findings. Advances #128.
+
 - **Built the email-signup collection backend + a privacy policy (#140).** New `infra/signup.yaml`
   (CloudFormation, long-form intrinsics, cfn-lint clean): a public **Lambda Function URL** — CORS-locked
   to the site origin — validates an email and stores it **single opt-in** in an **SES v2 contact list we
@@ -128,6 +151,31 @@ visible in the diff and would otherwise evaporate.
   in the working tree.
 
 ### Findings
+
+- **The repo's 1 MB large-file guardrail decides the hero image format, not preference (#128).**
+  `check-added-large-files` (pre-commit, 1024 KB) rejects the 3.2 MB `hero.png`, so the hero ships
+  WebP-only while the 304–536 KB cast portraits keep their PNG fallbacks. The guardrail was left
+  intact rather than bypassed with `--no-verify`: a 3.2 MB blob in git history is permanent and is
+  exactly what the hook exists to prevent. **Open question for the maintainer:** the hero's source
+  PNG is now tracked nowhere — it survives only in the gitignored working zone on one machine. If it
+  should be recoverable from a fresh clone, that needs Git LFS, an archived copy outside the repo, or
+  a deliberate raise of the hook's limit. Recorded rather than silently accepted.
+
+- **The signup form cannot be tested from anywhere except the real origin (#128).** The signup
+  endpoint is CORS-locked to `https://toldstraight.com`, so a browser on `localhost` — or on the
+  `*.cloudfront.net` domain the site stack hands you — is refused *by the browser* before the request
+  leaves. Measured: from `http://127.0.0.1:8788` the fetch fails with `TypeError: Failed to fetch`.
+  This is correct behaviour, not a defect, but it means **submission cannot be verified until the DNS
+  cutover**, and the obvious pre-cutover smoke test will always look broken. The workaround (redeploy
+  the signup stack with `AllowedOrigin` pointed at the CloudFront domain, then put it back) is in
+  `docs/site-deploy-walkthrough.md`. Note this constrains ordering: page → DNS → *then* form test.
+
+- **The Coming Soon page's fonts are hosted by Adobe Typekit and fail silently (#128).** The page
+  loads `use.typekit.net/zol6gng.css`, and Adobe kits enforce a **domain allowlist**. If
+  `toldstraight.com` is not on that kit, every face falls back to Helvetica/Arial — nothing errors,
+  nothing appears in the console, the page simply stops looking like Told Straight. It is a
+  browser-only manual step (Adobe Fonts → the kit → Settings → Domains → publish) that no amount of
+  template correctness can cover, and it is invisible to every automated check we have.
 
 - **CloudFormation does not create the resource policy for a `NONE`-auth Function URL; the console
   and AWS SAM do.** Per AWS docs (`lambda/latest/dg/urls-auth.html`): "If you're using the AWS CLI,

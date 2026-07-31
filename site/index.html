@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Told Straight — Coming Soon</title>
+<link rel="stylesheet" href="https://use.typekit.net/zol6gng.css">
+<script>(function(){var h=location.hash.replace('#','');if(h==='light'||h==='dark')document.documentElement.setAttribute('data-theme',h);})();</script>
+<style>
+/* ---- Brand tokens (brand/20260727-toldstraight-design-tokens.css) ---- */
+:root{
+  --ts-font-display:"trade-gothic-next-condensed","Helvetica Neue",Arial,sans-serif;
+  --ts-font-sans:"trade-gothic-next","Helvetica Neue",Arial,sans-serif;
+  --ts-font-mono:"letter-gothic-std","Letter Gothic Std","Courier New",monospace;
+  --ts-font-serif:"source-serif-4",Georgia,"Times New Roman",serif;
+  --ts-paper:#EDE9E0; --ts-ink:#111111; --ts-red:#B02A28;
+  --ts-hairline:#C8C4BA;
+  --ts-record:#4A463E;   /* darker warm grey for small text — ~6.6:1 on paper (readability, per feedback) */
+}
+:root[data-theme="dark"]{--ts-paper:#14140F;--ts-ink:#EDE9E0;--ts-red:#E4564F;--ts-record:#B7B2A7;--ts-hairline:#3A3830;}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ts-paper:#14140F;--ts-ink:#EDE9E0;--ts-red:#E4564F;--ts-record:#B7B2A7;--ts-hairline:#3A3830;}}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ts-paper);color:var(--ts-ink);font-family:var(--ts-font-sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 6%}
+/* small "record voice" text — bumped for readability (size + contrast) */
+.record{font-family:var(--ts-font-mono);font-weight:700;font-size:1.02rem;letter-spacing:.02em;text-transform:uppercase;color:var(--ts-record);line-height:1.45}
+.rule-red{border:0;height:8px;background:var(--ts-red)}
+.rule-hair{border:0;height:1px;background:var(--ts-hairline)}
+
+/* ---- Header (field-manual) ---- */
+header{padding:2.4rem 0 1.6rem}
+.dochead{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5rem;margin-bottom:.7rem}
+.double{display:flex;flex-direction:column;gap:3px;margin:.4rem 0 1.6rem}
+.double hr{border:0;height:2px;background:var(--ts-ink)}
+.double hr+hr{height:1px}
+.hero-mark{position:relative}
+.wordmark{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;font-size:clamp(3.4rem,15vw,10rem);line-height:.86;letter-spacing:-.015em}
+.authority{font-family:var(--ts-font-display);text-transform:uppercase;letter-spacing:.28em;font-size:clamp(.9rem,2.2vw,1.15rem);color:var(--ts-record);margin-top:1.2rem}
+
+/* ---- DECLASSIFY stamp — larger, readable, over the wordmark's right ---- */
+.stamp{position:absolute;right:1%;top:44%;transform:translateY(-50%) rotate(-7deg);
+  border:4px solid var(--ts-red);box-shadow:inset 0 0 0 1.5px var(--ts-red);
+  background:color-mix(in srgb,var(--ts-paper) 82%,transparent);
+  padding:.6rem 1.1rem;text-align:center;color:var(--ts-red)}
+.stamp .s1{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:clamp(.9rem,2vw,1.25rem);line-height:1}
+.stamp .s2{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;font-size:clamp(1.6rem,3.6vw,2.5rem);line-height:1;letter-spacing:.02em;margin:.15rem 0}
+.stamp .s3{font-family:var(--ts-font-mono);font-size:clamp(.8rem,1.5vw,1rem);letter-spacing:.1em}
+@media(max-width:760px){.hero-mark{padding-bottom:1rem}.stamp{position:static;transform:rotate(-3deg);display:inline-block;margin-top:1rem;right:auto;top:auto}}
+
+/* ---- Intro band ---- */
+.intro{display:grid;grid-template-columns:1.5fr 1fr;gap:2.4rem;align-items:start;
+  padding:2.2rem 0;border-top:1px solid var(--ts-hairline);border-bottom:1px solid var(--ts-hairline);margin-top:1.6rem}
+.lede{font-family:var(--ts-font-serif);font-size:clamp(1.15rem,2.3vw,1.5rem);line-height:1.5;max-width:40ch}
+.lede b{font-weight:700}
+.season{margin-top:1.6rem;border-left:8px solid var(--ts-red);padding-left:1rem}
+.season .lbl{color:var(--ts-red)}
+.season-title{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;font-size:clamp(2rem,5vw,3rem);line-height:.95;letter-spacing:-.01em;margin:.1rem 0}
+.season-sub{font-family:var(--ts-font-serif);font-size:1.05rem;max-width:36ch}
+.cd-block{text-align:left}
+.cd-label{margin-bottom:.5rem}
+.countdown{font-family:var(--ts-font-mono);font-weight:700;font-size:clamp(1.5rem,4vw,2.5rem);letter-spacing:.02em;color:var(--ts-ink);white-space:nowrap}
+.countdown .u{color:var(--ts-record);font-weight:400;font-size:.5em}
+
+/* ---- Sections ---- */
+section{padding:3.4rem 0}
+.sechead{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:.4rem;flex-wrap:wrap}
+.sectitle{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;font-size:clamp(1.7rem,4vw,2.4rem);letter-spacing:-.01em;line-height:1}
+.subtitle{margin-top:.3rem}
+
+/* ---- Cast cards ---- */
+.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.4rem;margin-top:1.8rem}
+.card{border:2px solid var(--ts-ink);background:var(--ts-paper);display:flex;flex-direction:column}
+.portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#e2ddd2;border-bottom:2px solid var(--ts-ink)}
+.portrait img{width:100%;height:100%;object-fit:cover;display:block}
+.fileno{display:none}   /* file numbers removed per feedback — insider jargon */
+/* NOT REAL — now a small CORNER stamp, off the face */
+.corner-stamp{position:absolute;top:.55rem;right:.55rem;transform:rotate(-8deg);
+  border:2px solid #B02A28;color:#B02A28;font-family:var(--ts-font-display);font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:.12rem .45rem;font-size:.82rem;
+  background:rgba(237,233,224,.86)}
+.strip{position:absolute;inset:auto 0 0 0;background:var(--ts-ink);color:var(--ts-paper);font-family:var(--ts-font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:.35rem}
+.card.human .portrait{border-color:var(--ts-red)}
+.card.human .portrait img{filter:saturate(.96) contrast(1.02)}
+.card.human .strip{background:var(--ts-red);color:#fff}
+.meta{padding:.7rem .8rem .9rem}
+.name{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;font-size:1.2rem;letter-spacing:-.01em;line-height:1}
+.role{font-family:var(--ts-font-mono);font-weight:700;font-size:.86rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ts-red);margin-top:.45rem}
+
+/* ---- Hero band ---- */
+.hero{margin-top:1rem;border:2px solid var(--ts-ink)}
+.hero img{width:100%;display:block}
+.hero .cap{display:flex;justify-content:space-between;gap:1rem;padding:.7rem .9rem;border-top:2px solid var(--ts-ink);font-family:var(--ts-font-mono);font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ts-record)}
+
+/* ---- Notify ---- */
+.notify{display:grid;grid-template-columns:1fr auto;gap:.6rem;max-width:540px;margin-top:1.4rem}
+.notify input{font-family:var(--ts-font-mono);font-size:1rem;padding:.9rem 1rem;background:transparent;border:2px solid var(--ts-ink);color:var(--ts-ink)}
+.notify button{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:1rem;padding:.9rem 1.5rem;border:2px solid var(--ts-red);background:var(--ts-red);color:#fff;cursor:pointer}
+.notify button:hover{background:transparent;color:var(--ts-red)}
+.notify button[disabled]{opacity:.55;cursor:progress}
+.notify input:disabled{opacity:.55}
+/* Honeypot — off-screen, not display:none (bots detect that). Never focusable. */
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.notenote{margin-top:.7rem;font-size:.82rem}
+.notenote.is-ok{color:var(--ts-ink);font-weight:700}
+.notenote.is-err{color:var(--ts-red);font-weight:700}
+
+/* ---- Caution ---- */
+.caution{border:2px solid var(--ts-ink);padding:1.4rem 1.6rem;margin-top:2.4rem;font-family:var(--ts-font-mono);font-weight:700;font-size:1rem;line-height:1.6}
+.caution h3{font-family:var(--ts-font-display);text-transform:uppercase;letter-spacing:.28em;color:var(--ts-red);border-bottom:1px solid var(--ts-hairline);padding-bottom:.5rem;margin-bottom:.8rem;font-size:1rem}
+.caution ol{margin:0;padding-left:1.4rem}
+.caution li{margin:.35rem 0}
+
+footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+@media(max-width:640px){.intro{grid-template-columns:1fr}.notify{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="dochead">
+      <span class="record">Doc. TS&#8209;SITE&#8209;001 &nbsp;·&nbsp; Status: In Production</span>
+      <span class="record">Distribution: Public</span>
+    </div>
+    <div class="double"><hr><hr></div>
+    <div class="hero-mark">
+      <h1 class="wordmark">Told<br>Straight</h1>
+      <div class="stamp">
+        <div class="s1">Declassify On</div>
+        <div class="s2">08 Aug 2026</div>
+        <div class="s3">09:00 EDT</div>
+      </div>
+    </div>
+    <div class="authority">Dept. of Neurodevelopmental Affairs</div>
+  </header>
+
+  <div class="intro">
+    <div>
+      <p class="lede">Evidence-based deep dives — <b>one subject a season</b>, researched to the studs and told to you straight. The real evidence, read carefully and said plainly. No hype, no hedging.</p>
+      <div class="season">
+        <span class="record lbl">Season One</span>
+        <div class="season-title">Adult ADHD</div>
+        <p class="season-sub">What it actually is, what the evidence really says, and what to do with it.</p>
+      </div>
+    </div>
+    <div class="cd-block">
+      <div class="record cd-label">Time to Declassification</div>
+      <div class="countdown" id="cd">—</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sechead">
+      <div>
+        <div class="sectitle">The Cast</div>
+        <div class="record subtitle">One real host · a cast of synthetic experts who say so</div>
+      </div>
+      <span class="record">Personnel File</span>
+    </div>
+    <hr class="rule-red">
+    <div class="cast">
+
+      <div class="card human">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/host.webp" type="image/webp">
+            <img src="assets/host.png" alt="Jared Godar, host" width="700" height="700" loading="lazy" decoding="async">
+          </picture>
+          <span class="strip">Real · Human Host</span></div>
+        <div class="meta"><div class="name">Jared Godar</div><div class="role">Host · Creator</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/owen.webp" type="image/webp">
+            <img src="assets/owen.png" alt="Owen, synthetic expert" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+        <div class="meta"><div class="name">Owen</div><div class="role">Expert Co&#8209;host · Ep.01</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/anna-sinclair.webp" type="image/webp">
+            <img src="assets/anna-sinclair.png" alt="Dr. Anna Sinclair, synthetic clinician" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+        <div class="meta"><div class="name">Dr. Anna Sinclair</div><div class="role">Clinician · Ep.03</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/michael-voss.webp" type="image/webp">
+            <img src="assets/michael-voss.png" alt="Dr. Michael Voss, synthetic expert" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+        <div class="meta"><div class="name">Dr. Michael Voss</div><div class="role">Expert · Ep.02</div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="sechead"><div class="sectitle">Exhibit A — The Studio</div><span class="record">Fig. 01</span></div>
+    <hr class="rule-red">
+    <div class="hero">
+      <!-- WebP only, no PNG fallback: the 3.2 MB source PNG exceeds the repo's
+           1 MB large-file guardrail, so it is not tracked here — the original
+           lives in the working zone (artifacts/coming-soon-prototype/). Every
+           browser this page targets has supported WebP since 2020, so the
+           fallback would be dead weight even if the file were committable. The
+           cast portraits below are small enough to keep both formats. -->
+      <img src="assets/hero.webp" alt="The host, photographed, seated among the show's cartoon expert cast in a study." width="1800" height="1004">
+      <div class="cap"><span>The host (real) &amp; the cast (synthetic)</span><span>Told Straight / Studio</span></div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="sechead"><div class="sectitle">Request Clearance</div><span class="record">Notify on Release</span></div>
+    <hr class="rule-hair">
+    <form class="notify" id="notify-form" novalidate>
+      <input type="email" id="notify-email" name="email" placeholder="name@email.com"
+             aria-label="Email for release notification" required
+             autocomplete="email" inputmode="email" spellcheck="false">
+      <button type="submit" id="notify-submit">Notify Me</button>
+      <!-- Honeypot: hidden from people, irresistible to bots. The Lambda checks this
+           field and silently discards any submission that fills it (#140). Positioned
+           off-screen rather than display:none, which bots increasingly detect. -->
+      <div class="hp" aria-hidden="true">
+        <label for="notify-company">Company</label>
+        <input type="text" id="notify-company" name="company" tabindex="-1" autocomplete="off">
+      </div>
+    </form>
+    <p class="record notenote" id="notify-status" role="status" aria-live="polite">One email, when it&#8217;s live &mdash; nothing else.</p>
+
+    <div class="caution">
+      <h3>Caution — Synthetic Voices &amp; Likenesses</h3>
+      <ol>
+        <li>The host, Jared Godar, is a real person. His voice and likeness are his own.</li>
+        <li>Every other cast member is <b>synthetic</b> — AI-generated voices and faces, not real people. Each says so, in its own voice, on the show.</li>
+        <li>Told Straight is researched general information, not medical, psychological, or legal advice.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <span class="record">Told Straight &nbsp;·&nbsp; toldstraight.com</span>
+    <span class="record">Doc. TS&#8209;SITE&#8209;001 &nbsp;·&nbsp; Rev. 2026&#8209;07&#8209;31</span>
+  </footer>
+
+</div>
+
+<script>
+  const GO_LIVE = new Date("2026-08-06T09:00:00-04:00"); // 8/6/2026 — change here only
+  const el = document.getElementById("cd");
+  const pad = n => String(n).padStart(2,"0");
+  function tick(){
+    let ms = GO_LIVE - new Date();
+    if(ms<=0){ el.textContent="DECLASSIFIED"; return; }
+    const d=Math.floor(ms/86400000); ms%=86400000;
+    const h=Math.floor(ms/3600000); ms%=3600000;
+    const m=Math.floor(ms/60000); ms%=60000;
+    const s=Math.floor(ms/1000);
+    el.innerHTML = d+'<span class="u">d</span> '+pad(h)+'<span class="u">h</span> '+pad(m)+'<span class="u">m</span> '+pad(s)+'<span class="u">s</span>';
+  }
+  tick(); setInterval(tick,1000);
+</script>
+
+<script>
+  // ---- Signup form (#128) -> the #140 collection endpoint -------------------
+  // The endpoint is the SignupEndpoint output of the `toldstraight-signup`
+  // CloudFormation stack (infra/signup.yaml). It accepts a JSON POST with an
+  // `email` field, is CORS-locked to this origin, and stores addresses in an
+  // SES v2 contact list we own. It never sends mail -- see #144 for sending.
+  const SIGNUP_ENDPOINT = "https://dlm4t4l54abitzab243vkvhire0xtivg.lambda-url.us-east-1.on.aws/";
+
+  const form   = document.getElementById("notify-form");
+  const email  = document.getElementById("notify-email");
+  const hp     = document.getElementById("notify-company");
+  const button = document.getElementById("notify-submit");
+  const status = document.getElementById("notify-status");
+  const RESTING_NOTE = status.textContent;
+
+  function say(msg, kind){
+    status.textContent = msg;
+    status.classList.toggle("is-ok",  kind === "ok");
+    status.classList.toggle("is-err", kind === "err");
+  }
+
+  function busy(on){
+    button.disabled = on;
+    email.disabled = on;
+    button.textContent = on ? "Sending…" : "Notify Me";
+  }
+
+  form.addEventListener("submit", async function(ev){
+    ev.preventDefault();
+    const value = email.value.trim();
+
+    // Cheap client-side check so an obvious typo never costs a round trip.
+    // The Lambda validates again -- this is convenience, not the gate.
+    if(!value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)){
+      say("That address doesn't look right — check it and try again.", "err");
+      email.focus();
+      return;
+    }
+
+    busy(true);
+    say("Sending…", null);
+
+    try {
+      const res  = await fetch(SIGNUP_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: value, company: hp.value })
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if(res.ok && data.ok){
+        // Deliberately does not say whether the address was already on the
+        // list -- that would leak membership. The handler behaves the same way.
+        form.hidden = true;
+        say("You're on the list. One email when it's live — nothing else.", "ok");
+      } else {
+        say(data.error === "invalid email"
+              ? "That address doesn't look right — check it and try again."
+              : "Something went wrong on our end. Try again in a moment.", "err");
+        busy(false);
+      }
+    } catch (err) {
+      // Network failure, DNS, offline, blocked by an extension -- never a crash.
+      say("Couldn't reach the server. Check your connection and try again.", "err");
+      busy(false);
+    }
+  });
+
+  // Clear an error once the visitor starts fixing it.
+  email.addEventListener("input", function(){
+    if(status.classList.contains("is-err")) say(RESTING_NOTE, null);
+  });
+</script>
+</body>
+</html>
