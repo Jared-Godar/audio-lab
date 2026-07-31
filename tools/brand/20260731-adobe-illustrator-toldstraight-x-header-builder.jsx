@@ -65,11 +65,16 @@
  *                 In run 1 it landed ON THE STAMP, hiding "026" and "EDT".
  *   STATUS BAR    clock/battery over the top ~100px.
  *
- * So the MOBILE-SAFE envelope is materially tighter than the desktop 3:1:
+ * So the MOBILE-SAFE envelope is materially tighter than the desktop 3:1.
+ * The buttons sit at x165-267 and x1218-1314, so anything living between
+ * x350 and x1150 clears BOTH of them at any height. With the avatar reserve
+ * and the side crop that gives the working envelope, and it is what the
+ * SAFE_L/SAFE_R/SAFE_T/SAFE_B constants below encode:
  *
- *   x 150 - 1350, and keep the two TOP CORNERS clear (about 130 x 110 each
- *   around y180-320) for X's floating buttons, on top of the bottom-left
- *   avatar reserve.
+ *   x 350 - 1150,  y 100 - 315        (800 x 215 inside a 1500 x 500 canvas)
+ *
+ * In practice this banner is NOT 3:1. It is a small centred panel with large
+ * sacrificial margins, and designing it as a 3:1 canvas is the mistake.
  *
  * CAVEAT: one screenshot, one handset, +/- a few percent. Other phones will
  * differ. This is a measurement of one real device, which beats an estimate,
@@ -258,28 +263,57 @@
         catch (e) { log("WARN: translate failed — " + e); }
     }
 
-    // ---- LOCKUP CONSTANTS — identical across all three stamp states ----
-    var M          = 90;    // left margin
-    var WM_TARGET  = 700;   // one-line wordmark measure
-    var WM_TOP     = 118;   // ink top of the wordmark
-    var RULE_H     = 14;
-    var RULE_GAP   = 34;    // wordmark ink bottom -> rule
-    var AUTH_GAP   = 30;    // rule -> authority ink top
-    var AUTH_SIZE  = 25;
+    /* ---- LOCKUP CONSTANTS — identical across all three stamp states ----
+       RUN 2, retuned to the MEASURED mobile-safe envelope.
+
+       The key measurement: X's floating buttons sit at x165-267 and
+       x1218-1314. Anything living between x350 and x1150 clears BOTH,
+       whatever its vertical position. With the ~8% side crop and the
+       bottom-left avatar reserve, the real envelope is
+
+           x 350 - 1150,  y 100 - 315      (800 x 215)
+
+       inside a 1500x500 canvas. In practice this banner is NOT 3:1 — it is a
+       small centred panel with large sacrificial margins. Run 1 used M=90 and
+       a 700pt measure, which looked right on desktop and lost the "T" of TOLD
+       to the phone crop. Desktop now reads airier. That is the deliberate
+       trade the maintainer chose: most viewers are on a phone. */
+    var SAFE_L = 350, SAFE_R = 1150, SAFE_T = 100, SAFE_B = 315;
+
+    var M          = SAFE_L;
+    var WM_TARGET  = 420;   // one-line wordmark measure (was 700)
+    var WM_TOP     = 122;
+    var RULE_H     = 11;
+    var RULE_GAP   = 22;
+    var AUTH_GAP   = 22;
+    var AUTH_SIZE  = 19;
     var AUTH_TRACK = 280;   // .28em, matching site .authority
+    var STAMP_SCALE = 0.85;
+    var STAMP_CX = 985, STAMP_CY = 200;
 
     // Avatar overlap reserve (ESTIMATED — see header comment)
     var AV_CX = 215, AV_CY = 500, AV_R = 168;
+    // Mobile crop window + floating buttons (MEASURED — see header comment)
+    var CROP_L = 110, CROP_R = 1372;
+    var BTN = [{ x: 216, y: 258, r: 52 }, { x: 1266, y: 258, r: 52 }];
 
     function lockup(grp, b, stacked) {
         var wm, wm2 = null, bottom;
         if (stacked) {
-            wm  = fitLine(grp, "TOLD",     520, -15, C.ink, fTitle);
-            wm2 = fitLine(grp, "STRAIGHT", 520, -15, C.ink, fTitle);
-            if (!wm || !wm2) return null;
-            place(wm,  px(b, M), py(b, 92));
-            place(wm2, px(b, M), py(b, 92 + wm.h + wm.h * 0.10));
-            bottom = 92 + wm.h + wm.h * 0.10 + wm2.h;
+            /* RUN 1 BUG: both words were fitted to the SAME target width, so
+               TOLD (4 chars) came out at a much larger point size than
+               STRAIGHT (8). The webpage sets ONE font-size for both lines and
+               lets the widths differ — that is the wordmark's proportion, and
+               fitting each line independently destroys it.
+               Fix: solve the size on the LONGER word, then reuse that exact
+               size for the shorter one. */
+            wm2 = fitLine(grp, "STRAIGHT", 300, -15, C.ink, fTitle);
+            if (!wm2) return null;
+            wm  = makeLine(grp, "TOLD", wm2.size, -15, C.ink, fTitle);
+            if (!wm) return null;
+            place(wm,  px(b, M), py(b, 104));
+            place(wm2, px(b, M), py(b, 104 + wm.h + wm.h * 0.10));
+            bottom = 104 + wm.h + wm.h * 0.10 + wm2.h;
         } else {
             wm = fitLine(grp, WORDMARK, WM_TARGET, -15, C.ink, fTitle);
             if (!wm) return null;
@@ -287,7 +321,9 @@
             bottom = WM_TOP + wm.h;
         }
         var ruleY = bottom + RULE_GAP;
-        fillRectIn(grp, b, ruleY, M, stacked ? 520 : WM_TARGET, RULE_H, C.red);
+        // Rule width comes from the MEASURED wordmark, never a repeated literal —
+        // a hardcoded 520 next to a fitted wordmark is a drift waiting to happen.
+        fillRectIn(grp, b, ruleY, M, stacked ? wm2.w : WM_TARGET, RULE_H, C.red);
         var auth = makeLine(grp, AUTHORITY, AUTH_SIZE, AUTH_TRACK, C.grey, fTitle);
         place(auth, px(b, M), py(b, ruleY + RULE_H + AUTH_GAP));
         return { bottom: ruleY + RULE_H + AUTH_GAP + (auth ? auth.h : 0), wmH: wm.h, wmW: wm.w };
@@ -300,9 +336,10 @@
         var sg;
         try { sg = grp.groupItems.add(); } catch (e) { return null; }
 
-        var a = makeLine(sg, l1, 26, 140, colour, fTitle);
-        var c2 = makeLine(sg, l2, 62,  20, colour, fTitle);
-        var c3 = l3 ? makeLine(sg, l3, 23, 100, colour, fMono) : null;
+        var S = STAMP_SCALE;
+        var a = makeLine(sg, l1, 26 * S, 140, colour, fTitle);
+        var c2 = makeLine(sg, l2, 62 * S,  20, colour, fTitle);
+        var c3 = l3 ? makeLine(sg, l3, 23 * S, 100, colour, fMono) : null;
         if (!a || !c2) return null;
 
         var g1 = c2.h * 0.30, g2 = c2.h * 0.26;
@@ -347,39 +384,66 @@
 
         var st = null;
         if (opts.state === "declassify")
-            st = stamp(grp, b, 1145, 236, "DECLASSIFY ON", GO_LIVE_DATE, GO_LIVE_TIME, C.red);
+            st = stamp(grp, b, STAMP_CX, STAMP_CY, "DECLASSIFY ON", GO_LIVE_DATE, GO_LIVE_TIME, C.red);
         else if (opts.state === "live")
-            st = stamp(grp, b, 1145, 236, "LIVE AS OF", GO_LIVE_DATE, GO_LIVE_TIME, C.green);
+            st = stamp(grp, b, STAMP_CX, STAMP_CY, "LIVE AS OF", GO_LIVE_DATE, GO_LIVE_TIME, C.green);
 
-        if (opts.audit) {
-            log("  " + b.name);
-            log("     wordmark ink " + Math.round(lk ? lk.wmW : 0) + " x " + Math.round(lk ? lk.wmH : 0)
-                + "   lockup bottom y=" + Math.round(lk ? lk.bottom : 0)
-                + (lk && lk.bottom < 320 ? "   -> CLEARS avatar zone (needs < 320)"
-                                         : "   *** ENTERS avatar zone ***"));
-            if (st) log("     stamp box " + Math.round(st.w) + " x " + Math.round(st.h));
+        /* Audit runs on EVERY board now. In run 1 it was passed only to row 1,
+           so it reported PASS while row 2's authority line was clipped clean
+           off the artboard. A fit check that does not cover every board is a
+           green light earned by not looking. */
+        log("  " + b.name);
+        var lkR = M + (opts.stacked ? (lk ? lk.wmW : 0) : WM_TARGET);
+        var stL = st ? STAMP_CX - st.w / 2 : null;
+        var stR = st ? STAMP_CX + st.w / 2 : null;
+        log("     wordmark ink " + Math.round(lk ? lk.wmW : 0) + " x " + Math.round(lk ? lk.wmH : 0)
+            + "   lockup x " + Math.round(M) + "-" + Math.round(lkR)
+            + "   bottom y=" + Math.round(lk ? lk.bottom : 0));
+        log("     vs SAFE x " + SAFE_L + "-" + SAFE_R + " y<" + SAFE_B + "   -> "
+            + ((lk && lk.bottom <= SAFE_B && M >= SAFE_L && lkR <= SAFE_R)
+               ? "PASS" : "*** FAIL — outside the measured mobile-safe envelope ***"));
+        if (st) {
+            log("     stamp box " + Math.round(st.w) + " x " + Math.round(st.h)
+                + "   x " + Math.round(stL) + "-" + Math.round(stR)
+                + "   -> " + ((stL >= SAFE_L && stR <= SAFE_R)
+                    ? "PASS" : "*** FAIL — will be cropped or hit a floating button ***"));
         }
 
-        // Safe-zone overlay: the avatar disc X drops on the bottom-left.
+        /* MOBILE PREVIEW: everything X actually puts on top of the banner —
+           the side crop, the two floating buttons, and the avatar disc. All
+           MEASURED from a live upload except the avatar, which is estimated. */
         if (opts.safezone) {
+            function dim(x, w) {
+                var d = grp.pathItems.rectangle(py(b, 0), px(b, x), w, b.h);
+                d.filled = true; d.fillColor = C.ink; d.stroked = false;
+                try { d.opacity = 55; } catch (e) {}
+            }
+            dim(0, CROP_L);                       // lost off the left on mobile
+            dim(CROP_R, b.w - CROP_R);            // lost off the right
+            for (var k = 0; k < BTN.length; k++) {
+                var cb = grp.pathItems.ellipse(py(b, BTN[k].y - BTN[k].r), px(b, BTN[k].x - BTN[k].r),
+                                               BTN[k].r * 2, BTN[k].r * 2);
+                cb.filled = true; cb.fillColor = C.ink; cb.stroked = false;
+                try { cb.opacity = 70; } catch (e) {}
+            }
             var ov = grp.pathItems.ellipse(py(b, AV_CY - AV_R), px(b, AV_CX - AV_R), AV_R * 2, AV_R * 2);
             ov.filled = true; ov.fillColor = C.ink; ov.stroked = false;
             try { ov.opacity = 42; } catch (e) {}
-            var gl = makeLine(grp, "AVATAR SITS HERE — ESTIMATED, CONFIRM ON THE LIVE PROFILE",
-                              18, 120, C.red, fMono);
-            place(gl, px(b, M), py(b, 460));
+            var gl = makeLine(grp, "DIMMED = CROPPED OR COVERED ON MOBILE. MEASURED FROM A LIVE UPLOAD.",
+                              16, 120, C.red, fMono);
+            place(gl, px(b, SAFE_L), py(b, 470));
         }
         return grp;
     }
 
     // ---- ROW 1: one-line, the three states ----
-    log("MEASURED LOCKUP CHECKS");
+    log("MEASURED CHECKS — EVERY BOARD, against the mobile-safe envelope");
     var h1 = addBoard(1, "x-header-DECLASSIFY-1500x500", 1500, 500);
     var h2 = addBoard(1, "x-header-PLAIN-1500x500",      1500, 500);
     var h3 = addBoard(1, "x-header-LIVE-1500x500",       1500, 500);
-    header(h1, { state: "declassify", audit: true });
-    header(h2, { state: "none",       audit: true });
-    header(h3, { state: "live",       audit: true });
+    header(h1, { state: "declassify" });
+    header(h2, { state: "none" });
+    header(h3, { state: "live" });
 
     // ---- ROW 2: stacked wordmark, same three states ----
     var s1 = addBoard(2, "x-header-DECLASSIFY-stacked", 1500, 500);
@@ -390,9 +454,9 @@
     header(s3, { state: "live",       stacked: true });
 
     // ---- ROW 3: safe-zone overlays (judging only, never upload) ----
-    var z1 = addBoard(3, "SAFEZONE-DECLASSIFY", 1500, 500);
-    var z2 = addBoard(3, "SAFEZONE-PLAIN",      1500, 500);
-    var z3 = addBoard(3, "SAFEZONE-LIVE",       1500, 500);
+    var z1 = addBoard(3, "MOBILE-PREVIEW-DECLASSIFY", 1500, 500);
+    var z2 = addBoard(3, "MOBILE-PREVIEW-PLAIN",      1500, 500);
+    var z3 = addBoard(3, "MOBILE-PREVIEW-LIVE",       1500, 500);
     header(z1, { state: "declassify", safezone: true });
     header(z2, { state: "none",       safezone: true });
     header(z3, { state: "live",       safezone: true });
@@ -482,9 +546,9 @@
                 "20260731-adobe-illustrator-toldstraight-x-header-declassify-stacked-1500x500",
                 "20260731-adobe-illustrator-toldstraight-x-header-plain-stacked-1500x500",
                 "20260731-adobe-illustrator-toldstraight-x-header-live-stacked-1500x500",
-                "20260731-adobe-illustrator-toldstraight-x-header-safezone-declassify-1500x500",
-                "20260731-adobe-illustrator-toldstraight-x-header-safezone-plain-1500x500",
-                "20260731-adobe-illustrator-toldstraight-x-header-safezone-live-1500x500"
+                "20260731-adobe-illustrator-toldstraight-x-header-mobilepreview-declassify-1500x500",
+                "20260731-adobe-illustrator-toldstraight-x-header-mobilepreview-plain-1500x500",
+                "20260731-adobe-illustrator-toldstraight-x-header-mobilepreview-live-1500x500"
             ];
             for (var e5 = 0; e5 < names.length; e5++) {
                 if (e5 >= doc.artboards.length) continue;
