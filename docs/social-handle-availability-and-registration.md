@@ -368,20 +368,30 @@ option is the wrong economy for this particular job.
 
 **Display name (all platforms):** `Told Straight`
 
-**Bio — short (X, Instagram, TikTok; ~150 chars):**
+**Bio — short. 134 chars. MEASURED limits: Instagram 150, X 160 (both from the
+platforms' own UI/help). Fits X, Instagram, YouTube, Bluesky — NOT TikTok:**
 
 ```text
-One complicated subject, covered properly. Bottom line up front, every claim sourced, dark humour, no woo. Season 1: adult ADHD.
+One complicated subject, covered properly. Bottom line up front. Every claim sourced. Dark humor. No woo. No BS. Season 1: Adult ADHD.
+```
+
+**Bio — TikTok short form. 79 chars.** TikTok's limit is far tighter than the
+others (commonly cited as 80; **not independently verified** — read the counter in
+the form, as Instagram's 150 was). The season line is kept in preference to the
+opening clause: the topic is what converts a visitor, the framing is not.
+
+```text
+Bottom line up front. Every claim sourced. No woo. No BS. Season 1: Adult ADHD.
 ```
 
 **Bio — long (YouTube "About", Facebook "Intro", Bluesky):**
 
 ```text
-A season-per-topic podcast that takes one complicated subject and covers it properly: bottom line up front, every claim sourced to peer-reviewed literature, dark humour, no woo.
+A season-per-topic podcast that takes one complicated subject and covers it properly. Bottom line up front. Every claim sourced to peer-reviewed literature. Dark humor. No woo. No BS.
 
 It exists because "do your own research" mostly means reading whatever ranks well. This is the opposite of that, done out loud.
 
-Season 1 is adult ADHD. Orientation, not medical advice.
+Season 1 is Adult ADHD. Orientation, not medical advice.
 ```
 
 Both are derived from the README's own description of the show, not newly invented.
@@ -527,6 +537,8 @@ This document delivers the first acceptance criterion and prepares the rest. Ope
 | Handle-availability research + chosen consistent handle | **done** (§ 3, § 4) |
 | Handle decision, recovery address, 2FA method, credential store | **done** (§ 4, § 5.2) |
 | Accounts registered on the five platforms | **owed — maintainer** |
+| X bio second-pass — X still shows the pre-standardization wording | **owed** |
+| Spelling sweep — repo is British "humour", bios are now US "humor" | **owed, undecided** |
 | Profile art applied from the brand suite | **owed** — avatar ready; banners sequenced in § 5.4 |
 | Credentials in 1Password, item titles recorded | **owed — maintainer** (§ 5.5, § 5.6) |
 | CHANGELOG entry | done with this change |
@@ -546,6 +558,7 @@ Issue #111 was closed on merge of the research PR. The execution half is tracked
 | 2026-07-31 | Google Voice is declined for signup verification (VoIP), accepted for a public site contact number; never hosted on the YouTube Google account | § 5.2.2 |
 | 2026-07-31 | Where a platform forces a phone, verify then remove it as a login factor once TOTP is on | § 5.2.2 |
 | 2026-07-31 | X is registered via the **mobile app** with `social@toldstraight.com`; web signup and SSO coupling both declined | § 5.0 |
+| 2026-07-31 | Bio voice standardized: **US spelling, sentence fragments, "No BS", title-case "Adult ADHD"**. X carries the OLD wording — second-pass update owed. Repo is uniformly British "humour" (README, Ep01 show-notes) — sweep undecided | § 5.3 |
 | 2026-07-31 | iCloud+ Custom Email Domain measured at **"Using 3 of 3"** — ADR 0011's "roughly three addresses" is a HARD CAP, now full; a 4th address triggers its reversal, not approaches it | § 5.2 |
 | 2026-07-31 | Avatar is **variant A (ring)**, approved from a true-48px comparison; the 512 maskable favicon is declined for circular slots (9.96% inset, needs 14.64%) | § 5.4 |
 
