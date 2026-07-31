@@ -131,8 +131,6 @@ Resources:
             Ref: ContactListName
           TOPIC:
             Ref: TopicName
-          ALLOWED_ORIGIN:
-            Ref: AllowedOrigin
       Code:
         # Inline handler (no deps beyond the runtime's boto3). Single opt-in: validate,
         # honeypot-check, CreateContact (idempotent). Never echoes whether an address is
@@ -142,9 +140,18 @@ Resources:
           ses = boto3.client("sesv2")
           LIST = os.environ["CONTACT_LIST"]
           TOPIC = os.environ["TOPIC"]
-          ORIGIN = os.environ["ALLOWED_ORIGIN"]
           EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+          # DO NOT set access-control-allow-origin here. The Function URL's own Cors
+          # config (SignupFunctionUrl below) already injects it, and setting it in the
+          # handler too produced TWO identical headers on every POST. The CORS spec
+          # allows exactly one: browsers reject the response as a protocol violation and
+          # surface a generic "TypeError: Failed to fetch" -- NOT a CORS message -- so it
+          # reads like a network outage. curl and server-side fetchers do not enforce
+          # CORS, so it was invisible to every non-browser check. The preflight OPTIONS
+          # is answered by the Function URL layer alone, so it carried one header and
+          # passed, which made the failure look like it happened after a successful
+          # handshake. One layer owns this header; that layer is the Function URL config.
           def _resp(code, ok, error=None):
               body = {"ok": ok}
               if error:
@@ -153,7 +160,6 @@ Resources:
                   "statusCode": code,
                   "headers": {
                       "content-type": "application/json",
-                      "access-control-allow-origin": ORIGIN,
                   },
                   "body": json.dumps(body),
               }

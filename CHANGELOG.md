@@ -135,6 +135,20 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Retitled the cast section and replaced the "synthetic" disclosure vocabulary (#128).** The
+  presentation ADR 0019 decided is unchanged and reaffirmed — photoreal host beside ligne-claire cast,
+  the medium carrying the disclosure, a retained text disclosure for screen readers. Only the diction
+  moved, on maintainer review of the built page: "synthetic" is a materials word that reads as a
+  euphemism applied to a person, "likeness" is rights-clearance legalese, and "Not Real" is vague.
+  The stamp becomes **`No Such Person`** and the strip **`AI-Generated · Voice & Face`**, so the two
+  labels answer different questions — *is this someone?* and *where did this come from?* — instead of
+  both gesturing at the same one; the strip names the **voice**, which matters more on a podcast than
+  on a page. The human card gains an explicit **`Real Person · Host`** rather than being marked only
+  by the absence of a stamp. Alt text moved in step so screen readers get the same vocabulary; no
+  occurrence of "synthetic" remains. The section is now **`Meet the Team`** with a subtitle that sells
+  the premise instead of carrying disclosure duty, and the competing "Personnel File" tag is dropped.
+  Recorded as an amendment to ADR 0019.
+
 - **Rewrote the gated site records in `infra/dns.yaml` for the CloudFront cutover (#128).**
   `ApexSiteRecord` becomes a Route 53 **alias A record** — it was `Type: A` with a literal
   `ResourceRecords` IP, which cannot point at CloudFront (no stable IP) while an apex CNAME is
@@ -181,6 +195,20 @@ visible in the diff and would otherwise evaporate.
   states one. Refs #154.
 
 ### Fixed
+
+- **Fixed the signup form failing in every browser — duplicated CORS header (#128).** The form
+  reported "Couldn't reach the server" on desktop Chrome, in incognito, and on a phone over cellular,
+  while `curl` and server-side fetchers got clean `400`s from the same endpoint. Cause: **two**
+  identical `access-control-allow-origin` headers on every POST. The Function URL's own `Cors` config
+  injects it, and the handler set it again in `_resp()`. The CORS spec permits exactly one; two is a
+  protocol violation, so browsers kill the response and report a generic `TypeError: Failed to fetch`
+  — **not** a CORS message — which reads like a network outage and left the console silent. The
+  preflight `OPTIONS` is answered by the Function URL layer alone, so it carried one header and
+  passed, making the failure look like it happened after a successful handshake. The handler no
+  longer sets the header; the Function URL config owns it. The now-dead `ORIGIN` constant and
+  `ALLOWED_ORIGIN` env var are removed — the `AllowedOrigin` *parameter* still drives the Function
+  URL `Cors` config, which is where it belongs. **Requires redeploying the signup stack**, not just a
+  site sync.
 
 - **Fixed the hero image rendering squashed on the live site (#128).** `.hero img` set
   `width:100%` with no `height:auto`. When intrinsic `width`/`height` attributes were added to the
