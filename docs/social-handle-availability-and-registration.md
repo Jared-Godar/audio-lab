@@ -451,6 +451,26 @@ Variant A should serve **every** platform here — X, Instagram, YouTube, Facebo
 and Bluesky all crop avatars circular — but confirm per platform at upload rather than
 assuming.
 
+**MEASURED platform art specs** (read from each platform's own uploader, per the
+order in this section — not from memory or a blog post):
+
+| Platform | Banner / cover | Avatar | Source |
+| --- | --- | --- | --- |
+| X | **1500 × 500** | 400 × 400 | help.x.com, 2026-07-31 |
+| YouTube | **at least 2048 × 1152**, ≤6 MB | ≥98 × 98, ≤4 MB, PNG/GIF | Studio → Customisation, 2026-07-31 |
+| Instagram | *no cover image exists* | — | "Banners" is profile-linking, not art |
+
+Two YouTube constraints worth carrying into the builder: **handle changes are
+limited to twice per 14 days** (previous handle held 14 days), and **name changes
+twice in 14 days**. Get both right the first time.
+
+**YouTube's banner is the hard one and is deliberately deferred.** 2048 × 1152 is
+16:9, but YouTube renders wildly different crops per device — TV shows the full
+frame, desktop a wide band, mobile a narrow strip — so a single safe area governs
+it. Those crop bounds are **not yet measured**; measure them the way X's were
+(upload, screenshot the live surface, solve the scale) rather than trusting a
+published figure.
+
 **Banners / cover images — this is a genuine gap, not an oversight.** The repo's
 widest brand assets are the 1200×630 OG cards and the 1280×400 README headers in
 `brand/web/`, and none of them match the header aspect ratios these platforms use (X,
