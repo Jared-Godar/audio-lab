@@ -43,12 +43,6 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
-- **`.vscode/settings.json` points the Python interpreter at `pipeline/.venv`.** The uv-managed
-  venv lives under `pipeline/`, not the repo root, so VS Code's default
-  `${workspaceFolder}/.venv/bin/python` couldn't resolve and warned on every refresh. A tracked
-  workspace override fixes it for this repo (and fresh clones) without touching the personal
-  global default, and enables pytest discovery against `pipeline/`.
-
 - **Episodes 1–3 completeness matrix (`episodes/EPISODE-COMPLETENESS.md`, #99).** An audit of
   every episode against a fixed asset checklist (script, audio, cover, chapter/exhibit art,
   transcript, show notes, metadata, distribution). Finding: content is largely complete; the
@@ -69,6 +63,14 @@ visible in the diff and would otherwise evaporate.
   design; workflow_dispatch for on-demand runs.
 
 ### Fixed
+
+- **Corrected a false CHANGELOG entry from #129.** That entry claimed a **tracked**
+  `.vscode/settings.json` was added to point the Python interpreter at `pipeline/.venv`. But
+  `.vscode/` is gitignored (`.gitignore:130`), so `git add -A` skipped the file and only the
+  CHANGELOG line was ever committed — the entry described a repo change that never happened
+  (falsehood class). The interpreter path is a **local, per-machine editor setting**, kept in
+  each developer's untracked `.vscode/settings.json`, and is out of scope for the CHANGELOG; the
+  bogus entry is removed here.
 
 - **The PR-metadata gate no longer hangs the merge box.** `pr-metadata-gate.yml` used
   `concurrency: cancel-in-progress: true`, so the event burst at PR creation (opened +
