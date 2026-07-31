@@ -1,8 +1,19 @@
 # Privacy Policy — Told Straight
 
-**Effective date:** _to be set at publication._
-**Status:** DRAFT for #140. Reflects the actual data practices of the signup form
-(`infra/signup.yaml`); **have it reviewed before it is published**, as this is not legal advice.
+**Effective date:** 31 July 2026.
+**Status:** PUBLISHED — the live version is `site/privacy.html`, served at
+`/privacy.html` and linked from the signup form and the site footer.
+
+> **This document is the source of record; `site/privacy.html` is the published rendering of
+> it. Change both together, or they drift.**
+>
+> **Review caveat, carried forward and NOT discharged:** this was written as a draft for #140
+> with the note "have it reviewed before it is published, as this is not legal advice." It was
+> published without that review, on the judgement that a page collecting email addresses with
+> **no** policy is worse than one with an accurate unreviewed policy. It describes the actual
+> behaviour of `infra/signup.yaml` truthfully. It has **not** been checked by a lawyer against
+> GDPR/UK-GDPR, CCPA, or any other regime. Getting that review remains outstanding — see the
+> pre-public-release checklist (#109/#110).
 
 Told Straight ("we," "us") runs `toldstraight.com`. This policy explains the one piece of
 personal data the site handles: an email address you choose to give us so we can tell you
