@@ -220,7 +220,8 @@ explain; and it is the only candidate that is legal and unused on every surface.
 
 **Fallbacks, in order** — all X-legal, so consistency survives:
 
-1. `toldstraightpod` (15 — exactly at X's cap, no room to spare)
+1. `toldstraightpod` (15 — **may be ineligible on X**; see the help-page contradiction
+   in § 5.1.1. Treat as unusable until a signup picker says otherwise.)
 2. `toldstraightfm` (14 — matches the `toldstraight.fm` domain already selected)
 3. `thetoldstraight` (15)
 4. `toldstraighthq` (14)
@@ -241,6 +242,45 @@ Threads signup rather than assuming it**, since it was not verified here.
 
 Everything in this section is the maintainer's to perform. The agent's contribution
 is the research above and the prepared copy below.
+
+### 5.0 X — measured 2026-07-31, and the documentation is wrong
+
+Recorded from a live attempt, because both of these cost time to rediscover.
+
+**X's web signup no longer exists as documented.** `help.x.com/en/using-x/create-x-account`
+says to *"Go to X.com/signup"*, *"Click the sign up button"*, and that a *"Create your
+account pop up box will appear"*. None of that is true as of 2026-07-31:
+`x.com/signup` **redirects** to `x.com/i/jf/onboarding/web?mode=signup`, a chooser
+offering only **Continue with phone**, **Continue with Google**, **Continue with
+Apple**, and a field labelled *"Email or username"* — which is a **sign-in** field, not
+a registration one. Entering an unregistered address returns *"This email or username
+is not registered yet"* and then a **"Get the app to finish signing up"** wall with an
+app-store QR code.
+
+So the practical paths are: the **X mobile app** (email signup, no OAuth coupling —
+preferred, since it keeps the password in 1Password), or Google/Apple SSO (couples the
+account to another identity), or phone.
+
+Useful detail from the same help page, since it bears on the no-SMS decision: *"You can
+also request a voice call to verify your phone number."* A voice-capable number that
+cannot receive SMS may still clear X's verification.
+
+#### 5.1.1 Two X help pages disagree about the handle length limit
+
+| Page | Wording |
+| --- | --- |
+| `managing-your-account/change-x-handle` | *"can be up to 15 characters or less"* |
+| `using-x/create-x-account` | *"must be fewer than 15 characters in length"* |
+
+These are not the same rule: the first admits a 15-character handle, the second
+excludes it. **`toldstraight` is 12 characters and is safe under either reading** — the
+decision is unaffected. But the first fallback, `toldstraightpod`, is exactly 15 and is
+therefore **of unknown validity on X**; it is marked accordingly in § 4.
+
+The second page adds a constraint the first omits entirely: usernames *"cannot contain
+'admin' or 'X', in order to avoid brand confusion."* `toldstraight` contains neither.
+Any future handle candidate must be checked against this rule as well as the length —
+and, given the contradiction, the signup picker remains the only authority (§ 1).
 
 ### 5.1 Order
 
@@ -283,6 +323,37 @@ agent does not perform**, under any authorization. In a live session the agent
 navigates, reads page state back, re-runs the § 2 checkers, and confirms what the
 platform actually accepted; the maintainer performs every signup, password entry, and
 TOTP capture. That split is not a limitation of this runbook — it is the runbook.
+
+### 5.2.2 Phone numbers — the two jobs are not the same job
+
+Raised by the maintainer 2026-07-31, when X's signup demanded a phone: *is a Google
+Voice number worth generating for the social registrations and the site?*
+
+The answer splits, because the two uses want opposite properties:
+
+- **Passing signup verification.** Platforms routinely reject **VoIP** numbers
+  (Google Voice included) for verification. This is widely reported and consistent
+  with how anti-abuse systems are designed, but it was **not measured per-platform
+  here** — treat it as a strong prior, not a finding. One measured detail cuts the
+  other way for X specifically: its help page states *"You can also request a voice
+  call to verify your phone number,"* and Google Voice receives calls. A voice-capable
+  VoIP number may clear a platform whose SMS path rejects it.
+- **A public contact number on the site.** Here Google Voice is the *right* tool
+  precisely because it is disposable and screenable — publishable without exposing a
+  personal number.
+
+**The dependency trap:** do not host the brand's Google Voice number on the **same
+Google account** that owns the YouTube channel. That builds a loop in which
+compromising one Google account yields both the channel and the number used to recover
+everything else.
+
+**Recommended path, which does not block registration:** verify with a real mobile
+number where a platform forces it, enable TOTP immediately, then remove the phone as a
+**login factor**. The number becomes a transient signup artifact rather than a standing
+second factor — which is most of what the no-SMS decision was protecting. If a
+dedicated number that platforms reliably accept is wanted later, a **prepaid eSIM**
+(carrier-grade, roughly $5–15/month) serves that better than Google Voice; the free
+option is the wrong economy for this particular job.
 
 ### 5.3 Copy to use
 
@@ -430,3 +501,23 @@ Issue #111 was closed on merge of the research PR. The execution half is tracked
 | 2026-07-31 | 2FA is TOTP in 1Password; no SMS as a login factor on any account | § 5.2 |
 | 2026-07-31 | Credentials live in 1Password, CLI-first (`op` 2.38.1); the repo records item titles only | § 5.5 |
 | 2026-07-31 | TOTP seeds are captured in the 1Password app, never via an `op` command-line assignment | § 5.5 |
+| 2026-07-31 | Google Voice is declined for signup verification (VoIP), accepted for a public site contact number; never hosted on the YouTube Google account | § 5.2.2 |
+| 2026-07-31 | Where a platform forces a phone, verify then remove it as a login factor once TOTP is on | § 5.2.2 |
+| 2026-07-31 | X is registered via the **mobile app** with `social@toldstraight.com`; web signup and SSO coupling both declined | § 5.0 |
+
+## 8. 1Password inventory
+
+Vault **`Told Straight`** created 2026-07-31 (`op` 2.38.1). Six login items, each with
+an `op`-generated 32-character password and username `social@toldstraight.com`:
+
+`Told Straight — X` · `Told Straight — Instagram` · `Told Straight — TikTok` ·
+`Told Straight — Google (YouTube channel)` · `Told Straight — Facebook` ·
+`Told Straight — Bluesky`
+
+Titles only, as § 5.5 requires — no values here or anywhere in this repository.
+
+Two structural notes on that list, both to be confirmed at signup rather than assumed:
+**YouTube** is not a standalone account (the handle sits on a *channel* hanging off a
+Google account, hence the item name), and a **Facebook Page** at
+`facebook.com/toldstraight` normally requires a personal Facebook profile to
+administer — a fork the maintainer decides before reaching that form.

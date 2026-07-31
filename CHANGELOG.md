@@ -335,6 +335,34 @@ visible in the diff and would otherwise evaporate.
   `op read "op://<vault>/<item>/one-time password?attribute=otp"`. Reading a rotating 6-digit code
   is not the same exposure as writing the seed that generates them. Verified against `op` 2.38.1.
 
+- **X's own signup documentation is stale, and two X help pages contradict each other on the handle
+  length limit (#154).** `help.x.com/en/using-x/create-x-account` says to *"Go to X.com/signup"*,
+  *"Click the sign up button"*, and that a *"Create your account pop up box will appear."* None of
+  that holds as of 2026-07-31: `x.com/signup` **redirects** to
+  `x.com/i/jf/onboarding/web?mode=signup`, a chooser offering only Continue with phone / Google /
+  Apple plus an *"Email or username"* field that is **sign-in, not registration**. Entering an
+  unregistered address returns *"This email or username is not registered yet"* followed by a
+  **"Get the app to finish signing up"** wall with an app-store QR — so browser signup is closed
+  and the practical paths are the mobile app, SSO coupling, or phone. Separately, the two help
+  pages disagree on the limit: `change-x-handle` says a username *"can be up to 15 characters or
+  less"* while `create-x-account` says it *"must be fewer than 15 characters in length"* — not the
+  same rule, since the first admits 15 and the second excludes it. `toldstraight` is 12 and safe
+  under either, but the first fallback `toldstraightpod` is exactly 15 and is now marked of
+  **unknown validity**. The second page also adds a constraint the first omits entirely: usernames
+  *"cannot contain 'admin' or 'X'"*. Where vendor docs contradict each other, the signup picker is
+  the only authority.
+
+- **Google Voice is the wrong tool for signup verification and the right one for a public contact
+  number (#154).** Platforms routinely reject **VoIP** numbers for verification — a strong prior,
+  **not measured per-platform here**, and recorded as such. One measured detail cuts the other way
+  for X: its help states *"You can also request a voice call to verify your phone number,"* and
+  Google Voice receives calls, so a voice-capable VoIP number may clear a platform whose SMS path
+  rejects it. The dependency trap worth naming: hosting the brand's Google Voice number on the
+  **same Google account that owns the YouTube channel** builds a loop where one compromise yields
+  both the channel and the number that recovers everything else. Adopted path, which blocks
+  nothing: verify with a real mobile number where forced, enable TOTP, then remove the phone as a
+  **login factor** — making it a transient signup artifact rather than a standing second factor.
+
 ## 2026-07-30
 
 ### Changed
