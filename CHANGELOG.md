@@ -11,6 +11,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Post-merge closure now sweeps for untracked files in tracked paths.** `AGENTS.md` step 8
+  gains an explicit `git status --porcelain --untracked-files=all -- artifacts/specs
+  artifacts/issues` sweep and an end-of-closure clean-tree check. Six executor specs had
+  accumulated untracked in the tracked `artifacts/specs/` path across sessions (committed in
+  #131) because closure pruned worktrees/branches but never checked the main checkout for stray
+  provenance files. Making it mechanical stops the recurrence.
+
 - **DMARC now reports as well as enforces (#59).** `DmarcRecord` gained
   `rua=mailto:hello@toldstraight.com` — a same-domain target needing no cross-domain
   authorization record. Every other tag (`p=reject; sp=reject; adkim=s; aspf=s`) is
