@@ -372,7 +372,7 @@ option is the wrong economy for this particular job.
 platforms' own UI/help). Fits X, Instagram, YouTube, Bluesky — NOT TikTok:**
 
 ```text
-One complicated subject, covered properly. Bottom line up front. Every claim sourced. Dark humor. No woo. No BS. Season 1: Adult ADHD.
+One complicated subject. Covered properly. Bottom line up front. Every claim sourced. Dark humor. No woo. No BS. Season 1: Adult ADHD.
 ```
 
 **Bio — TikTok short form. 79 chars.** TikTok's limit is far tighter than the
