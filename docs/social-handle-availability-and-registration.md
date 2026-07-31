@@ -384,13 +384,13 @@ opening clause: the topic is what converts a visitor, the framing is not.
 Bottom line up front. Every claim sourced. No woo. No BS. Season 1: Adult ADHD.
 ```
 
-**Bio — long. 409 chars. YouTube only** (limit 1000). Facebook Intro and Bluesky
+**Bio — long. 439 chars. YouTube only** (limit 1000). Facebook Intro and Bluesky
 cap near 255 — use the medium form below, not this one:
 
 ```text
 A season-per-topic podcast that takes one complicated subject and covers it properly. Bottom line up front. Every claim sourced to peer-reviewed literature. Dark humor. No woo. No BS.
 
-It exists because "do your own research" now mostly means shopping for agreement with no intention of changing your mind. This is the opposite of that, done out loud.
+It exists because "do your own research" now mostly means hunting for agreement in a narrow echo chamber, with no real intention of changing your mind. This is the opposite of that, done out loud.
 
 Season 1 is Adult ADHD. Orientation, not medical advice.
 ```
@@ -403,13 +403,21 @@ Both are derived from the README's own description of the show, not newly invent
 > ADR 0019). Linking it from day one is still right — it is where a squatter-check
 > visitor lands, and it collects signups.
 
-**Bio — medium. 248 chars.** For **Facebook Intro** and **Bluesky**, both of which
+**Bio — medium. 242 chars.** For **Facebook Intro** and **Bluesky**, both of which
 cap around 255. Keeps the "do your own research" thesis *and* the medical-advice
 disclaimer — the two things the long form has that the short form cannot carry.
 
 ```text
-One complicated subject a season, covered properly. Bottom line up front. Every claim sourced. Dark humor. No woo. No BS. Because "do your own research" now mostly means shopping for agreement. Season 1: Adult ADHD. Orientation, not medical advice.
+One subject a season, covered properly. Bottom line up front. Every claim sourced. No woo. No BS. Because "do your own research" now mostly means hunting for agreement in an echo chamber. Season 1: Adult ADHD. Orientation, not medical advice.
 ```
+
+> **Why the medium form drops "Dark humor."** At 255 characters you can keep either
+> that phrase or the full `"do your own research"` quote — not both, and not with
+> the medical-advice disclaimer as well. "Dark humor" survives in the 79- and
+> 134-char forms, which are the most-seen surfaces; the research critique is the
+> show's differentiator and only has room to exist in the medium and long forms.
+> Shortening the quote to `"research"` was rejected — it breaks the reference that
+> makes the line land.
 
 **Four lengths exist, and they are not interchangeable.** Measured against each
 platform's own counter or stated limit:
@@ -418,8 +426,8 @@ platform's own counter or stated limit:
 | --- | --- | --- |
 | TikTok short | 79 | TikTok (~80) |
 | Standard | 134 | X (160), Instagram (150) |
-| Medium | 248 | Facebook Intro, Bluesky (~255) |
-| Long | 409 | YouTube (1000) |
+| Medium | 242 | Facebook Intro, Bluesky (~255) |
+| Long | 439 | YouTube (1000) |
 
 ### 5.4 Profile art
 
