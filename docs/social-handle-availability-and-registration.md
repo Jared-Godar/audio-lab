@@ -784,6 +784,34 @@ rate-limited handle. The runbook already said to set the username first for exac
 this reason; the failure was that TikTok consumed the allowance from a *different*
 field than the one being edited.
 
+### C.1 Facebook cover — MEASURED 2026-07-31, needs its own composition
+
+**Facebook centres the Page profile picture OVER the cover.** Observed directly in
+the Page-creation desktop preview: a centred wordmark disappears behind the avatar,
+and content near the right edge is pushed off. This differs from every other platform
+built so far:
+
+| Platform | Avatar position relative to banner |
+| --- | --- |
+| X | overlaps **bottom-left** |
+| YouTube | **no overlap** — avatar sits below the banner |
+| **Facebook** | **overlaps dead centre**, and the avatar is large |
+
+So the Facebook cover cannot reuse a centred lockup. Its content must live in the
+**left and right thirds**, straddling the central avatar — a genuinely different
+composition, not a re-crop of the X or YouTube banner.
+
+**MVP state:** the YouTube banner (2048 × 1152) was used as a placeholder by
+maintainer decision, accepting the collision. The X header (1500 × 500, 3.00:1) is
+the closest existing fit to Facebook's published 820 × 312 (2.63:1) — smallest ratio
+delta of any tracked asset — but it too centres its lockup, so it collides as well.
+
+**Not measured, and needed before building:** Facebook's uploader states **no
+dimensions at all** — it opens a file picker with no guidance. So the 820 × 312
+figure is published-only, unverified. Before building a real cover, screenshot the
+live Page on **desktop and phone**, solve the scale from a known element, and record
+the actual visible area *and* the avatar's occluded region.
+
 ### G. Launch day — 2026-08-06, 09:00 EDT
 
 One coordinated swap, all surfaces:
