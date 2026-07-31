@@ -298,11 +298,20 @@ on **2026-07-31**; they are recorded here rather than left as prompts.
    and wherever registration asks for a contact address, in preference to `hello@`
    (public-facing) or `jared@` (personal).
 
-   This is the **third** address on the domain, which is exactly where ADR 0011
-   records its reversal condition — *"wanting more than roughly three addresses"*.
-   The decision does not break ADR 0011, but it spends the last slot: a **fourth**
-   address is the trigger to revisit the mail platform, not a routine addition.
-   Flagged here so a future session meets that boundary knowingly.
+   **Measured 2026-07-31 in the iCloud+ Custom Email Domain panel: "Using 3 of 3
+   email addresses."** The three are `jared@`, `hello@` and `social@`.
+
+   That changes the character of ADR 0011's reversal condition. The ADR wrote it
+   as *"wanting more than roughly three addresses"* — a judgement call with implied
+   slack. It is in fact a **hard platform cap of three, now fully consumed**. A
+   fourth address is not "approaching" the boundary; it is **impossible without
+   changing mail platform**.
+
+   So anything that would need one — `press@`, a newsletter sending address, a
+   per-platform recovery alias — does not approach ADR 0011's reversal condition,
+   it **triggers** it. Recorded precisely because a future session reading
+   "roughly three" would reasonably assume there is room, and there is none.
+   ADR 0011 should be annotated with this measurement.
 
 2. **2FA — TOTP stored in 1Password. No SMS on any account.** SIM-swap is the standard
    takeover route for brand accounts, and several of these platforms will accept an
@@ -537,6 +546,7 @@ Issue #111 was closed on merge of the research PR. The execution half is tracked
 | 2026-07-31 | Google Voice is declined for signup verification (VoIP), accepted for a public site contact number; never hosted on the YouTube Google account | § 5.2.2 |
 | 2026-07-31 | Where a platform forces a phone, verify then remove it as a login factor once TOTP is on | § 5.2.2 |
 | 2026-07-31 | X is registered via the **mobile app** with `social@toldstraight.com`; web signup and SSO coupling both declined | § 5.0 |
+| 2026-07-31 | iCloud+ Custom Email Domain measured at **"Using 3 of 3"** — ADR 0011's "roughly three addresses" is a HARD CAP, now full; a 4th address triggers its reversal, not approaches it | § 5.2 |
 | 2026-07-31 | Avatar is **variant A (ring)**, approved from a true-48px comparison; the 512 maskable favicon is declined for circular slots (9.96% inset, needs 14.64%) | § 5.4 |
 
 ## 8. 1Password inventory
