@@ -3,6 +3,11 @@
 > **Revision history** — newest first. This doc is **rewritten in place** as blockers
 > surface during real deploys, so the top entry tells you at a glance how current it is.
 >
+> **2026-07-31 (later still) — §6 is now a real procedure.** The DNS cutover template work is
+> done (`infra/dns.yaml`), so §6 replaced its "here is what the future PR will do" placeholder
+> with the actual change-set commands, the two-row expectation to check before executing, and
+> the five mail records that must NOT appear in that change-set.
+>
 > **2026-07-31 (later) — corrected after the first live deploy.** The stack deployed clean
 > and the page is verified live at the CloudFront domain. Two changes: the claim that Adobe
 > Fonts needs a **domain allowlist was wrong** and is removed (there is no such requirement —
@@ -162,25 +167,102 @@ Open the `DistributionDomainName` value in a browser. Check:
 - [ ] HTTPS with no certificate warning
 - [ ] The signup form is expected to fail here until DNS cutover (see the top of this doc)
 
-## 6. DNS cutover — a SEPARATE PR
+## 6. DNS cutover — the last step, and the only mail-critical one
 
-Not done here, on purpose. Pointing the apex at CloudFront means editing `infra/dns.yaml`,
-which also carries SPF, the Apple DKIM delegation, DMARC `p=reject`, and CAA. Those records
-keep your mail working and deserve their own change-set review, not a footnote to a website
-change.
+This edits the **DNS stack** (`toldstraight-dns`), not the site stack. That template also
+carries SPF, the Apple DKIM delegation, DMARC `p=reject` with strict alignment, and CAA — the
+records that keep your mail working. **Deploy it by change-set you read before executing.**
+Never `deploy` this stack straight through.
 
-That PR will:
+`infra/dns.yaml` is already updated for this (the template work is done). Three things changed:
 
-1. Replace `ApexSiteRecord` (currently `Type: A` with a literal `ResourceRecords` IP) with an
-   `AliasTarget` block — apex CNAMEs are invalid DNS, so an alias A record is the only way to
-   point a bare domain at CloudFront, which has no stable IP.
-2. Use `AliasTarget.HostedZoneId: Z2FDTNDATAQYW2` — CloudFront's fixed constant, **not** this
-   account's zone id. The stack outputs it as `AliasHostedZoneId` so it is not retyped from
-   memory.
-3. Add a `www` alias record.
-4. Deploy with `DeploySiteRecords=true` via a reviewed change-set.
+1. **`ApexSiteRecord` is now an alias A record.** It used to be `Type: A` with a literal
+   `ResourceRecords` IP. CloudFront has no stable IP, and apex CNAMEs are invalid DNS
+   (RFC 1034), so a Route 53 alias A record is the only construct that satisfies both.
+2. **`WwwSiteRecord` is new.** The certificate and the distribution both cover `www`, but no
+   record existed for it, so it would simply not have resolved.
+3. **`VoteSiteRecord` has its own gate now (`DeployVoteRecord`).** It used to share
+   `DeploySiteRecords`, which meant turning the website on *also* tried to create
+   `vote.<domain>` — with an empty `VoteTarget`, producing an invalid RecordSet, a
+   `CREATE_FAILED`, and a rollback of your mail stack. It stays `false`.
 
-After that, re-test the signup form on the real origin.
+Alias records use `Z2FDTNDATAQYW2`, CloudFront's own fixed hosted-zone id — the same in every
+account, and **not** this domain's zone. The site stack emits it as `AliasHostedZoneId` so it
+never has to be retyped.
+
+### 6a. Create the change-set (this changes nothing yet)
+
+```fish
+cd ~/Code/audio-lab; and git checkout main; and git pull
+
+set DISTDOMAIN (aws cloudformation describe-stacks --stack-name toldstraight-site \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Stacks[0].Outputs[?OutputKey==`DistributionDomainName`].OutputValue' --output text)
+echo "distribution: $DISTDOMAIN"
+
+aws cloudformation create-change-set \
+    --stack-name toldstraight-dns \
+    --change-set-name site-cutover \
+    --template-body file://infra/dns.yaml \
+    --parameters \
+        ParameterKey=HostedZoneId,UsePreviousValue=true \
+        ParameterKey=DomainName,UsePreviousValue=true \
+        ParameterKey=DeploySiteRecords,ParameterValue=true \
+        ParameterKey=SiteDistributionDomain,ParameterValue=$DISTDOMAIN \
+        ParameterKey=DeployVoteRecord,ParameterValue=false \
+        ParameterKey=VoteTarget,ParameterValue= \
+    --region us-east-1 --profile audio-lab-admin
+```
+
+### 6b. Read it before executing
+
+```fish
+aws cloudformation describe-change-set \
+    --stack-name toldstraight-dns --change-set-name site-cutover \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Changes[].ResourceChange.{Action:Action,Resource:LogicalResourceId,Replace:Replacement}' \
+    --output table
+```
+
+**Expect exactly two rows, both `Add`:** `ApexSiteRecord` and `WwwSiteRecord`.
+
+**Stop and re-read if you see anything else** — in particular any `Modify` or `Remove` against
+`SpfRecord`, `DkimRecord`, `DmarcRecord`, `CaaRecord`, or `NullMxRecord`. Those five are
+byte-identical in the template and must not appear in the change-set at all.
+
+### 6c. Execute
+
+```fish
+aws cloudformation execute-change-set \
+    --stack-name toldstraight-dns --change-set-name site-cutover \
+    --region us-east-1 --profile audio-lab-admin
+aws cloudformation wait stack-update-complete \
+    --stack-name toldstraight-dns --region us-east-1 --profile audio-lab-admin
+```
+
+### 6d. Verify
+
+Alias records resolve almost immediately — there is no TTL to wait out on the record itself,
+though a previously cached NXDOMAIN can linger briefly.
+
+```fish
+dig +short toldstraight.com
+dig +short www.toldstraight.com
+curl -sI https://toldstraight.com/ | head -1
+```
+
+Then in a browser at `https://toldstraight.com`:
+
+- [ ] Page loads over HTTPS with no certificate warning
+- [ ] **The signup form now works** — submit a real address you control and confirm:
+
+```fish
+aws sesv2 get-contact --contact-list-name toldstraight-audience \
+    --email-address you@example.com --region us-east-1 --profile audio-lab-admin
+```
+
+- [ ] Confirm the mail path still works — send yourself a message at `hello@toldstraight.com`.
+      Nothing in this change touches it, but it costs one minute to prove.
 
 ---
 
