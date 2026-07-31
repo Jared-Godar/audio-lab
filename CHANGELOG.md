@@ -145,6 +145,24 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Relabelled the cast cards and started correcting the roster's demographic skew (#167).** The
+  roster read as four white men and one white woman; the first person outside the project to see the
+  Coming Soon page had exactly that as their first impression. This is the MVP slice of the
+  correction, and it is **forward-only — no existing portrait is reworked.** Card labels drop episode
+  numbers for subject-matter descriptors (`Clinician · Ep.03` → `Clinical Practice`, `Expert · Ep.02`
+  → `Research Methods`, `Expert Co-host · Ep.01` → `Research · Lived Experience`), which also stops
+  the grid repeating the word "Expert" once it holds eight cards. Jared is pinned top-left and the
+  rest re-ordered away from episode sequence. `episodes/cast/portraits/manifest.json` gains a
+  `demographics` block per entry — gender, Census-mappable `race_ethnicity`, `census_label`,
+  `origin_country`, `age_band` — back-populated for all five existing characters, plus a documented
+  schema. **The real person on the roster is deliberately left unclassified for race**: that is the
+  maintainer's to self-identify, not mine to infer. New `docs/cast-expansion-167.md` specifies four
+  new characters (three women, one man; weighted toward the groups the roster lacks) with backstory
+  stubs, demographics, and ready-to-run Gemini prompts for both the portraits and an updated
+  eight-person hero — the maintainer generates the images, as with every cast portrait. This is a
+  maintainer design choice recorded in the repo and the tooling and **never surfaced on the site, in
+  show notes, on air, or on social media.** Advances #167; does not close it.
+
 - **Put the compliance position at the top of the privacy page and under the signup form (#165).**
   The transfer and rights detail added earlier was accurate but buried — a reader had to reach the
   middle of the page to learn anything reassuring. The policy now opens with a **compliance badge**
