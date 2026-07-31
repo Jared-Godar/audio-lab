@@ -192,7 +192,15 @@ Measured against the platforms' own help pages, read 2026-07-31:
   lowercase-`a`–`z`-only string with no separators satisfies the strictest rule
   actually measured, so any platform at least as permissive as X accepts it.
 
-## 4. Recommendation
+## 4. Decision
+
+> **Decided by the maintainer, 2026-07-31: `toldstraight` across the board.** The
+> fallbacks below are retained only as the record of what was considered and why —
+> they are not in play unless a signup picker rejects the primary.
+>
+> Re-verified live at **2026-07-31 14:25 UTC**, all controls passing: `toldstraight`
+> shows no public profile on any of the six surfaces. Still subject to § 1 — the
+> signup picker remains the authoritative check.
 
 **Primary: `toldstraight`** — identical on all six surfaces:
 
@@ -240,20 +248,41 @@ Register in one sitting if possible. If staged, go **X → Instagram → TikTok 
 YouTube → Facebook → Bluesky**: X and Instagram carry the highest squatting traffic
 and the least forgiving reclaim process, and Instagram also fixes the Threads handle.
 
-### 5.2 Decide these three things first
+### 5.2 Decisions on record
 
-1. **Recovery address.** ADR 0011 puts the mailbox on iCloud+ Custom Email Domain and
-   records its reversal condition as *"wanting more than roughly three addresses."*
-   `hello@toldstraight.com` and `jared@toldstraight.com` already exist, so adding a
-   dedicated `social@toldstraight.com` lands **exactly on that boundary** — it does
-   not break ADR 0011, but it consumes the last slot before the calculus flips.
-   Either use it deliberately or point all six accounts at `hello@`. **Maintainer's
-   call; not assumed here.**
-2. **2FA method.** Prefer **TOTP in the password manager** over SMS — SIM-swap is the
-   standard takeover route for brand accounts, and several of these platforms allow
-   SMS-only recovery to reset a password. Record which method each account uses.
-3. **Where credentials live.** The password manager, never this repo and never a
-   file in it. The repo records *the location only* — see § 5.5.
+All three were open questions when this doc first landed. The maintainer settled them
+on **2026-07-31**; they are recorded here rather than left as prompts.
+
+1. **Recovery address — `social@toldstraight.com`.** Created on iCloud+ Custom Email
+   Domain and live as of 2026-07-31. Used as the recovery address on all six accounts
+   and wherever registration asks for a contact address, in preference to `hello@`
+   (public-facing) or `jared@` (personal).
+
+   This is the **third** address on the domain, which is exactly where ADR 0011
+   records its reversal condition — *"wanting more than roughly three addresses"*.
+   The decision does not break ADR 0011, but it spends the last slot: a **fourth**
+   address is the trigger to revisit the mail platform, not a routine addition.
+   Flagged here so a future session meets that boundary knowingly.
+
+2. **2FA — TOTP stored in 1Password. No SMS on any account.** SIM-swap is the standard
+   takeover route for brand accounts, and several of these platforms will accept an
+   SMS-only recovery to reset a password, which makes a phone number a bypass of the
+   very factor it appears to add. Where a platform *forces* a phone number for signup,
+   the goal is to add TOTP and then remove SMS as a *login factor* — and if a platform
+   refuses to let SMS be removed, record that as an accepted risk with the reason
+   rather than leaving it unremarked.
+
+3. **Credentials — 1Password, CLI-first (`op`).** Never this repository, never a file
+   in it, never a shell variable. The repo records the item title only — see § 5.5.
+
+### 5.2.1 What the agent cannot do here
+
+Stated plainly so the division of labour in a live walkthrough is not ambiguous:
+**creating accounts and entering passwords or 2FA codes into a site are actions the
+agent does not perform**, under any authorization. In a live session the agent
+navigates, reads page state back, re-runs the § 2 checkers, and confirms what the
+platform actually accepted; the maintainer performs every signup, password entry, and
+TOTP capture. That split is not a limitation of this runbook — it is the runbook.
 
 ### 5.3 Copy to use
 
@@ -297,13 +326,17 @@ widest brand assets are the 1200×630 OG cards and the 1280×400 README headers 
 YouTube, and Facebook each want a different one). Rather than stretch an asset built
 for a different frame:
 
-- Read the required pixel dimensions **from each platform's own uploader** at
-  registration — they are stated in the UI and change without notice, so a figure
-  written down here would go stale silently.
-- Then file a follow-up to author a banner builder in `tools/brand/` per the
-  established workflow: the agent **authors the Illustrator JSX**, the maintainer
-  runs it where the licensed faces are installed. The agent does not render or commit
-  brand PNGs it produced itself.
+1. **Record** the required pixel dimensions **from each platform's own uploader**
+   during registration, into this doc. They are stated in the UI and change without
+   notice, so a figure written down in advance would go stale silently — but a figure
+   *read from the live uploader and dated* is a measurement.
+2. **Then** author a banner builder in `tools/brand/` against those recorded numbers,
+   per the established workflow: the agent **authors the Illustrator JSX**, the
+   maintainer runs it where the licensed faces are installed. The agent does not
+   render or commit brand PNGs it produced itself.
+
+The order matters and is easy to get backwards: the builder cannot be written before
+step 1, because it has no target frame until the uploader states one.
 
 Launching with an avatar and no banner is fine and reversible. Launching with a
 distorted banner is the kind of thing that ends up in a screenshot.
@@ -312,15 +345,61 @@ Note also that the Coming Soon assets referenced by ADR 0019 currently live in
 `artifacts/coming-soon-prototype/`, which is **gitignored** — they land with #128 and
 are not available to a fresh clone until then.
 
-### 5.5 After registering — record, don't store
+### 5.5 Credentials — 1Password (`op`), and the one thing not to do with it
+
+Verified against **`op` 2.38.1** on this machine, signed in to `my.1password.com`.
+Every command below was read from `op`'s own help output, not recalled.
+
+**Create the item, letting 1Password generate the password.** The password is never
+typed, never displayed, and never enters a shell argument:
+
+```fish
+op item create --category=login \
+  --title 'Told Straight — X' \
+  --vault 'Told Straight' \
+  --url 'https://x.com/' \
+  --generate-password='letters,digits,symbols,32' \
+  username=social@toldstraight.com
+```
+
+Add `--dry-run` first to preview the resulting item without writing it.
+
+**Retrieve a login code at sign-in time:**
+
+```fish
+op item get 'Told Straight — X' --otp
+op read "op://Told Straight/Told Straight — X/one-time password?attribute=otp"
+```
+
+#### Do not put the TOTP seed on the command line
+
+`op` supports an `[otp]` assignment —
+`'Section.Field[otp]=otpauth://totp/…?secret=…'` — and **this runbook declines to use
+it.** `op item create --help` carries the reason in its own words: *"Command arguments
+get logged in your command history, and can be visible to other processes on your
+machine."* A TOTP seed is a permanent second factor; putting it in shell history
+undoes the reason for choosing TOTP over SMS in the first place. The documented
+alternative — a JSON template file — trades shell history for a plaintext seed on
+disk, so it is no better here.
+
+**Instead, capture the TOTP in the 1Password app or browser extension** at the moment
+the platform shows its QR code during 2FA setup: scan or "copy setup key" straight
+into the item's one-time-password field. The seed goes from the platform to 1Password
+without passing through a terminal, a file, or an agent's context.
+
+Retrieval by CLI afterwards (`op item get … --otp`) is fine and is the intended
+day-to-day path — reading a rotating 6-digit code is not the same exposure as writing
+the seed that generates them.
+
+### 5.6 After registering — record, don't store
 
 In the repo, record only:
 
 - the handle actually obtained per platform (if any fallback was needed, and why),
 - the recovery address used,
-- the 2FA method per account,
-- **the name of the password-manager entry** holding the credentials — never the
-  credentials, never a recovery code, never a TOTP seed.
+- the 2FA method per account, and any platform that refused to let SMS be removed,
+- **the 1Password item title** holding the credentials — never the credentials, never
+  a recovery code, never a TOTP seed.
 
 Then re-run § 2's checkers against the registered handles: they should now report
 **taken**. That is the negative test that the registration actually took effect —
@@ -332,11 +411,22 @@ This document delivers the first acceptance criterion and prepares the rest. Ope
 
 | Acceptance criterion | Status |
 | --- | --- |
-| Handle-availability research + recommended consistent handle | **done** (§ 3, § 4) |
+| Handle-availability research + chosen consistent handle | **done** (§ 3, § 4) |
+| Handle decision, recovery address, 2FA method, credential store | **done** (§ 4, § 5.2) |
 | Accounts registered on the five platforms | **owed — maintainer** |
-| Profile art applied from the brand suite | **owed** — avatar ready; banners are a gap (§ 5.4) |
-| Credentials stored securely, storage location recorded | **owed — maintainer** (§ 5.5) |
+| Profile art applied from the brand suite | **owed** — avatar ready; banners sequenced in § 5.4 |
+| Credentials in 1Password, item titles recorded | **owed — maintainer** (§ 5.5, § 5.6) |
 | CHANGELOG entry | done with this change |
 
-Issue #111 therefore stays **open**. Whether the remaining four become a sub-issue or
-stay on #111 is the maintainer's call, not a reclassification made here.
+Issue #111 was closed on merge of the research PR. The execution half is tracked in
+**#154**, which carries the owed rows above.
+
+## 7. Decision log
+
+| Date | Decision | Where it binds |
+| --- | --- | --- |
+| 2026-07-31 | Handle is `toldstraight` on all six surfaces; fallbacks retired to record-only | § 4 |
+| 2026-07-31 | Recovery address is `social@toldstraight.com` (live on iCloud+); spends ADR 0011's third and last slot | § 5.2 |
+| 2026-07-31 | 2FA is TOTP in 1Password; no SMS as a login factor on any account | § 5.2 |
+| 2026-07-31 | Credentials live in 1Password, CLI-first (`op` 2.38.1); the repo records item titles only | § 5.5 |
+| 2026-07-31 | TOTP seeds are captured in the 1Password app, never via an `op` command-line assignment | § 5.5 |
