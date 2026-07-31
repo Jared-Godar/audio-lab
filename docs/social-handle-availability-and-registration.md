@@ -578,6 +578,9 @@ Issue #111 was closed on merge of the research PR. The execution half is tracked
 | 2026-07-31 | Google Voice is declined for signup verification (VoIP), accepted for a public site contact number; never hosted on the YouTube Google account | § 5.2.2 |
 | 2026-07-31 | Where a platform forces a phone, verify then remove it as a login factor once TOTP is on | § 5.2.2 |
 | 2026-07-31 | X is registered via the **mobile app** with `social@toldstraight.com`; web signup and SSO coupling both declined | § 5.0 |
+| 2026-07-31 | **YouTube: Brand Account under the existing Google login** — no new Google account, no new phone verification, transferable ownership later | § 5.1 |
+| 2026-07-31 | **Bluesky: claim `toldstraight.bsky.social` first**; the `@toldstraight.com` handle needs an `_atproto` TXT record and must go through `infra/dns.yaml` by change-set, never a hand-made console record | § 5.1 |
+| 2026-07-31 | TikTok signup **blocked** — "Maximum number of attempts reached" with no code ever sent; suspected bot-detection on the automated browser tab. Retry in the TikTok app | § 5.1 |
 | 2026-07-31 | Bio voice standardized: **US spelling, sentence fragments, "No BS", title-case "Adult ADHD"**. X carries the OLD wording — second-pass update owed. Repo is uniformly British "humour" (README, Ep01 show-notes) — sweep undecided | § 5.3 |
 | 2026-07-31 | iCloud+ Custom Email Domain measured at **"Using 3 of 3"** — ADR 0011's "roughly three addresses" is a HARD CAP, now full; a 4th address triggers its reversal, not approaches it | § 5.2 |
 | 2026-07-31 | Avatar is **variant A (ring)**, approved from a true-48px comparison; the 512 maskable favicon is declined for circular slots (9.96% inset, needs 14.64%) | § 5.4 |
