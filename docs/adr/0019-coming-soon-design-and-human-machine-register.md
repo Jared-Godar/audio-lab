@@ -80,6 +80,46 @@ realized prototype is `artifacts/coming-soon-prototype/index.html`, built on the
 - **Disclosure invariant preserved:** the synthetic-likeness disclosure (#60 §5) is not weakened —
   it moves from footnote to identity (the medium) **plus** the retained text `.ts-caution`.
 
+## Amendment — 2026-07-31 (#128): disclosure diction, not disclosure design
+
+Recorded when the page shipped. **The presentation this ADR decided is unchanged and reaffirmed** —
+photoreal host beside ligne-claire cast in a shared frame, the medium carrying the disclosure to
+sighted viewers, a retained text disclosure for everyone else, and one signature composite as the
+showpiece. Only the **words** moved.
+
+Maintainer, reviewing the built page: the "Synthetic Expert / Synthetic Likeness" phrasing was
+approved in *presentation and handling* but rejected as a turn of phrase. Three problems were named:
+"synthetic" is a materials word (synthetic fabric, synthetic rubber) that reads as a euphemism when
+applied to a person; "likeness" is rights-clearance legalese rather than something a reader thinks
+in; and "Not Real" is vague — not a real expert, not a real photo, not a real name?
+
+The replacement pairs a **records-annotation stamp** with a **plain-mechanism strip**, so the two
+labels answer different questions instead of both gesturing at the same one:
+
+| Surface | Was | Now |
+| --- | --- | --- |
+| Corner stamp (synthetic cards) | `Not Real` | `No Such Person` (two lines) |
+| Card strip (synthetic cards) | `Synthetic Likeness` | `AI-Generated · Voice & Face` |
+| Card strip (human card) | `Real · Human Host` | `Real Person · Host` |
+| Section title | `The Cast` | `Meet the Team` |
+| Section subtitle | `One real host · a cast of synthetic experts who say so` | `One real host asking the tough questions / A panel of AI-generated experts with the no BS answers (with receipts and citations)` |
+| Caution heading | `Caution — Synthetic Voices & Likenesses` | `Caution — AI-Generated Voices & Faces` |
+
+The stamp answers *is this someone?* — the ethical disclosure. The strip answers *where did this come
+from?* — the mechanism, and it names the **voice** explicitly, which matters more on a podcast than
+on a static page. The human card gains an explicit positive counterpart (`Real Person · Host`) rather
+than being marked only by the *absence* of a stamp. Alt text moved in step, so the disclosure reaches
+screen readers in the same vocabulary. No occurrence of "synthetic" remains on the page.
+
+The subtitle also stopped carrying disclosure duty. "A cast of synthetic experts who say so" was a
+disclosure note wearing a tagline's clothes; the cards now carry disclosure unambiguously, which
+frees the subtitle to sell the premise. "No BS" is a deliberate compromise over stronger wording —
+it holds the register while avoiding the explicit-content flags that podcast directories and ad
+platforms apply, since that line is likely to be reused in a show description later.
+
+This amendment changes wording only. If the *presentation* decision is ever revisited, the reversal
+condition below still governs.
+
 ## Reversal condition
 
 Revert to ADR 0018's all-cartoon cast (drop the photoreal register) if the photoreal-human /

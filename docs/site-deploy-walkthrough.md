@@ -125,6 +125,10 @@ hours waiting on a record nobody added.
 
 ## 3. Upload the site content
 
+> **Merging a PR that changes `site/` does not change the site.** The bucket is a separate
+> deploy step, and it is easy to skip precisely because merging feels like shipping. After any
+> merge touching `site/`: `git pull`, then re-run this step **and** the invalidation below.
+
 ```fish
 set BUCKET (aws cloudformation describe-stacks --stack-name toldstraight-site \
     --region us-east-1 --profile audio-lab-admin \

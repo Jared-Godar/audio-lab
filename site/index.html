@@ -107,11 +107,16 @@ section{padding:3.4rem 0}
 .portrait img{width:100%;height:100%;object-fit:cover;display:block}
 .fileno{display:none}   /* file numbers removed per feedback — insider jargon */
 /* NOT REAL — now a small CORNER stamp, off the face */
+/* Two-line stamp: "NO SUCH PERSON" does not fit on one line inside a 180px card, and
+   stacking it reads more like an actual rubber stamp than shrinking the type would. */
 .corner-stamp{position:absolute;top:.55rem;right:.55rem;transform:rotate(-8deg);
   border:2px solid #B02A28;color:#B02A28;font-family:var(--ts-font-display);font-weight:700;
-  letter-spacing:.07em;text-transform:uppercase;padding:.12rem .45rem;font-size:.82rem;
-  background:rgba(237,233,224,.86)}
-.strip{position:absolute;inset:auto 0 0 0;background:var(--ts-ink);color:var(--ts-paper);font-family:var(--ts-font-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:.35rem}
+  letter-spacing:.07em;text-transform:uppercase;padding:.18rem .45rem;font-size:.82rem;
+  line-height:1.02;text-align:center;background:rgba(237,233,224,.86)}
+/* line-height tightened because the AI-generated strip is deliberately two lines
+   (an unforced wrap broke it mid-phrase as "...VOICE &" / "FACE"). The strip is
+   absolutely positioned over the portrait, so extra height costs no card layout. */
+.strip{position:absolute;inset:auto 0 0 0;background:var(--ts-ink);color:var(--ts-paper);font-family:var(--ts-font-mono);font-size:.7rem;letter-spacing:.12em;line-height:1.35;text-transform:uppercase;text-align:center;padding:.35rem}
 .card.human .portrait{border-color:var(--ts-red)}
 .card.human .portrait img{filter:saturate(.96) contrast(1.02)}
 .card.human .strip{background:var(--ts-red);color:#fff}
@@ -121,7 +126,13 @@ section{padding:3.4rem 0}
 
 /* ---- Hero band ---- */
 .hero{margin-top:1rem;border:2px solid var(--ts-ink)}
-.hero img{width:100%;display:block}
+/* height:auto is load-bearing, not tidiness. The <img> carries intrinsic width/height
+   attributes (1800x1004) so the browser can reserve space before the file arrives. With
+   `width:100%` alone, CSS overrides the width but the HEIGHT ATTRIBUTE still applies
+   literally — the hero rendered 947x1004 instead of 947x528, squashed to a 0.94 ratio
+   instead of 1.79. Removing height:auto reintroduces that. The cast portraits are immune
+   because .portrait img sets height:100% inside an aspect-ratio:1/1 box. */
+.hero img{width:100%;height:auto;display:block}
 .hero .cap{display:flex;justify-content:space-between;gap:1rem;padding:.7rem .9rem;border-top:2px solid var(--ts-ink);font-family:var(--ts-font-mono);font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ts-record)}
 
 /* ---- Notify ---- */
@@ -191,10 +202,11 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
   <section>
     <div class="sechead">
       <div>
-        <div class="sectitle">The Cast</div>
-        <div class="record subtitle">One real host · a cast of synthetic experts who say so</div>
+        <div class="sectitle">Meet the Team</div>
+        <!-- The right-hand "Personnel File" tag was dropped here: this subtitle is long
+             enough to need the full column width, and the two competed on one line. -->
+        <div class="record subtitle">One real host asking the tough questions<br>A panel of AI-generated experts with the no BS answers (with receipts and citations)</div>
       </div>
-      <span class="record">Personnel File</span>
     </div>
     <hr class="rule-red">
     <div class="cast">
@@ -205,7 +217,7 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
             <source srcset="assets/host.webp" type="image/webp">
             <img src="assets/host.png" alt="Jared Godar, host" width="700" height="700" loading="lazy" decoding="async">
           </picture>
-          <span class="strip">Real · Human Host</span></div>
+          <span class="strip">Real Person · Host</span></div>
         <div class="meta"><div class="name">Jared Godar</div><div class="role">Host · Creator</div></div>
       </div>
 
@@ -213,9 +225,9 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
         <div class="portrait">
           <picture>
             <source srcset="assets/owen.webp" type="image/webp">
-            <img src="assets/owen.png" alt="Owen, synthetic expert" width="520" height="520" loading="lazy" decoding="async">
+            <img src="assets/owen.png" alt="Owen, an AI-generated expert co-host" width="520" height="520" loading="lazy" decoding="async">
           </picture>
-          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
         <div class="meta"><div class="name">Owen</div><div class="role">Expert Co&#8209;host · Ep.01</div></div>
       </div>
 
@@ -223,9 +235,9 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
         <div class="portrait">
           <picture>
             <source srcset="assets/anna-sinclair.webp" type="image/webp">
-            <img src="assets/anna-sinclair.png" alt="Dr. Anna Sinclair, synthetic clinician" width="520" height="520" loading="lazy" decoding="async">
+            <img src="assets/anna-sinclair.png" alt="Dr. Anna Sinclair, an AI-generated clinician" width="520" height="520" loading="lazy" decoding="async">
           </picture>
-          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
         <div class="meta"><div class="name">Dr. Anna Sinclair</div><div class="role">Clinician · Ep.03</div></div>
       </div>
 
@@ -233,9 +245,9 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
         <div class="portrait">
           <picture>
             <source srcset="assets/michael-voss.webp" type="image/webp">
-            <img src="assets/michael-voss.png" alt="Dr. Michael Voss, synthetic expert" width="520" height="520" loading="lazy" decoding="async">
+            <img src="assets/michael-voss.png" alt="Dr. Michael Voss, an AI-generated expert" width="520" height="520" loading="lazy" decoding="async">
           </picture>
-          <span class="corner-stamp">Not Real</span><span class="strip">Synthetic Likeness</span></div>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
         <div class="meta"><div class="name">Dr. Michael Voss</div><div class="role">Expert · Ep.02</div></div>
       </div>
 
@@ -252,8 +264,8 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
            browser this page targets has supported WebP since 2020, so the
            fallback would be dead weight even if the file were committable. The
            cast portraits below are small enough to keep both formats. -->
-      <img src="assets/hero.webp" alt="The host, photographed, seated among the show's cartoon expert cast in a study." width="1800" height="1004">
-      <div class="cap"><span>The host (real) &amp; the cast (synthetic)</span><span>Told Straight / Studio</span></div>
+      <img src="assets/hero.webp" alt="The host, photographed, seated among the show's AI-generated cartoon expert cast in a study." width="1800" height="1004">
+      <div class="cap"><span>The host (real) &amp; the cast (AI-generated)</span><span>Told Straight / Studio</span></div>
     </div>
   </section>
 
@@ -280,10 +292,10 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
     <p class="record notenote privacylink">By submitting you consent to us storing your address for this purpose &mdash; see the <a href="/privacy.html">Privacy Policy</a>.</p>
 
     <div class="caution">
-      <h3>Caution — Synthetic Voices &amp; Likenesses</h3>
+      <h3>Caution — AI-Generated Voices &amp; Faces</h3>
       <ol>
         <li>The host, Jared Godar, is a real person. His voice and likeness are his own.</li>
-        <li>Every other cast member is <b>synthetic</b> — AI-generated voices and faces, not real people. Each says so, in its own voice, on the show.</li>
+        <li>Every other cast member is <b>AI-generated</b> — an invented voice and face, not a real person. Each says so, in its own voice, on the show.</li>
         <li>Told Straight is researched general information, not medical, psychological, or legal advice.</li>
       </ol>
     </div>
