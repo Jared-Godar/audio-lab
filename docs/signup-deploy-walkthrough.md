@@ -4,8 +4,12 @@ The manual steps behind `infra/signup.yaml` (#140) and the sending work (#144). 
 authors the template; **you deploy** (billable AWS) and do the console-only steps here.
 Collection works after step 3; sending needs steps 4–6.
 
-Commands are Fish. Everything runs against the `default` profile / the account holding the
-Route 53 zone, unless you have decided on a separate account (#114).
+Commands are Fish. Everything runs against the SSO profile **`audio-lab`** in Region
+**`us-east-1`** — the account holding the Route 53 zone (`448795057993`), unless you have
+decided on a separate account (#114). This machine is SSO-only: if a command returns an
+auth or token error, refresh first with `aws sso login --profile audio-lab`. (The browser
+access portal for console login is `https://d-906679548d.awsapps.com/start` — see
+`infra/README.md`.)
 
 ## What each part gives you
 
@@ -25,7 +29,7 @@ aws cloudformation deploy \
     --template-file infra/signup.yaml \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides AllowedOrigin=https://toldstraight.com \
-    --profile default
+    --region us-east-1 --profile audio-lab
 ```
 
 `CAPABILITY_IAM` is required (the stack creates the function's execution role). To review
@@ -37,7 +41,7 @@ stack in `infra/README.md`.
 
 ```fish
 aws cloudformation describe-stacks --stack-name toldstraight-signup \
-    --query 'Stacks[0].Outputs' --profile default --output table
+    --query 'Stacks[0].Outputs' --region us-east-1 --profile audio-lab --output table
 ```
 
 Note **`SignupEndpoint`** (the Function URL) — you wire it into the site in step 3 — and the
@@ -50,7 +54,7 @@ constant in the page's script). Submit a test address, then confirm it landed:
 
 ```fish
 aws sesv2 get-contact --contact-list-name toldstraight-audience \
-    --email-address you+test@example.com --profile default
+    --email-address you+test@example.com --region us-east-1 --profile audio-lab
 ```
 
 At this point the page can **go live for signups** — nothing is sent yet, so no SES
@@ -67,7 +71,7 @@ three pairs from step 2, add a **CNAME** RecordSet to `infra/dns.yaml` (name =
 
 ```fish
 aws sesv2 get-email-identity --email-identity toldstraight.com \
-    --query 'DkimAttributes.Status' --profile default
+    --query 'DkimAttributes.Status' --region us-east-1 --profile audio-lab
 ```
 
 Expect `SUCCESS`. Adding SES DKIM does not disturb inbound mail (still iCloud+) or the
@@ -90,6 +94,6 @@ show `dkim=pass · spf=pass · dmarc=pass` from `hello@toldstraight.com`.
 
 ## Teardown / rollback
 
-`aws cloudformation delete-stack --stack-name toldstraight-signup --profile default`
+`aws cloudformation delete-stack --stack-name toldstraight-signup --region us-east-1 --profile audio-lab`
 removes the function, its URL, the role, and the log group. **It also deletes the SES
 contact list and every address in it** — export the list first if you need to keep it.

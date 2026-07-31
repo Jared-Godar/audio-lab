@@ -640,8 +640,19 @@ hold-for-the-maintainer action per `AGENTS.md`).
 aws configure sso
 ```
 
-Answer the wizard (values below are this account's; the start URL is the org's access
-portal, of the form `https://d-xxxxxxxxxx.awsapps.com/start`):
+Answer the wizard (values below are this account's). Two different URLs are involved, and
+confusing them wastes time:
+
+- **Browser access portal** (console login): **`https://d-906679548d.awsapps.com/start`**
+  (`d-906679548d` is this org's Identity Store id). Bookmark this — it is the page you sign
+  in on to reach the AWS Management Console.
+- **CLI start URL** that `aws configure sso` stores: the issuer form
+  `https://identitycenter.amazonaws.com/ssoins-7223329d63d09094`. This is **not** a web
+  page — opening it in a browser shows a blank white page. It is used only by the device
+  authorization flow.
+
+The `d-xxxxxxxxxx.awsapps.com/start` shown below is the generic placeholder form; the real
+value for this account is the portal URL above.
 
 ```text
 SSO session name:            audio-lab
