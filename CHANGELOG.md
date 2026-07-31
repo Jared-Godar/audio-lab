@@ -26,6 +26,18 @@ visible in the diff and would otherwise evaporate.
   bar — so they get filed before the audit runs. Parent of #110, which executes the
   checklist and records a go/no-go; this PR defines the gate, it does not run it.
 
+- **Automated the Project #8 board lifecycle (#115, #121).** New advisory workflow
+  `.github/workflows/project-automation.yml` + `scripts/project_automation.py`: a newly-opened
+  issue is added to Project #8 with Status=Todo (#115), and when a PR opens, each issue it
+  closes is flipped to Status=In Progress (#121) — linked issues read from the PR's
+  `closingIssuesReferences`, statuses set via the Projects v2 GraphQL API. The → Done
+  transition stays GitHub's built-in (confirm it's enabled under Project #8 → ⋯ → Workflows).
+  **One-time maintainer setup owed:** writing a *user-owned* Project field from Actions needs a
+  token with `project` scope — the default `GITHUB_TOKEN` cannot — so the workflow reads a
+  `PROJECT_AUTOMATION_TOKEN` secret; until it exists the script no-ops gracefully (advisory,
+  never a red X). Logic validated locally in `--dry-run` (add→Todo, PR→In Progress,
+  no-linked-issue no-op, token-absent no-op); the live Actions run is pending the token.
+
 ### Fixed
 
 - **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as

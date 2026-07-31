@@ -1,0 +1,74 @@
+name: Project automation
+
+# Board lifecycle automation for Project #8 (issues #115, #121). ADVISORY — this
+# workflow must NEVER block a merge; it only moves board items. It is deliberately
+# not a required status check.
+#
+# Lifecycle it owns:
+#   - issue opened/reopened  -> add to Project #8, Status = Todo            (#115)
+#   - linked PR opened       -> each closing issue's Status = In Progress   (#121)
+#   - PR merged / issue closed -> Status = Done                (GitHub BUILT-IN;
+#       confirm enabled under Project #8 -> ... -> Workflows. This file does NOT
+#       reimplement Done.)
+#
+# TOKEN — the one-time maintainer setup this needs:
+#   Setting a field on a USER-owned Project v2 requires a token with `project`
+#   scope. Actions' default GITHUB_TOKEN does NOT have it, so this workflow reads
+#   a repo secret PROJECT_AUTOMATION_TOKEN (a classic PAT with `project` +
+#   `read:org`, or a fine-grained PAT / GitHub App with Projects read+write).
+#   Until that secret exists the script no-ops gracefully (prints why, exits 0),
+#   so this workflow is green-and-inert rather than red. Mint the token once and
+#   store it as the secret; the automation then works forever with no per-item step.
+#
+# Note on pull_request: GitHub withholds secrets from fork-authored PRs, so on a
+# fork PR GH_TOKEN is empty and the pr-in-progress job no-ops (advisory). This is
+# a personal repo; that path is a graceful degrade, not a security concern (plain
+# `pull_request`, never `pull_request_target`, and no PR-head content is executed).
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-automation-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  add-issue-to-board:
+    name: Add issue to Project #8 (Todo)
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Add issue to board
+        # Issue number crosses in via env, never inline expression interpolation.
+        run: python3 scripts/project_automation.py add-issue --issue "$ISSUE_NUMBER"
+
+  pr-flip-in-progress:
+    name: Flip linked issues to In Progress
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Flip linked issues to In Progress
+        # PR number crosses in via env, never inline expression interpolation.
+        run: python3 scripts/project_automation.py pr-in-progress --pr "$PR_NUMBER"
