@@ -38,6 +38,19 @@ visible in the diff and would otherwise evaporate.
   never a red X). Logic validated locally in `--dry-run` (add→Todo, PR→In Progress,
   no-linked-issue no-op, token-absent no-op); the live Actions run is pending the token.
 
+- **Set up the Project #8 view set and documented it (#120).** New tracked guide
+  `docs/project-views-setup.md` covering both paths — the scriptable GraphQL mutations
+  (`createProjectV2View` / `updateProjectV2View` / `deleteProjectV2View`: name, layout, `filter`,
+  `configuration.visibleFieldIds`) and the UI-only steps (board/table group-by, roadmap dates,
+  Insights charts), with every click path verified against the live UI. Twelve views were created
+  on Project #8 (`PVT_kwHOAQEwMM4BehsR`) via `gh api graphql`: Board (Status columns), High
+  priority (`label:"priority: high"`), By milestone, Roadmap, and one filtered view per in-use
+  `area:` label (all eight, 3–35 issues each). Two corrections to the 2026-07-30 research: `filter`
+  is **not** a `createProjectV2View` input — it is update-only, so a filtered view is a
+  create-then-update; and Project #8 has no `area`/`priority` fields, so those views filter on
+  labels, not fields. Group-by, roadmap date fields, and a Status Insights chart have no API and
+  are left as documented click-steps for the maintainer.
+
 ### Fixed
 
 - **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as
