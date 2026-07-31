@@ -43,6 +43,14 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Committed six executor specs/briefings that were authored into the tracked `artifacts/specs/`
+  path but never committed (#55, #83, #84, #87, #94).** `artifacts/specs/` is a tracked path (a
+  deliberate `.gitignore` exception, like `macos-system-health`), so these are the durable spec
+  records for their issues — the #55 host-stems rails (v1 + v2 addendum), the #83/#84/#87
+  executor specs, and the #94 Phase-1 governance briefing. They had been sitting untracked in the
+  working tree across multiple sessions because post-merge closure prunes worktrees/branches, not
+  stray untracked files. Committing completes the provenance record; no content change.
+
 - **Episodes 1–3 completeness matrix (`episodes/EPISODE-COMPLETENESS.md`, #99).** An audit of
   every episode against a fixed asset checklist (script, audio, cover, chapter/exhibit art,
   transcript, show notes, metadata, distribution). Finding: content is largely complete; the
