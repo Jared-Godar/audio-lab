@@ -48,33 +48,54 @@ Parameters:
       - "true"
       - "false"
     Description: >-
-      Gate for the apex and vote site records. Leave "false" until there is a
-      real target to point at (a CloudFront distribution, load balancer, or IP).
-      Set "true" AND supply ApexTarget / VoteTarget to switch the site on.
+      Gate for the apex and www site records ONLY -- the vote record has its own
+      gate (see DeployVoteRecord). Leave "false" until the CloudFront
+      distribution exists. Set "true" AND supply SiteDistributionDomain to
+      switch the site on.
 
-  ApexTarget:
+  SiteDistributionDomain:
     Type: String
     Default: ""
     Description: >-
-      Deploy-time target for the apex A record, supplied only when
-      DeploySiteRecords is "true". An IPv4 address. Do NOT invent one. When the
-      apex should point at CloudFront, replace the ApexSiteRecord below with an
-      A-record AliasTarget block (apex CNAMEs are invalid DNS) -- CloudFront has
-      no stable IP.
+      The CloudFront distribution's domain name, e.g. d111111abcdef8.cloudfront.net
+      -- the DistributionDomainName output of the toldstraight-site stack
+      (infra/site.yaml). Supplied only when DeploySiteRecords is "true". Do NOT
+      invent one. No scheme, no trailing dot.
+
+  DeployVoteRecord:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: >-
+      Separate gate for vote.<domain>. It used to share DeploySiteRecords, which
+      meant turning the website on ALSO tried to create this record -- with an
+      empty VoteTarget, producing an invalid RecordSet, a CREATE_FAILED and a
+      rollback of the stack that carries SPF, the Apple DKIM delegation, DMARC
+      and CAA. Nothing about vote.<domain> is ready, so it stays "false" and the
+      website no longer drags it along.
 
   VoteTarget:
     Type: String
     Default: ""
     Description: >-
       Deploy-time target hostname for vote.<domain> (a CNAME), supplied only
-      when DeploySiteRecords is "true". Do NOT invent one.
+      when DeployVoteRecord is "true". Do NOT invent one.
 
 Conditions:
   # Default false: the stack deploys with security records only. Flip
-  # DeploySiteRecords to "true" (and supply the *Target params) to add the site.
+  # DeploySiteRecords to "true" (and supply SiteDistributionDomain) to add the
+  # apex and www records.
   SiteRecordsEnabled:
     Fn::Equals:
       - Ref: DeploySiteRecords
+      - "true"
+
+  # Deliberately SEPARATE from SiteRecordsEnabled -- see DeployVoteRecord.
+  VoteRecordEnabled:
+    Fn::Equals:
+      - Ref: DeployVoteRecord
       - "true"
 
 Resources:
@@ -255,9 +276,20 @@ Resources:
         - '0 issuewild "amazon.com"'
 
   # --- Site records (gated OFF by default) ---------------------------------
-  # Authored so the site switches on without a template rewrite. TTL 300:
-  # changeable. Targets come from parameters at enable-time -- this template
-  # invents no IP and no CloudFront distribution.
+  # Targets come from parameters at enable-time -- this template invents no
+  # distribution.
+  #
+  # Both records are ALIAS records, not plain A records with an address:
+  #   - CloudFront has no stable IP, so a literal A record is not an option.
+  #   - Apex CNAMEs are invalid DNS (RFC 1034), so the apex cannot be a CNAME.
+  # A Route 53 alias A record is the only construct that satisfies both. It also
+  # costs nothing to resolve and needs no TTL -- Route 53 manages that, which is
+  # why TTL is absent below and its presence would in fact be rejected.
+  #
+  # Z2FDTNDATAQYW2 is CloudFront's own fixed hosted-zone id, identical in every
+  # account and region. It is NOT this domain's zone (that is HostedZoneId
+  # above) -- mixing the two is the classic error here. It is also emitted as
+  # the AliasHostedZoneId output of infra/site.yaml so it need not be retyped.
 
   ApexSiteRecord:
     Type: AWS::Route53::RecordSet
@@ -268,13 +300,33 @@ Resources:
       Name:
         Fn::Sub: "${DomainName}."
       Type: A
-      TTL: "300"
-      ResourceRecords:
-        - Ref: ApexTarget
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Ref: SiteDistributionDomain
+        EvaluateTargetHealth: false
 
-  VoteSiteRecord:
+  # The certificate and the distribution both cover www; without this record it
+  # simply would not resolve.
+  WwwSiteRecord:
     Type: AWS::Route53::RecordSet
     Condition: SiteRecordsEnabled
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "www.${DomainName}."
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Ref: SiteDistributionDomain
+        EvaluateTargetHealth: false
+
+  # Gated separately from the website -- see DeployVoteRecord.
+  VoteSiteRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: VoteRecordEnabled
     Properties:
       HostedZoneId:
         Ref: HostedZoneId
@@ -301,9 +353,17 @@ Outputs:
         amazon.com
 
   SiteRecordsState:
-    Description: Whether the apex/vote site records are deployed.
+    Description: Whether the apex and www alias records are deployed.
     Value:
       Fn::If:
         - SiteRecordsEnabled
-        - "enabled"
+        - Fn::Sub: "enabled -- apex and www alias to ${SiteDistributionDomain}"
         - "gated off (DeploySiteRecords=false)"
+
+  VoteRecordState:
+    Description: Whether the vote.<domain> record is deployed (gated separately).
+    Value:
+      Fn::If:
+        - VoteRecordEnabled
+        - Fn::Sub: "enabled -- CNAME to ${VoteTarget}"
+        - "gated off (DeployVoteRecord=false)"
