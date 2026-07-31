@@ -97,6 +97,26 @@ visible in the diff and would otherwise evaporate.
   labels, not fields. Group-by, roadmap date fields, and a Status Insights chart have no API and
   are left as documented click-steps for the maintainer.
 
+- **Researched the Told Straight social handles and wrote the registration runbook (#111).**
+  New tracked doc `docs/social-handle-availability-and-registration.md`. Nine candidate handles were
+  checked across YouTube, X, TikTok, Instagram, Facebook, and Bluesky — **none is publicly in use** —
+  and `toldstraight` is the recommendation: 12 lowercase letters, so it clears X's 15-character
+  alphanumeric cap with room, matches the registered domain exactly, and is legal and unused on all
+  six surfaces. Ordered fallbacks (`toldstraightpod`, `toldstraightfm`, `thetoldstraight`,
+  `toldstraighthq`) are all X-legal so consistency survives; `toldstraightshow` and `toldstraightcast`
+  are declined at 16 characters because they **cannot exist on X**, which would defeat the
+  consistent-handle requirement. The doc leads with what the checks do *not* prove — `no-profile`
+  means no public profile resolves, **not** that the handle is registrable, since suspended,
+  deactivated, and platform-reserved names all read identically — so the platform's own username
+  picker at signup stays the authoritative check. Also carries the maintainer runbook: registration
+  order, display name, bio copy derived from the README (not invented), the avatar asset
+  (`brand/favicon/…-favicon-512-maskable.png`), a recovery-address decision that lands exactly on
+  ADR 0011's stated three-address reversal boundary, and a TOTP-over-SMS 2FA recommendation.
+  **Registration itself is maintainer work** and is not done — #111 stays open with four of five
+  acceptance criteria owed, listed in the doc's § 6. Banner art is recorded as a genuine gap: no
+  repo asset matches the platforms' header aspect ratios, and per the established workflow the agent
+  authors a `tools/brand/` JSX builder rather than rendering brand PNGs itself. Refs #111.
+
 ### Changed
 
 - **Retired the custom Project #8 automation in favor of GitHub's built-in Project workflows
@@ -221,6 +241,37 @@ visible in the diff and would otherwise evaporate.
   `lifeos` (`LifeOSArchive`), which exists and authenticates fine but has no access to the audio-lab
   resources — so a forgotten flag surfaces as an authorization error naming `LifeOSArchive`, not as a
   missing-credentials error. Seeing `LifeOSArchive` in an AWS error means the flag was dropped.
+
+- **Every social platform needs a different availability signal, and on three of five the obvious
+  one is silently wrong (#111).** Logged-out HTTP status separates taken from free on **YouTube** and
+  **X** only (200/404). On **TikTok, Instagram, and Facebook** both controls return **200**, so a
+  status-code checker reports every handle as available — the `domain-availability-research.md`
+  failure on new services. What works instead, all without any login: **TikTok** via the public
+  oEmbed endpoint (`/oembed?url=…` → `author_name` vs `{"code":400}`); **Instagram** via the
+  server-rendered `og:title` (present = taken; a bare `<title>Instagram` = no profile); **Facebook**
+  via a **three-state** `<title>` classifier, because the known-taken `cocacola` returns
+  `Redirecting...` — so exactly `<title>Facebook` means no-profile, `Redirecting...` is *unclear* and
+  must be escalated to a browser, and anything else is taken. **Bluesky** has a real API
+  (`com.atproto.identity.resolveHandle`). Facebook's negative is the weakest of the set: its own
+  "This content isn't available right now" wording covers deleted and audience-restricted pages as
+  well as nonexistent ones.
+
+- **The interleaved control caught a live mid-sweep failure — the `last.fm` trap, reproduced (#111).**
+  Partway through the Facebook sweep the known-positive (`NASA`) returned an **empty title**: a
+  transient block, not a change in reality. Two candidate results in that block were discarded and
+  re-run against fresh controls, which passed. Running the control once up front instead of
+  interleaved would have published those two as findings. Any classifier in this repo runs its known
+  positive through the identical path *throughout* the sweep, not once at the start.
+
+- **X caps handles at 15 characters; YouTube allows 30 — the tightest platform decides the brand
+  handle (#111).** Per `help.x.com/en/managing-your-account/change-x-handle`, an X username *"must be
+  more than 4 characters long and can be up to 15 characters or less"* and may contain *"only
+  letters, numbers, and underscores."* YouTube (`support.google.com/youtube/answer/11585688`) allows
+  3–30 characters plus `_ - .` (not at either end) and is case-insensitive, and explicitly
+  *"reserves the right to change, reclaim, or remove a handle at any time"* while forbidding handle
+  sale or transfer. Instagram/TikTok/Facebook limits were **not** independently verified — their help
+  pages did not return readable text through the tooling used — and the recommendation deliberately
+  does not depend on them.
 
 ## 2026-07-30
 
