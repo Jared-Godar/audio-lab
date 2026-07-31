@@ -137,6 +137,12 @@ section{padding:3.4rem 0}
 
 /* ---- Notify ---- */
 .notify{display:grid;grid-template-columns:1fr auto;gap:.6rem;max-width:540px;margin-top:1.4rem}
+/* Required. The `hidden` attribute works via the UA rule [hidden]{display:none}, which
+   any author `display` declaration outranks -- so `.notify{display:grid}` silently beat
+   form.hidden=true and the form stayed on screen after a successful signup, showing a
+   disabled input beside a stuck "Sending..." button. .notify[hidden] is more specific
+   than .notify, so no !important is needed. */
+.notify[hidden]{display:none}
 .notify input{font-family:var(--ts-font-mono);font-size:1rem;padding:.9rem 1rem;background:transparent;border:2px solid var(--ts-ink);color:var(--ts-ink)}
 .notify button{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;letter-spacing:.12em;font-size:1rem;padding:.9rem 1.5rem;border:2px solid var(--ts-red);background:var(--ts-red);color:#fff;cursor:pointer}
 .notify button:hover{background:transparent;color:var(--ts-red)}
@@ -395,7 +401,8 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
       if(res.ok && data.ok){
         // Deliberately does not say whether the address was already on the
         // list -- that would leak membership. The handler behaves the same way.
-        form.hidden = true;
+        busy(false);          // reset first: if hiding ever fails again, the
+        form.hidden = true;   // form degrades to usable rather than stuck
         say("You're on the list. One email when it's live — nothing else.", "ok");
       } else {
         say(data.error === "invalid email"

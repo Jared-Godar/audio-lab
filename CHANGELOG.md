@@ -196,6 +196,18 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **Fixed the signup form staying on screen after a successful signup (#128).** On success the
+  handler sets `form.hidden = true`, but the form remained visible — a disabled input beside a
+  permanently "Sending…" button, next to the success message, reading as stuck. The `hidden`
+  attribute works through the user-agent rule `[hidden]{display:none}`, which **any author `display`
+  declaration outranks** — and `.notify{display:grid}` did exactly that. The attribute was set and
+  the DOM was correct; nothing visibly happened. Adds `.notify[hidden]{display:none}` (more specific
+  than `.notify`, so no `!important`), and resets the busy state *before* hiding so a future CSS
+  change that re-breaks hiding degrades to a usable form rather than a stuck button. Verified in a
+  browser: computed `display` goes `grid` → `none` and the element collapses to zero height. Caught
+  only by looking at a real submission — the JS and the CSS are each correct in isolation, which is
+  the third bug today living in the seam between two correct layers.
+
 - **Fixed the signup form failing in every browser — duplicated CORS header (#128).** The form
   reported "Couldn't reach the server" on desktop Chrome, in incognito, and on a phone over cellular,
   while `curl` and server-side fetchers got clean `400`s from the same endpoint. Cause: **two**
