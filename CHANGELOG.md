@@ -7,6 +7,20 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-07-31
+
+### Fixed
+
+- **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as
+  fact that Apple's Custom Email Domain verifier does a literal string comparison, so `-all`
+  "can NEVER pass verification." That conclusion was never cleanly isolated from a
+  propagation-delay confound — the `-all` rejection during the #54 cutover (run on 300s TTLs
+  mid-change) may have been timing rather than the SPF value, and Apple's own resolver path was
+  never observed. The comment now presents both explanations (literal string-match vs a record
+  that had not yet propagated) as unseparated and marks "`-all` cannot verify" as untested, not
+  proven. Practical guidance is unchanged: ship `~all`, the value Apple issues; the record value
+  itself is untouched.
+
 ## 2026-07-30
 
 ### Changed
