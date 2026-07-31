@@ -148,6 +148,25 @@ visible in the diff and would otherwise evaporate.
   overkill for audio-lab's Status-only board. Retiring it also lets the account-wide, expiring
   `PROJECT_AUTOMATION_TOKEN` classic PAT be revoked — one fewer standing credential to rotate.
 
+- **Recorded the four social-account decisions and turned the runbook from prompts into settled
+  policy (#154).** `docs/social-handle-availability-and-registration.md` § 4 and § 5.2 no longer
+  ask the maintainer to decide — they record what was decided on 2026-07-31, with a new § 7
+  decision log: the handle is **`toldstraight`** on all six surfaces (fallbacks retired to
+  record-only); the recovery address is **`social@toldstraight.com`**, now live on iCloud+;
+  2FA is **TOTP in 1Password with no SMS as a login factor** anywhere; and credentials live in
+  **1Password, CLI-first**, with the repo recording item titles only. `toldstraight` was
+  re-verified clear on all six surfaces at **2026-07-31 14:25 UTC** with every control passing.
+  Two consequences are written down rather than left implicit: `social@` is the **third** address
+  on the domain, which is exactly ADR 0011's *"roughly three addresses"* reversal boundary — a
+  fourth is now the trigger to revisit the mail platform, not a routine addition; and where a
+  platform forces a phone number, the goal is TOTP plus SMS removed as a *login factor*, with any
+  platform that refuses recorded as an accepted risk rather than passed over. New § 5.2.1 states
+  the division of labour for a live session: the agent navigates, reads page state back, and
+  re-runs the checkers — **it does not create accounts or enter passwords or 2FA codes.** Also
+  fixes an ordering flaw in § 5.4: recording banner dimensions from each uploader must precede
+  authoring the `tools/brand/` builder, since the builder has no target frame until the uploader
+  states one. Refs #154.
+
 ### Fixed
 
 - **Corrected a wrong go-live date in the largest type on the Coming Soon page (#128).** The
@@ -288,6 +307,20 @@ visible in the diff and would otherwise evaporate.
   sale or transfer. Instagram/TikTok/Facebook limits were **not** independently verified — their help
   pages did not return readable text through the tooling used — and the recommendation deliberately
   does not depend on them.
+
+- **1Password's `op` CLI can set a TOTP seed from the command line, and its own help says not to
+  (#154).** `op item create` accepts an `[otp]` assignment
+  (`'Section.Field[otp]=otpauth://totp/…?secret=…'`), which reads as the obvious CLI-first path for
+  a CLI-first credential policy. `op item create --help` warns in its own words: *"Command
+  arguments get logged in your command history, and can be visible to other processes on your
+  machine. If you're assigning sensitive values, use a JSON template instead."* For a **TOTP seed**
+  — a permanent second factor, not a rotating value — shell history is disqualifying, and the
+  suggested JSON-template alternative only trades shell history for a plaintext seed on disk. So
+  the seed is captured in the 1Password app or extension from the platform's QR code, never
+  through a terminal. Retrieval afterwards is unaffected and stays CLI-first:
+  `op item get <title> --otp`, or
+  `op read "op://<vault>/<item>/one-time password?attribute=otp"`. Reading a rotating 6-digit code
+  is not the same exposure as writing the seed that generates them. Verified against `op` 2.38.1.
 
 ## 2026-07-30
 
