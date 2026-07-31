@@ -286,7 +286,8 @@
     var RULE_H     = 11;
     var RULE_GAP   = 22;
     var AUTH_GAP   = 22;
-    var AUTH_SIZE  = 19;
+    var AUTH_SIZE  = 16;   // 19 made the authority line ~485px — wider than the
+                           // wordmark — and it ran under the stamp. Measured, not guessed.
     var AUTH_TRACK = 280;   // .28em, matching site .authority
     var STAMP_SCALE = 0.85;
     var STAMP_CX = 985, STAMP_CY = 200;
@@ -326,7 +327,15 @@
         fillRectIn(grp, b, ruleY, M, stacked ? wm2.w : WM_TARGET, RULE_H, C.red);
         var auth = makeLine(grp, AUTHORITY, AUTH_SIZE, AUTH_TRACK, C.grey, fTitle);
         place(auth, px(b, M), py(b, ruleY + RULE_H + AUTH_GAP));
-        return { bottom: ruleY + RULE_H + AUTH_GAP + (auth ? auth.h : 0), wmH: wm.h, wmW: wm.w };
+        /* The lockup's right edge is the WIDEST THING ACTUALLY DRAWN, measured —
+           not M + WM_TARGET. The authority line is tracked at .28em and runs
+           WIDER than the wordmark, so the predicted value understated it and
+           the audit passed a stamp collision it should have caught. Same error
+           class as measuring the em box instead of the ink: check the artwork,
+           not a proxy for it. */
+        var right = Math.max(M + (stacked ? wm2.w : WM_TARGET), auth ? M + auth.w : 0);
+        return { bottom: ruleY + RULE_H + AUTH_GAP + (auth ? auth.h : 0),
+                 wmH: wm.h, wmW: wm.w, right: right, authW: auth ? auth.w : 0 };
     }
 
     /* The rubber stamp: build the TEXT BLOCK first, measure it, then draw the
@@ -393,10 +402,11 @@
            off the artboard. A fit check that does not cover every board is a
            green light earned by not looking. */
         log("  " + b.name);
-        var lkR = M + (opts.stacked ? (lk ? lk.wmW : 0) : WM_TARGET);
+        var lkR = lk ? lk.right : M;            // MEASURED, widest element drawn
         var stL = st ? STAMP_CX - st.w / 2 : null;
         var stR = st ? STAMP_CX + st.w / 2 : null;
         log("     wordmark ink " + Math.round(lk ? lk.wmW : 0) + " x " + Math.round(lk ? lk.wmH : 0)
+            + "   authority w " + Math.round(lk ? lk.authW : 0)
             + "   lockup x " + Math.round(M) + "-" + Math.round(lkR)
             + "   bottom y=" + Math.round(lk ? lk.bottom : 0));
         log("     vs SAFE x " + SAFE_L + "-" + SAFE_R + " y<" + SAFE_B + "   -> "
@@ -407,6 +417,15 @@
                 + "   x " + Math.round(stL) + "-" + Math.round(stR)
                 + "   -> " + ((stL >= SAFE_L && stR <= SAFE_R)
                     ? "PASS" : "*** FAIL — will be cropped or hit a floating button ***"));
+            /* COLLISION CHECK. Run 2 passed every envelope test and still drew
+               the authority line under the stamp, because nothing compared the
+               two to each other. Fitting inside a box is not the same as not
+               overlapping your neighbour. */
+            var clear = stL - lkR;
+            log("     lockup->stamp clearance " + Math.round(clear) + "px   -> "
+                + (clear >= 30 ? "PASS"
+                   : (clear >= 0 ? "*** TIGHT — under 30px ***"
+                                 : "*** FAIL — LOCKUP AND STAMP OVERLAP ***")));
         }
 
         /* MOBILE PREVIEW: everything X actually puts on top of the banner —
