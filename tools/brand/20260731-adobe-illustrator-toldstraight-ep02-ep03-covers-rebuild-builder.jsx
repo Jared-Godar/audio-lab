@@ -451,11 +451,46 @@
     }
 
 
+    // One line of point text positioned by BASELINE rather than by box top, so a
+    // value that had to shrink still sits on the same baseline as its key.
+    // tf.height on all-caps text is the cap height, which is exactly the offset
+    // we need — no font-metrics guesswork.
+    function baselineText(b, baselineY, x, text, size, colour, font, tracking) {
+        var tf = null;
+        try {
+            tf = lyType.textFrames.add();
+            tf.contents = text;
+            var ca = tf.textRange.characterAttributes;
+            ca.autoLeading = false;
+            ca.size = size; ca.leading = size; ca.tracking = tracking;
+            if (colour) ca.fillColor = colour;
+            if (font) ca.textFont = font;
+            try { app.redraw(); } catch (eR) {}
+            tf.left = px(b, x);
+            tf.top  = py(b, baselineY - tf.height);
+        } catch (e) { log("WARN: line '" + text + "' — " + e); return null; }
+        return tf;
+    }
+
+    // Field values are fitted the same way titles are: measure, shrink to the
+    // column, never clip. The old builder set values as AREA text, which silently
+    // swallows anything too long — so a value running under the stamp looked
+    // fine to the script and unreadable in the PNG.
+    function fitValue(b, baselineY, x, maxW, text, maxPt) {
+        var size = maxPt;
+        var m = measure(text, fMono, size, 60);
+        if (m.w > maxW && m.w > 0) size = Math.max(19, size * (maxW / m.w));
+        baselineText(b, baselineY, x, text, size, C.ink, fMono, 60);
+        return { size: size, wanted: m.w, avail: maxW };
+    }
+
+
     // ==============================================================
     // 8. COVERS
     // ==============================================================
 
     var fits = [];
+    var valueNotes = [];
 
     function buildCover(b, spec) {
         var W = EP - M * 2;
@@ -484,10 +519,37 @@
 
         area(b, 900, M, W, 70, spec.subtitle, PS.cSub);
 
+        // The stamp's geometry is resolved BEFORE the fields are drawn, because
+        // the fields have to know where it lands. The Ep03 original placed a
+        // stamp at a fixed x and got away with it only because its values were
+        // short ("RESULTS IN"). "YOUNG SCHEMA QUESTIONNAIRE" runs straight under
+        // it — and the word we spelled out on purpose is the one that disappears.
+        var STAMP_PT = 82, STAMP_H = 150;
+        var sm = measure(spec.stamp, fTitle, STAMP_PT, 40);
+        var sw = Math.max(400, sm.w + 80);
+        // EP-140 rather than EP-96: rotating the group swings its corners
+        // outward, so a box whose right edge sits inside the keyline can still
+        // print across it. The margin has to pay for the rotation.
+        var sx = EP - 140 - sw, sy = 1150;
+
+        var valueX = M + 400, valueFullW = W - 430, STAMP_GUTTER = 44;
+
         var fy = 1060;
         for (var i = 0; i < spec.fields.length; i++) {
-            area(b, fy, M + 30, 340, 48, spec.fields[i].k, PS.cFieldK);
-            area(b, fy, M + 400, W - 430, 48, spec.fields[i].v, PS.cFieldV);
+            baselineText(b, fy + 34, M + 30, spec.fields[i].k, 32, C.grey, fMono, 140);
+
+            // Only rows that actually sit beside the stamp get the narrow column.
+            // Shrinking every value to the worst case would punish the rows that
+            // have the full width to themselves.
+            var collides = (fy + 48 > sy) && (fy < sy + STAMP_H);
+            var avail = collides ? (sx - STAMP_GUTTER - valueX) : valueFullW;
+            var vr = fitValue(b, fy + 34, valueX, avail, spec.fields[i].v, 32);
+            if (vr.size < 32) {
+                valueNotes.push("  " + b.name + "  " + spec.fields[i].k + " "
+                    + Math.round(vr.size) + "pt (wanted " + Math.round(vr.wanted)
+                    + "pt, column " + Math.round(vr.avail) + "pt — beside the stamp)");
+            }
+
             bar(b, fy + 60, M + 30, W - 60, 1, C.hairline);
             fy += 96;
         }
@@ -495,9 +557,7 @@
         // Stamp — red keyline box, rotated. Sized to its text so a long stamp
         // ("RESULTS ENCLOSED") does not burst a box drawn for a short one.
         try {
-            var sm = measure(spec.stamp, fTitle, 82, 40);
-            var sw = Math.max(400, sm.w + 80), sh = 150;
-            var sx = EP - 96 - sw, sy = 1150;
+            var sh = STAMP_H;
             var box = lyType.pathItems.rectangle(py(b, sy), px(b, sx), sw, sh);
             box.filled = false; box.stroked = true; box.strokeColor = C.red; box.strokeWidth = 8;
             var st = lyType.textFrames.add();
@@ -538,6 +598,13 @@
             log("      " + f.lines[li].text + "   " + Math.round(f.lines[li].w)
                 + "pt wide  (column " + TITLE_COL + ")");
         }
+    }
+    log("");
+    log("FIELD VALUES SHRUNK TO CLEAR THE STAMP");
+    if (valueNotes.length) {
+        for (var vn = 0; vn < valueNotes.length; vn++) log(valueNotes[vn]);
+    } else {
+        log("  none — every value had its full column");
     }
     log("");
     log("WHY THIS BUILDER EXISTS");
