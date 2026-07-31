@@ -145,6 +145,27 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Put the compliance position at the top of the privacy page and under the signup form (#165).**
+  The transfer and rights detail added earlier was accurate but buried — a reader had to reach the
+  middle of the page to learn anything reassuring. The policy now opens with a **compliance badge**
+  (GDPR · UK GDPR · CCPA/CPRA · US State Privacy) followed by a **"The short version"** summary
+  covering what is collected, why, the legal basis, where it lives, the EEA transfer, what is never
+  done with it, and the full rights list. A new **"If you live in the United States"** section states
+  the two things those statutes specifically ask for — **no sale or sharing** for cross-context
+  behavioral advertising (hence no "Do Not Sell" link: there is nothing to opt out of) and **no
+  discrimination** for exercising a right — plus an **appeal route**, which Virginia, Colorado and
+  Connecticut require and which is offered to everyone regardless of state. Rather than segment
+  rights by jurisdiction, one superset is extended to everyone; that is simpler to read, impossible
+  to get wrong at the boundary, and cheap when the entire data holding is one email address. A short
+  reassurance line now also sits under the signup form, where someone is deciding whether to hand
+  over their address. **Copy swept for American English** — `honoured` → `honored`, `behavioural` →
+  `behavioral`, and three more, including two in code comments. **`docs/privacy-policy.md` and
+  `site/privacy.html` brought back into parity**: the first pass added three sections to the HTML
+  only, which broke the source-of-record discipline recorded in that very file hours earlier.
+  Maintainer chose the compliance-badge framing over softer wording after being shown the tradeoff.
+  **Still not a legal review** — #109/#110 stands, and the page now asserts a status rather than
+  describing practice. Closes the follow-up to #165.
+
 - **Told EU subscribers where their data actually goes, and completed the rights list (#165).** The
   published privacy policy said the address lives "inside our AWS account" and stopped there — it
   never said the account is in **US East (Northern Virginia)**, never said that leaving the EEA is a
