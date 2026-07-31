@@ -1,0 +1,219 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# NOTE: long-form intrinsics (Ref:, Fn::Sub, Fn::GetAtt) only — no !Ref / !Sub
+# short tags — so the repo's generic check-yaml pre-commit hook can parse this
+# file (a safe YAML loader cannot construct the custom !-tags). Matches
+# infra/dns.yaml and infra/signup.yaml.
+#
+# This stack is the STATIC SITE HOSTING path for the Coming Soon page (#128):
+# a private S3 bucket behind CloudFront, fronted by an ACM certificate. Deploy is
+# billable AWS: the maintainer runs it via a reviewed change-set, this repo only
+# authors the template. See docs/site-deploy-walkthrough.md.
+#
+# THIS STACK DOES NOT TOUCH DNS. Pointing toldstraight.com at the distribution
+# means editing infra/dns.yaml -- the stack that also carries SPF, the Apple DKIM
+# delegation, DMARC p=reject and CAA -- and that is deliberately a SEPARATE PR and
+# a separate change-set, so mail-critical records are never reviewed as a footnote
+# to a website change. Until then the site is reachable at the CloudFront domain
+# in the Outputs.
+
+Description: >-
+  Told Straight static site hosting for the Coming Soon page (#128). A private S3
+  bucket (no public access, no website endpoint) served through CloudFront using an
+  Origin Access Control, with an ACM certificate DNS-validated in Route 53. The
+  distribution declares the apex and www aliases so the DNS cutover in a follow-up
+  PR is a records-only change. This stack manages no DNS records itself.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: toldstraight.com
+    AllowedPattern: "^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\\.[A-Za-z0-9-]{1,63})+$"
+    Description: The apex domain, without a trailing dot. Also the certificate subject.
+
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: >-
+      The id of the EXISTING hosted zone for the domain. ACM writes its validation
+      CNAME here automatically, which is the only reason this template needs the
+      zone -- it creates no records of its own. Console: Route 53 -> Hosted zones ->
+      select the domain -> View details -> Hosted zone ID. Note that CloudFormation
+      wants the bare id (Z0123...), not the "/hostedzone/Z0123..." form the API
+      returns.
+
+  PriceClass:
+    Type: String
+    Default: PriceClass_100
+    AllowedValues:
+      - PriceClass_100
+      - PriceClass_200
+      - PriceClass_All
+    Description: >-
+      CloudFront edge coverage. PriceClass_100 (North America + Europe) is the
+      cheapest and is right for a pre-launch holding page; widen it when the
+      audience does.
+
+Resources:
+
+  # Private origin. No public access, no S3 website endpoint -- CloudFront reaches
+  # it through an Origin Access Control, so the bucket is never addressable directly.
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: "toldstraight-site-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  # Grants exactly one principal -- this distribution -- the right to read objects.
+  # The SourceArn condition is what stops any other distribution in any account
+  # from using this bucket as an origin.
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource:
+              Fn::Sub: "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn":
+                  Fn::Sub: "arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}"
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name:
+          Fn::Sub: "toldstraight-site-oac-${AWS::AccountId}"
+        Description: Lets only the Told Straight distribution read the private site bucket.
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # Validation is automatic because the domain is in Route 53, in this account, and
+  # the method is DNS -- ACM writes the CNAME itself. If any of those three stopped
+  # being true the stack would sit in CREATE_IN_PROGRESS for hours waiting on a
+  # record nobody added, so keep them true.
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName:
+        Ref: DomainName
+      SubjectAlternativeNames:
+        - Fn::Sub: "www.${DomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName:
+            Ref: DomainName
+          HostedZoneId:
+            Ref: HostedZoneId
+        - DomainName:
+            Fn::Sub: "www.${DomainName}"
+          HostedZoneId:
+            Ref: HostedZoneId
+
+  SiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Told Straight — Coming Soon (#128)
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass:
+          Ref: PriceClass
+        # Declared now so the DNS cutover in the follow-up PR is records-only. The
+        # aliases resolve to nothing until those records exist -- harmless.
+        Aliases:
+          - Ref: DomainName
+          - Fn::Sub: "www.${DomainName}"
+        ViewerCertificate:
+          AcmCertificateArn:
+            Ref: SiteCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: SiteS3Origin
+            DomainName:
+              Fn::GetAtt: [SiteBucket, RegionalDomainName]
+            OriginAccessControlId:
+              Fn::GetAtt: [SiteOriginAccessControl, Id]
+            # Required by CloudFront for an S3 origin, and intentionally empty:
+            # OAC replaces the legacy origin-access-identity mechanism.
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: SiteS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          # Managed-CachingOptimized — ids confirmed against the live account, not
+          # copied from memory (aws cloudfront list-cache-policies --type managed).
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          # Managed-SecurityHeadersPolicy: HSTS, X-Content-Type-Options,
+          # X-Frame-Options, Referrer-Policy.
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
+        # One page, so every path shows it rather than an S3 XML error. A private
+        # bucket answers a missing key with 403, not 404, which is why both map.
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 60
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 60
+
+Outputs:
+  SiteBucketName:
+    Description: Upload the contents of site/ here, then invalidate the distribution.
+    Value:
+      Ref: SiteBucket
+
+  DistributionId:
+    Description: Needed for cache invalidation after every content upload.
+    Value:
+      Ref: SiteDistribution
+
+  DistributionDomainName:
+    Description: >-
+      The live site before DNS is cut over — open this to verify the page. Also the
+      AliasTarget DNSName for the dns.yaml follow-up PR.
+    Value:
+      Fn::GetAtt: [SiteDistribution, DomainName]
+
+  AliasHostedZoneId:
+    Description: >-
+      The fixed CloudFront zone id for Route 53 alias records (Z2FDTNDATAQYW2). Use
+      it as AliasTarget.HostedZoneId in the dns.yaml follow-up — it is CloudFront's
+      constant, not this account's zone.
+    Value: Z2FDTNDATAQYW2
+
+  CertificateArn:
+    Description: The ACM certificate covering the apex and www.
+    Value:
+      Ref: SiteCertificate
