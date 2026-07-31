@@ -60,8 +60,18 @@
         return;
     }
 
-    // ================= EDIT THESE =================
-    var ICON_DIR   = "~/Code/audio-lab/brand/social-icons";
+    /* ================= EDIT THESE =================
+       ICON_DIRS is a CANDIDATE LIST, not one path. The marks live in
+       brand/social-icons/, but that directory reaches the main checkout only
+       once the branch carrying it is merged — until then it exists solely in
+       the worktree. Run 1 hardcoded the main-checkout path and reported all ten
+       marks missing for that reason alone. Resolving a list makes the script
+       work before AND after the merge, and on any future worktree, without
+       anyone editing it. The resolved path is printed in the AUDIT board. */
+    var ICON_DIRS = [
+        "~/Code/audio-lab/brand/social-icons",
+        "~/Code/audio-lab/.claude/worktrees/social-handles-111/brand/social-icons"
+    ];
     var EXPORT_DIR = "~/Code/audio-lab/output/artwork/brand-social-icons";
     var GLYPH      = 96;    // drawn glyph size, points
     var GAP        = 40;    // space between marks
@@ -98,6 +108,24 @@
     function log(s) { report.push(s); }
     log("TOLD STRAIGHT — social platform icons");
     log("Built " + new Date().toString());
+    log("");
+
+    /* Resolve the icon directory: first candidate that actually contains the
+       marks wins. Probe for a real FILE, not just the folder — an empty or
+       stale directory would otherwise satisfy the check and fail later, one
+       mark at a time, which is a worse failure than not starting. */
+    var ICON_DIR = null;
+    for (var di = 0; di < ICON_DIRS.length; di++) {
+        var probe = new File(ICON_DIRS[di] + "/20260731-simpleicons-x-official-glyph.svg");
+        if (probe.exists) { ICON_DIR = ICON_DIRS[di]; break; }
+    }
+    if (!ICON_DIR) {
+        var tried = ICON_DIRS.join("\n  ");
+        alert("MARKS NOT FOUND\n\nNo candidate directory contains the platform SVGs.\n\nTried:\n  "
+            + tried + "\n\nNothing was created. Add the path to ICON_DIRS at the top of this script.");
+        return;
+    }
+    log("ICON SOURCE: " + ICON_DIR);
     log("");
 
     // ---- document ----
@@ -219,6 +247,13 @@
     log("");
     log("  Instagram 3.18 and YouTube 3.30 clear the floor but not by much on");
     log("  paper. Eyeball them small before committing to a print surface.");
+    log("");
+    log("ICON SOURCE RESOLUTION");
+    log("  Marks were read from: " + ICON_DIR);
+    log("  ICON_DIRS is a candidate list because brand/social-icons/ reaches the");
+    log("  main checkout only after its branch merges; before that it exists only");
+    log("  in the worktree. Run 1 hardcoded the main-checkout path and reported");
+    log("  all ten marks missing for that reason alone.");
     log("");
     log("BRAND GUIDELINES still apply: minimum size and clear space are set by");
     log("  each platform. At 96pt you are comfortably above every stated floor;");
