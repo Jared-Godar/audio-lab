@@ -820,6 +820,12 @@ One coordinated swap, all surfaces:
 - **YouTube banner** → the green `LIVE AS OF` variant
 - **Instagram link title** → "Get launch updates" goes stale; replace
 - **~1 week later** → both banners to the `plain` (no stamp) variant, permanently
+- **Facebook: invite friends** — deliberately skipped at Page creation 2026-07-31.
+  The invite is a one-shot attention event (each contact gets one notification), and
+  spending it on an empty pre-launch Page wastes it. Send it when there is a live
+  show behind the link.
+- **Facebook: post the launch announcement** before inviting, so arrivals land on
+  content rather than an empty Page.
 
 All three banner states are already built and exported; launch day is a file swap,
 not a design task.
