@@ -439,6 +439,14 @@ em/leading box, not the ink — two earlier revisions put the red bar through th
 and then well below the baseline before that was understood. It also prints a
 **PASS/FAIL fit check per board**, computed from the same numbers that drew the artwork.
 
+**Open for the refinement pass — YouTube's default crop box.** At upload, YouTube's
+preview showed the ring's left/right edges apparently clipped, while its own crop
+tool rendered the mark correctly. Hypothesis, **not yet measured**: YouTube's
+*default* crop selection is tighter than the inscribed circle, so the ring's 40px
+margin (`ringR: 460` on a 1000px canvas) is insufficient for it. If confirmed, the
+fix is one constant — reduce `ringR` — not a redesign. Accepted as-is for the MVP
+pass by maintainer decision 2026-07-31.
+
 Variant A should serve **every** platform here — X, Instagram, YouTube, Facebook Pages
 and Bluesky all crop avatars circular — but confirm per platform at upload rather than
 assuming.
