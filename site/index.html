@@ -4,6 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Told Straight — Coming Soon</title>
+<meta name="description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD. Launching 6 August 2026.">
+
+<!-- Icons. Both variants are self-contained (opaque backgrounds), so either reads on any
+     tab colour; the media queries just pick the one that suits the browser's theme, and
+     the unconditional PNG covers browsers that ignore media on icon links. Built in
+     Illustrator and tracked under brand/favicon/ — not generated here. -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-32-dark.png" sizes="32x32" type="image/png" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#EDE9E0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14140F" media="(prefers-color-scheme: dark)">
+
+<!-- Link previews. og:image must be an ABSOLUTE url — relative paths are ignored by every
+     scraper — so this is the one place the production origin is hard-coded. It stays
+     correct after the DNS cutover; before it, previews scraped from the CloudFront domain
+     will 404 the image until toldstraight.com resolves. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Told Straight">
+<meta property="og:title" content="Told Straight — Coming Soon">
+<meta property="og:description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
+<meta property="og:url" content="https://toldstraight.com/">
+<meta property="og:image" content="https://toldstraight.com/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Told Straight — Season One, Adult ADHD. Dept. of Neurodevelopmental Affairs.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Told Straight — Coming Soon">
+<meta name="twitter:description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
+<meta name="twitter:image" content="https://toldstraight.com/assets/og-card.png">
+
+<link rel="canonical" href="https://toldstraight.com/">
 <link rel="stylesheet" href="https://use.typekit.net/zol6gng.css">
 <script>(function(){var h=location.hash.replace('#','');if(h==='light'||h==='dark')document.documentElement.setAttribute('data-theme',h);})();</script>
 <style>
@@ -102,6 +134,9 @@ section{padding:3.4rem 0}
 /* Honeypot — off-screen, not display:none (bots detect that). Never focusable. */
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .notenote{margin-top:.7rem;font-size:.82rem}
+.privacylink{margin-top:.35rem;text-transform:none;letter-spacing:0}
+.privacylink a,footer a{color:var(--ts-red);text-underline-offset:3px}
+.privacylink a:hover,footer a:hover{text-decoration:none}
 .notenote.is-ok{color:var(--ts-ink);font-weight:700}
 .notenote.is-err{color:var(--ts-red);font-weight:700}
 
@@ -239,6 +274,10 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
       </div>
     </form>
     <p class="record notenote" id="notify-status" role="status" aria-live="polite">One email, when it&#8217;s live &mdash; nothing else.</p>
+    <!-- Separate element, not folded into the status line above: that one is an aria-live
+         region whose textContent JS replaces on every submit, which would destroy the link
+         and re-announce it to screen readers each time. -->
+    <p class="record notenote privacylink">By submitting you consent to us storing your address for this purpose &mdash; see the <a href="/privacy.html">Privacy Policy</a>.</p>
 
     <div class="caution">
       <h3>Caution — Synthetic Voices &amp; Likenesses</h3>
@@ -251,7 +290,7 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
   </section>
 
   <footer>
-    <span class="record">Told Straight &nbsp;·&nbsp; toldstraight.com</span>
+    <span class="record">Told Straight &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></span>
     <span class="record">Doc. TS&#8209;SITE&#8209;001 &nbsp;·&nbsp; Rev. 2026&#8209;07&#8209;31</span>
   </footer>
 

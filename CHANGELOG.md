@@ -11,6 +11,22 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Published the privacy policy and gave the site an identity in link previews (#128).** The Coming
+  Soon page collects email addresses and linked to **no privacy policy** — `docs/privacy-policy.md`
+  existed as a draft from #140 but was never published. New `site/privacy.html` renders it in the
+  brand register (tokens kept byte-identical to `index.html` so the two cannot drift), linked from
+  **both** the consent line under the signup form and the footer. The consent link is a separate
+  element rather than folded into the status line, because that line is an `aria-live` region whose
+  `textContent` is replaced on every submit — a link inside it would be destroyed and re-announced to
+  screen readers each time. `docs/privacy-policy.md` is now marked PUBLISHED and names itself the
+  source of record, carrying forward — explicitly **not** discharging — its own "have it reviewed
+  before it is published" caveat. Also adds the missing `<head>` identity: favicons (SVG + 32px light
+  and dark + apple-touch), `theme-color` per colour scheme, a meta description, canonical URL, and
+  Open Graph / Twitter card tags pointing at the 1200×630 OG card. **Every icon and card is an
+  existing tracked asset from `brand/favicon/` and `brand/web/`, built in Illustrator — nothing was
+  generated here.** Before this, a shared link rendered as a bare URL with no title card and the
+  browser tab showed a default icon. Advances #128.
+
 - **Stood up static site hosting and shipped the wired Coming Soon page (#128).** New
   `infra/site.yaml`: a **private** S3 bucket (public access blocked, no website endpoint, versioned,
   SSE-AES256, `BucketOwnerEnforced`) served through **CloudFront with an Origin Access Control**, so
