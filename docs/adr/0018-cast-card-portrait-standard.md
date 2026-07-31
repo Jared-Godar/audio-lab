@@ -2,7 +2,7 @@
 
 - **Number:** 0018
 - **Title:** The colour cartoon portrait is the cast-card image standard, across all episodes
-- **Status:** `accepted`
+- **Status:** `accepted` — amended by ADR 0019 for human cast members (real people are photographed; the colour-cartoon standard still governs the synthetic cast)
 - **Date:** 2026-07-30
 - **Source:** Ep03 artwork session; maintainer decision, 2026-07-30. Spec
   `artifacts/specs/20260729-ep03-artwork-and-promotion-executor-spec.md`.

@@ -11,6 +11,17 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Recorded the Coming Soon design language + the human/machine cast register as ADR 0019 (#138).**
+  New `docs/adr/0019-coming-soon-design-and-human-machine-register.md` pins two coupled decisions from
+  the #138 design session: (1) the show's cast splits **by medium** — real people are photographed
+  (photoreal, warm-paper-graded), synthetic people stay ligne-claire cartoons, and the medium itself
+  carries the synthetic-likeness disclosure (with the text `.ts-caution` retained for accessibility) —
+  which **amends ADR 0018** for human cast members (0018's status is annotated); and (2) the Coming
+  Soon page is a lighter **field-notice** treatment with a `DECLASSIFY ON` countdown (go-live
+  2026-08-06), not a full TOP SECRET gimmick. The realized prototype lives in the gitignored working
+  zone (`artifacts/coming-soon-prototype/`); its assets and the shipped page land with #128. Closes
+  #138, unblocks #128.
+
 - **Defined the pre-public-release readiness checklist (#109).** New tracked doc
   `docs/pre-public-release-readiness.md` — the gate Told Straight must pass before it moves
   from private beta to public. Every item across security (AWS posture / IAM / secrets),
