@@ -1,6 +1,6 @@
 # Privacy Policy — Told Straight
 
-**Effective date:** 31 July 2026.
+**Effective date:** 31 July 2026 (updated the same day to add international-transfer and rights detail).
 **Status:** PUBLISHED — the live version is `site/privacy.html`, served at
 `/privacy.html` and linked from the signup form and the site footer.
 
@@ -43,17 +43,41 @@ Your address is stored in our own **Amazon SES contact list**, inside our AWS ac
 list is **not shared, sold, or rented** to anyone. It is processed by Amazon Web Services
 as our infrastructure provider; no other third party receives it.
 
+**Where that is, physically.** The list is held in Amazon Web Services' **US East (Northern
+Virginia)** region, in the United States. If you are in the UK, the EU, or the wider European
+Economic Area, that means your email address is transferred outside the EEA.
+
+**The safeguard for that transfer.** Amazon Web Services incorporates the **Standard
+Contractual Clauses adopted by the European Commission in June 2021** into the AWS Service
+Terms, and states that they apply automatically whenever a customer uses AWS to transfer data
+outside the EEA. That is the mechanism this transfer relies on. We do not rely on Privacy
+Shield, which was invalidated in 2020.
+
 ## How long we keep it
 
 Until you unsubscribe, or until you ask us to delete it, or until the list is no longer
 used — whichever comes first.
 
-## Unsubscribe and your choices
+## Unsubscribe and your rights
 
 - **Unsubscribe** from any email using the link it contains, or by emailing
-  **<hello@toldstraight.com>**.
-- You may ask us to **show you** the data we hold about you, or to **delete** it, by
-  emailing **<hello@toldstraight.com>**. We will act on the request promptly.
+  **<hello@toldstraight.com>**. Because consent is our legal basis, unsubscribing
+  **withdraws that consent**. Withdrawing it does not affect anything we did while it was
+  given.
+- You can also ask us to:
+  - **show you** the data we hold about you, and give you a copy in a portable form;
+  - **correct** it if it is wrong;
+  - **delete** it;
+  - **stop using it** while a question about it is resolved; or
+  - **object** to our using it at all.
+
+  Email **<hello@toldstraight.com>** for any of these. We will act promptly and will not
+  charge you. The only personal data we hold is your email address, so in practice most of
+  these requests are answered by showing you your entry or removing it.
+- **You can complain to a regulator.** If you are in the UK, the EU, or the EEA and think we
+  have handled your data wrongly, you have the right to lodge a complaint with your national
+  data protection supervisory authority. You do not have to contact us first — though we would
+  rather you did, so we can put it right.
 
 ## Children
 
