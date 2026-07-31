@@ -135,6 +135,19 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Rewrote the gated site records in `infra/dns.yaml` for the CloudFront cutover (#128).**
+  `ApexSiteRecord` becomes a Route 53 **alias A record** — it was `Type: A` with a literal
+  `ResourceRecords` IP, which cannot point at CloudFront (no stable IP) while an apex CNAME is
+  invalid DNS (RFC 1034); an alias A record is the only construct satisfying both. New
+  `WwwSiteRecord` does the same for `www`, which the certificate and distribution already cover but
+  which **had no record at all**. Both use `Z2FDTNDATAQYW2`, CloudFront's fixed hosted-zone id,
+  emitted by `infra/site.yaml` as `AliasHostedZoneId` so it is never retyped. `ApexTarget` is
+  replaced by `SiteDistributionDomain`. **The five mail and security resources — `SpfRecord`,
+  `NullMxRecord`, `DkimRecord`, `DmarcRecord`, `CaaRecord` — are byte-identical**, verified by
+  structural comparison against `main`, not by eyeballing a diff. Still gated off by default; the
+  cutover procedure with its change-set inspection step is §6 of `docs/site-deploy-walkthrough.md`.
+  Advances #128.
+
 - **Retired the custom Project #8 automation in favor of GitHub's built-in Project workflows
   (#115, #121).** Removed `.github/workflows/project-automation.yml` and
   `scripts/project_automation.py` (both added earlier the same day in #135). Project #8's native
