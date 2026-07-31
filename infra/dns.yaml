@@ -233,6 +233,67 @@ Resources:
       ResourceRecords:
         - Fn::Sub: "sig1.dkim.${DomainName}.at.icloudmailadmin.com."
 
+  # --- SES EasyDKIM (#144): three selectors for the SENDING identity -----------
+  #
+  # ADDITIVE to Apple's sig1 selector above, not a replacement. Different record
+  # names, different purposes: Apple signs mail YOU send from the iCloud+ mailbox,
+  # these sign mail the SES identity sends (the launch + update blasts to the
+  # signup list). Both can and must coexist -- a domain may publish any number of
+  # DKIM selectors, and receivers match on the selector in each message's
+  # signature. Adding these does not touch inbound mail, which stays on iCloud+.
+  #
+  # The tokens are generated at SES identity-create and are therefore knowable
+  # only AFTER infra/signup.yaml deploys. These three came from that stack's
+  # DkimTokenName*/DkimTokenValue* outputs on 2026-07-31; they are stable for the
+  # life of the identity. If the identity is ever deleted and recreated, these
+  # values change and must be re-read from the outputs -- they cannot be derived.
+  #
+  # WHY THIS IS SUFFICIENT FOR DMARC, and why the usual "add a custom MAIL FROM"
+  # advice does NOT apply here: this domain's DMARC is p=reject with adkim=s AND
+  # aspf=s -- strict on both. With toldstraight.com verified as a DOMAIN identity,
+  # EasyDKIM signs with d=toldstraight.com exactly, which satisfies strict DKIM
+  # alignment, and DMARC passes if EITHER mechanism aligns. A custom MAIL FROM
+  # exists to align SPF -- but it is always a SUBDOMAIN (bounce.toldstraight.com),
+  # which under aspf=s does NOT align; AWS's own guidance is that custom MAIL FROM
+  # requires aspf=r. Adopting it would therefore buy nothing without first
+  # weakening the DMARC posture recorded in #59. Deliberately not adopted.
+
+  SesDkimRecord1:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "sixxhervxran37gyqtpawr2c7kmerq6t._domainkey.${DomainName}."
+      Type: CNAME
+      TTL: "300"
+      ResourceRecords:
+        - "sixxhervxran37gyqtpawr2c7kmerq6t.dkim.amazonses.com."
+
+  SesDkimRecord2:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "wcwnf2kstuhbpkh6fyfs6qa3sagtlwvf._domainkey.${DomainName}."
+      Type: CNAME
+      TTL: "300"
+      ResourceRecords:
+        - "wcwnf2kstuhbpkh6fyfs6qa3sagtlwvf.dkim.amazonses.com."
+
+  SesDkimRecord3:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "qxtsbnyw5nypdhzzgvofyqapz6o4ynhe._domainkey.${DomainName}."
+      Type: CNAME
+      TTL: "300"
+      ResourceRecords:
+        - "qxtsbnyw5nypdhzzgvofyqapz6o4ynhe.dkim.amazonses.com."
+
   # DMARC: reject anything failing alignment, strictly, for the domain and its
   # subdomains. UNCHANGED by #54 -- this is the anti-spoofing guarantee that
   # survives the mail cutover, and relaxing alignment to adkim=r/aspf=r is a
