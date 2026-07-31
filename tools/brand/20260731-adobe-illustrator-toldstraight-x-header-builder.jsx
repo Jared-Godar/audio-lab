@@ -50,6 +50,36 @@
  * is NOT a documented figure — treat row 3 as a warning, not a specification,
  * and confirm against the live profile after upload.
  *
+ * MOBILE CROP — MEASURED 2026-07-31 FROM A LIVE UPLOAD, NOT ESTIMATED
+ * -------------------------------------------------------------------
+ * Solved from a real iPhone screenshot of @toldstraight after upload, using
+ * the red rule and the stamp box as reference points (scale worked out to
+ * 0.73 displayed px per source px). In this file's 1500x500 coordinates:
+ *
+ *   SIDE CROP     X renders a ~2.62:1 window, NOT 3:1. Visible is roughly
+ *                 x110 - x1372 — about 8% lost off EACH side. Vertically it
+ *                 is nearly complete (~486 of 500).
+ *   BACK BUTTON   floating circle over the banner at ~x165-267, y207-310.
+ *                 In run 1 it landed on the red rule.
+ *   SEARCH BUTTON floating circle at ~x1218-1314, y207-310.
+ *                 In run 1 it landed ON THE STAMP, hiding "026" and "EDT".
+ *   STATUS BAR    clock/battery over the top ~100px.
+ *
+ * So the MOBILE-SAFE envelope is materially tighter than the desktop 3:1:
+ *
+ *   x 150 - 1350, and keep the two TOP CORNERS clear (about 130 x 110 each
+ *   around y180-320) for X's floating buttons, on top of the bottom-left
+ *   avatar reserve.
+ *
+ * CAVEAT: one screenshot, one handset, +/- a few percent. Other phones will
+ * differ. This is a measurement of one real device, which beats an estimate,
+ * but it is not a specification.
+ *
+ * RUN 1 (M=90, WM_TARGET=700, stamp cx=1145) violated all three: the "T" of
+ * TOLD fell outside the left crop, the back button sat on the rule, and the
+ * search button covered the stamp's date. Desktop was unaffected — which is
+ * exactly why judging a banner on desktop is not judging it.
+ *
  * TYPE IS MEASURED, NOT ESTIMATED
  * -------------------------------
  * Every line is OUTLINED and measured (createOutline -> path bounds), because
