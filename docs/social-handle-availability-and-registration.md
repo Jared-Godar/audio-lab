@@ -375,10 +375,14 @@ platforms' own UI/help). Fits X, Instagram, YouTube, Bluesky — NOT TikTok:**
 One complicated subject. Covered properly. Bottom line up front. Dark humor. No woo. No BS. With receipts. Season 1: Adult ADHD.
 ```
 
-**Bio — TikTok short form. 73 chars.** TikTok's limit is far tighter than the
-others (commonly cited as 80; **not independently verified** — read the counter in
-the form, as Instagram's 150 was). The season line is kept in preference to the
-opening clause: the topic is what converts a visitor, the framing is not.
+**Bio — ultra-short reserve. 73 chars. Currently UNUSED.**
+
+*Correction, 2026-07-31:* this form was written because TikTok's limit was believed
+to be ~80 — a figure recorded at the time as **"commonly cited, not independently
+verified."** It is **160**, measured directly from TikTok's own character counter in
+the bio field. TikTok therefore uses the **standard 128-char form**, and the set is
+three lengths, not four. The reserve below is kept only in case a future platform
+has a genuinely tight field.
 
 ```text
 Bottom line up front. No woo. No BS. With receipts. Season 1: Adult ADHD.
@@ -428,8 +432,8 @@ platform's own counter or stated limit:
 
 | Form | Chars | Fits |
 | --- | --- | --- |
-| TikTok short | 73 | TikTok (~80) |
-| Standard | 128 | X (160), Instagram (150) |
+| Ultra-short reserve | 73 | *unused* — written for a TikTok limit that turned out to be 160 |
+| Standard | 128 | X (160), **TikTok (160, measured)**, Instagram (150) |
 | Medium | 236 | Facebook Intro, Bluesky (~255) |
 | Long | 458 | YouTube (1000) |
 
