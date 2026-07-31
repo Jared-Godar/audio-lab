@@ -162,17 +162,38 @@
     }
 
     /* Recolour every path inside a placed group. The SVGs arrive carrying their
-       own fill; we override per the measured rule above. */
+       own fill; we override per the measured rule above.
+
+       RUN 2 BUG — why this is not one branch:
+       A CompoundPathItem's fill lives on its CHILD paths. Setting fillColor on
+       the compound itself silently does nothing and raises no error. Run 2
+       treated PathItem and CompoundPathItem identically, so X — which imports
+       as a compound (crossing strokes with counters) — stayed #000000 on the
+       dark board at 1.14:1, while TikTok, a simple path, recoloured correctly.
+       Same code, opposite outcomes, no error either way. It took decoding the
+       exported PNG and sampling pixels to find, which is why this function now
+       COUNTS what it changed and the audit prints the count. A recolour that
+       silently no-ops is worse than one that throws. */
+    var recoloured = 0;
     function recolour(item, colour) {
+        var t = "";
+        try { t = item.typename; } catch (e) { return; }
+
+        if (t === "PathItem") {
+            try { item.filled = true; item.fillColor = colour; item.stroked = false; recoloured++; }
+            catch (e1) {}
+            return;
+        }
+        if (t === "CompoundPathItem") {
+            // Recurse — do NOT set fill on the compound itself.
+            try {
+                for (var i = 0; i < item.pathItems.length; i++) recolour(item.pathItems[i], colour);
+            } catch (e2) {}
+            return;
+        }
         try {
-            if (item.typename === "PathItem" || item.typename === "CompoundPathItem") {
-                item.filled = true; item.fillColor = colour; item.stroked = false;
-                return;
-            }
-        } catch (e) {}
-        try {
-            for (var i = 0; i < item.pageItems.length; i++) recolour(item.pageItems[i], colour);
-        } catch (e2) {}
+            for (var j = 0; j < item.pageItems.length; j++) recolour(item.pageItems[j], colour);
+        } catch (e3) {}
     }
 
     var missing = 0;
@@ -208,10 +229,15 @@
             } catch (e3) { log("  WARN: resize/place " + m.name + " — " + e3); }
 
             var colour = m.useInk ? (dark ? C.dink : C.ink) : hex(m.hex);
+            var before = recoloured;
             recolour(placed, colour);
+            var touched = recoloured - before;
 
             log("  " + (dark ? "dark " : "light") + "  " + m.name
-                + "   " + (m.useInk ? "INK TOKEN (brand #000 is 1.14:1 on dark)" : "brand #" + m.hex));
+                + "   " + (m.useInk ? "INK TOKEN (brand #000 is 1.14:1 on dark)" : "brand #" + m.hex)
+                + "   paths recoloured: " + touched
+                + (touched === 0 ? "   *** ZERO — RECOLOUR NO-OPPED, MARK WILL BE WRONG ***" : ""));
+            if (touched === 0) missing++;
             x += GLYPH + GAP;
         }
     }
@@ -247,6 +273,12 @@
     log("");
     log("  Instagram 3.18 and YouTube 3.30 clear the floor but not by much on");
     log("  paper. Eyeball them small before committing to a print surface.");
+    log("");
+    log("RECOLOUR VERIFICATION");
+    log("  Total paths recoloured across both rows: " + recoloured);
+    log("  Every mark must show a NON-ZERO count above. A zero means the fill was");
+    log("  set on a container rather than on the paths that actually carry it —");
+    log("  Illustrator raises no error for that, so the count is the only signal.");
     log("");
     log("ICON SOURCE RESOLUTION");
     log("  Marks were read from: " + ICON_DIR);
