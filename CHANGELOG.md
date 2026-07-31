@@ -110,6 +110,55 @@ visible in the diff and would otherwise evaporate.
   a CLI-only endpoint that renders blank in a browser; `infra/README.md` now records both and the
   distinction. Surfaced live during the #140 deploy.
 
+- **Fixed the signup Function URL returning 403 on every request (#150).** `infra/signup.yaml`
+  granted its public endpoint only `lambda:InvokeFunctionUrl`. Since **October 2025** a function URL
+  needs **both** `lambda:InvokeFunctionUrl` *and* `lambda:InvokeFunction`, so the stack would have
+  reached `CREATE_COMPLETE` with a healthy-looking `SignupEndpoint` output that rejected every POST —
+  the Coming Soon page (#128) would have shipped a form that silently collected nothing, with no
+  signal in stack status, outputs, or CloudWatch (requests never reach the handler). Adds a second
+  `AWS::Lambda::Permission` with `InvokedViaFunctionUrl: true`, which keeps the `Principal: "*"` grant
+  narrow — invocation is allowed through the function URL only, not the Invoke API. Caught before the
+  endpoint was wired to the site, so no signups were lost. Closes #150.
+
+- **Rewrote the signup deploy walkthrough around what actually happens (#150).**
+  `docs/signup-deploy-walkthrough.md` now leads with profile selection (`audio-lab-admin` until #148
+  closes, because `audio-lab` cannot deploy this stack), adds a pre-flight step, a
+  `ROLLBACK_FAILED` recovery procedure, and endpoint verification that discriminates. Also replaces
+  an accidental terminal paste (a duplicated deploy block with a malformed fence) that had been left
+  in the working tree.
+
+### Findings
+
+- **CloudFormation does not create the resource policy for a `NONE`-auth Function URL; the console
+  and AWS SAM do.** Per AWS docs (`lambda/latest/dg/urls-auth.html`): "If you're using the AWS CLI,
+  AWS CloudFormation, or the Lambda API directly, you must add the policy yourself," and without it
+  "users get a 403 Forbidden error code … even if the function URL uses the `NONE` auth type." Since
+  **October 2025** that policy needs **two** statements, not one. This is invisible in a CFN diff and
+  invisible in stack status — the failure mode is a green deploy with a dead endpoint. Any future
+  Function URL in this repo needs both `AWS::Lambda::Permission` resources.
+
+- **The `AudioLabDeploy` failures are mostly resource-ARN scope, not missing actions (#148).**
+  Reading the live permission set (three customer-managed policies: `AudioLabDnsDomains`,
+  `AudioLabMail`, `AudioLabSiteInfra`; no inline, no AWS-managed) shows `AudioLabSiteInfra` already
+  grants the full Lambda / Logs / IAM lifecycle — but every ARN is scoped to `audiolab-*`, the
+  audition stack's naming, while the signup stack names resources `toldstraight-*`. Same shape for
+  the observed `ses:TagResource` denial: the action *is* granted, but only on
+  `identity/toldstraight.com`, never `contact-list/*`. Genuinely absent actions are narrower than
+  they looked: the SES contact-list family and the Lambda function-URL-config family. Also recorded:
+  `infra/policies/` carries a file named `…AudioLabSiteInfra-v4…` while the live default version is
+  **v3**, and has no copy of `AudioLabDnsDomains` at all.
+
+- **A stack in `ROLLBACK_FAILED` cannot be updated, and `deploy` hides why.** `aws cloudformation
+  deploy` prints "Waiting for changeset to be created.. / Waiting for stack create/update to
+  complete" and then a generic failure, while producing **no new stack events** — so
+  `describe-stack-events` shows only the original failure and looks stale. The absence of new events
+  is the diagnostic: the operation was refused before it began. The stack must be deleted first.
+
+- **Omitting `--profile` on this machine yields a misleading `AccessDenied`.** The default profile is
+  `lifeos` (`LifeOSArchive`), which exists and authenticates fine but has no access to the audio-lab
+  resources — so a forgotten flag surfaces as an authorization error naming `LifeOSArchive`, not as a
+  missing-credentials error. Seeing `LifeOSArchive` in an AWS error means the flag was dropped.
+
 ## 2026-07-30
 
 ### Changed
