@@ -86,9 +86,11 @@ Resources:
   # iCloud is authorized to send, and anything else claiming to be this domain
   # is still rejected by DMARC policy.
   #
-  # Note that SPF now ends "~all" (softfail), NOT "-all" -- forced by Apple's
-  # verifier, see the SpfRecord comment below. DMARC is where the enforcement
-  # lives; do not read "~all" as the domain having gone soft.
+  # Note that SPF now ends "~all" (softfail), NOT "-all". "~all" is the value
+  # Apple's Custom Email Domain setup issues and what verified; "-all" was tried
+  # and failed verification, for reasons never cleanly isolated (see the SpfRecord
+  # comment below). DMARC is where the enforcement lives; do not read "~all" as
+  # the domain having gone soft.
   #
   # TTL 300 on every record this change touches (was 3600). The null MX said
   # "this domain accepts no mail", so a resolver that cached it could keep
@@ -120,21 +122,27 @@ Resources:
   # the change a clean in-place Modify. An honest comment costs nothing; an
   # honest identifier would cost a live DNS record.
   #   - v=spf1 include:icloud.com ~all
-  #       *** "~all" IS MANDATORY HERE. DO NOT "IMPROVE" IT TO "-all". ***
-  #       Apple's Custom Email Domain verifier does a LITERAL STRING COMPARISON
-  #       against the SPF value it issued -- it does not evaluate SPF
-  #       semantics. Apple issues "~all", so "-all" can NEVER pass verification
-  #       however long you wait, and the failure message blames your record
-  #       ("Check your SPF record -- make sure the settings you updated match
-  #       the ones sent to you") rather than naming the mismatch.
+  #       *** USE "~all" HERE. DO NOT "IMPROVE" IT TO "-all" WITHOUT CARE. ***
+  #       "~all" is the exact value Apple's Custom Email Domain setup issues, and
+  #       it is what verified. When "-all" was tried instead, Apple verification
+  #       failed with a generic message that names no mismatch ("Check your SPF
+  #       record -- make sure the settings you updated match the ones sent to you").
   #
-  #       This was tried the strong way first and it failed: "-all" is
-  #       semantically stricter and is what a security review would ask for,
-  #       which is exactly why someone will eventually change it back. Doing so
-  #       un-verifies the domain at Apple and breaks mail at a moment nobody is
-  #       watching. Measured 2026-07-27 -- caching was excluded as a cause, the
-  #       new record was confirmed live on both the authoritative nameserver
-  #       and public resolvers before Apple was retried.
+  #       WHY "-all" failed was never cleanly isolated -- two explanations fit and
+  #       were not separated: (a) Apple's verifier does a literal string compare
+  #       against the value it issued, so any deviation fails regardless of SPF
+  #       semantics; or (b) the "-all" record had not fully propagated to Apple's
+  #       resolver when verification was retried (the #54 cutover ran on 300s TTLs
+  #       mid-change). The 2026-07-27 attempt believed it had excluded propagation
+  #       -- the record read live on the authoritative nameserver and public
+  #       resolvers first -- but that check was not rigorous enough to rule timing
+  #       out, and Apple's own resolver path was never observed. Treat "-all
+  #       cannot verify" as UNTESTED, not proven.
+  #
+  #       The practical guidance is unchanged either way: ship "~all", the value
+  #       Apple issues. If "-all" is ever attempted again, do it deliberately with
+  #       room to revert -- re-failing verification un-verifies the domain and
+  #       breaks mail at a moment nobody is watching.
   #
   #       The security cost is bounded and is NOT where the enforcement lives:
   #       DMARC below is p=reject with strict alignment and is unchanged. The
