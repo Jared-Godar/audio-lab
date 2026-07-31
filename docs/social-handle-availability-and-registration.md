@@ -494,6 +494,26 @@ op item get 'Told Straight — X' --otp
 op read "op://Told Straight/Told Straight — X/one-time password?attribute=otp"
 ```
 
+#### Password length caps differ per platform — 32 is not universally safe
+
+`op`'s default generated password is **32 characters**, and **TikTok rejects it**:
+its signup form states *"8 to 20 characters"* (measured 2026-07-31 from the live
+form). The item was regenerated with
+
+```fish
+op item edit 'Told Straight — TikTok' --generate-password='letters,digits,symbols,20'
+```
+
+Expect this again. Verify a regenerated length **without printing the value** —
+pipe it to `wc -c`, never to stdout:
+
+```fish
+op item get '<title>' --fields label=password --reveal | tr -d '\n' | wc -c
+```
+
+and hand it over via `pbcopy` rather than the terminal. A password read aloud into
+a transcript is a password that has to be rotated.
+
 #### Do not put the TOTP seed on the command line
 
 `op` supports an `[otp]` assignment —
