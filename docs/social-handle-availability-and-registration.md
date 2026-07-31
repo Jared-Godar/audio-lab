@@ -384,12 +384,13 @@ opening clause: the topic is what converts a visitor, the framing is not.
 Bottom line up front. Every claim sourced. No woo. No BS. Season 1: Adult ADHD.
 ```
 
-**Bio — long (YouTube "About", Facebook "Intro", Bluesky):**
+**Bio — long. 409 chars. YouTube only** (limit 1000). Facebook Intro and Bluesky
+cap near 255 — use the medium form below, not this one:
 
 ```text
 A season-per-topic podcast that takes one complicated subject and covers it properly. Bottom line up front. Every claim sourced to peer-reviewed literature. Dark humor. No woo. No BS.
 
-It exists because "do your own research" mostly means reading whatever ranks well. This is the opposite of that, done out loud.
+It exists because "do your own research" now mostly means shopping for agreement with no intention of changing your mind. This is the opposite of that, done out loud.
 
 Season 1 is Adult ADHD. Orientation, not medical advice.
 ```
@@ -401,6 +402,24 @@ Both are derived from the README's own description of the show, not newly invent
 > The site is a Coming Soon page at time of writing (#128, go-live 2026-08-06 per
 > ADR 0019). Linking it from day one is still right — it is where a squatter-check
 > visitor lands, and it collects signups.
+
+**Bio — medium. 248 chars.** For **Facebook Intro** and **Bluesky**, both of which
+cap around 255. Keeps the "do your own research" thesis *and* the medical-advice
+disclaimer — the two things the long form has that the short form cannot carry.
+
+```text
+One complicated subject a season, covered properly. Bottom line up front. Every claim sourced. Dark humor. No woo. No BS. Because "do your own research" now mostly means shopping for agreement. Season 1: Adult ADHD. Orientation, not medical advice.
+```
+
+**Four lengths exist, and they are not interchangeable.** Measured against each
+platform's own counter or stated limit:
+
+| Form | Chars | Fits |
+| --- | --- | --- |
+| TikTok short | 79 | TikTok (~80) |
+| Standard | 134 | X (160), Instagram (150) |
+| Medium | 248 | Facebook Intro, Bluesky (~255) |
+| Long | 409 | YouTube (1000) |
 
 ### 5.4 Profile art
 
