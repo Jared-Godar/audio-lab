@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# NOTE: long-form intrinsics (Ref:, Fn::Sub, Fn::GetAtt) only — no !Ref / !Sub
+# short tags — so the repo's generic check-yaml pre-commit hook can parse this
+# file (a safe YAML loader cannot construct the custom !-tags). Matches infra/dns.yaml.
+#
+# This stack is the SIGNUP COLLECTION path for the Coming Soon page (#140): it banks
+# release-notification emails into an SES v2 contact list we own. It does NOT send mail.
+# Sending (sandbox exit, DKIM verification, the launch blast) is #144 — see the
+# walkthrough at docs/signup-deploy-walkthrough.md. Deploy is billable AWS: the maintainer
+# runs it via a reviewed change-set, this repo only authors the template.
+
+Description: >-
+  Told Straight signup COLLECTION for the Coming Soon page (#140). A public Lambda
+  Function URL validates an email and stores it (single opt-in) in an SES v2 contact
+  list we own -- no third-party ESP, the list never leaves the account. Also declares
+  the SES domain email-identity with EasyDKIM as the SENDING foundation; its DKIM tokens
+  are Outputs for the manual DNS step in #144. This stack does not send mail. See
+  infra/README.md and docs/signup-deploy-walkthrough.md.
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: toldstraight.com
+    AllowedPattern: "^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\\.[A-Za-z0-9-]{1,63})+$"
+    Description: The apex domain, without a trailing dot. The SES sending identity.
+
+  AllowedOrigin:
+    Type: String
+    Default: https://toldstraight.com
+    Description: >-
+      The single web origin allowed to POST to the signup endpoint (CORS). The static
+      site's origin. Use https://toldstraight.com in production.
+
+  ContactListName:
+    Type: String
+    Default: toldstraight-audience
+    Description: >-
+      SES v2 contact list name (the owned list). SES allows exactly ONE contact list per
+      account per region, so this name is effectively fixed once created.
+
+  TopicName:
+    Type: String
+    Default: release-and-updates
+    Description: The subscription topic new signups opt into (supports ongoing updates).
+
+  LogRetentionDays:
+    Type: Number
+    Default: 90
+    Description: CloudWatch log retention for the signup function.
+
+Resources:
+
+  # The owned audience list. One topic ("release-and-updates") that signups opt into;
+  # DEFAULT_UNSUBSCRIBE means a contact is subscribed unless they opt out (single opt-in).
+  AudienceList:
+    Type: AWS::SES::ContactList
+    Properties:
+      ContactListName:
+        Ref: ContactListName
+      Description: Told Straight audience — release notification + ongoing updates.
+      Topics:
+        - TopicName:
+            Ref: TopicName
+          DisplayName: Told Straight — news & new episodes
+          DefaultSubscriptionStatus: OPT_IN
+          Description: One email at launch, then occasional updates. Unsubscribe any time.
+
+  # Sending FOUNDATION only. EasyDKIM generates three CNAME tokens (Outputs below) that the
+  # maintainer adds to infra/dns.yaml to verify the identity (#144). Declaring the identity
+  # here does not enable sending on its own (sandbox exit is still required) and does not
+  # affect inbound mail, which stays on iCloud+ (see infra/README.md).
+  SenderIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity:
+        Ref: DomainName
+      DkimAttributes:
+        SigningEnabled: true
+
+  SignupLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: "/aws/lambda/toldstraight-signup"
+      RetentionInDays:
+        Ref: LogRetentionDays
+
+  # Least privilege: the function may only add/read a contact on THIS list, and write logs.
+  SignupFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: signup-write-contact-and-log
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:CreateContact
+                  - ses:GetContact
+                Resource:
+                  Fn::Sub: "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:contact-list/${ContactListName}"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  Fn::GetAtt: [SignupLogGroup, Arn]
+
+  SignupFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: SignupLogGroup
+    Properties:
+      FunctionName: toldstraight-signup
+      Runtime: python3.12
+      Handler: index.handler
+      Timeout: 10
+      MemorySize: 128
+      Role:
+        Fn::GetAtt: [SignupFunctionRole, Arn]
+      Environment:
+        Variables:
+          CONTACT_LIST:
+            Ref: ContactListName
+          TOPIC:
+            Ref: TopicName
+          ALLOWED_ORIGIN:
+            Ref: AllowedOrigin
+      Code:
+        # Inline handler (no deps beyond the runtime's boto3). Single opt-in: validate,
+        # honeypot-check, CreateContact (idempotent). Never echoes whether an address is
+        # already on the list — that would leak membership.
+        ZipFile: |
+          import json, os, re, boto3
+          ses = boto3.client("sesv2")
+          LIST = os.environ["CONTACT_LIST"]
+          TOPIC = os.environ["TOPIC"]
+          ORIGIN = os.environ["ALLOWED_ORIGIN"]
+          EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+          def _resp(code, ok, error=None):
+              body = {"ok": ok}
+              if error:
+                  body["error"] = error
+              return {
+                  "statusCode": code,
+                  "headers": {
+                      "content-type": "application/json",
+                      "access-control-allow-origin": ORIGIN,
+                  },
+                  "body": json.dumps(body),
+              }
+
+          def handler(event, context):
+              try:
+                  data = json.loads(event.get("body") or "{}")
+              except Exception:
+                  return _resp(400, False, "bad request")
+              # Honeypot: a hidden form field bots fill and humans never see.
+              if (data.get("company") or "").strip():
+                  return _resp(200, True)          # accept silently, store nothing
+              email = (data.get("email") or "").strip().lower()
+              if len(email) > 254 or not EMAIL.match(email):
+                  return _resp(400, False, "invalid email")
+              try:
+                  ses.create_contact(
+                      ContactListName=LIST,
+                      EmailAddress=email,
+                      TopicPreferences=[{"TopicName": TOPIC, "SubscriptionStatus": "OPT_IN"}],
+                  )
+              except ses.exceptions.AlreadyExistsException:
+                  pass                              # idempotent, don't reveal membership
+              except Exception as exc:
+                  print("signup error:", repr(exc))
+                  return _resp(500, False, "server error")
+              return _resp(200, True)
+
+  # Public Function URL (AuthType NONE) — a signup form has no caller to authenticate.
+  # CORS restricts it to the site origin; the handler validates and honeypots. Stronger
+  # abuse controls (throttling / CAPTCHA) are a hardening follow-up — see #143.
+  SignupFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn:
+        Fn::GetAtt: [SignupFunction, Arn]
+      AuthType: NONE
+      Cors:
+        AllowOrigins:
+          - Ref: AllowedOrigin
+        AllowMethods:
+          - POST
+        AllowHeaders:
+          - content-type
+        MaxAge: 3600
+
+  SignupUrlPublicInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt: [SignupFunction, Arn]
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+Outputs:
+  SignupEndpoint:
+    Description: "The signup endpoint. The site form POSTs a JSON body with an email field here."
+    Value:
+      Fn::GetAtt: [SignupFunctionUrl, FunctionUrl]
+
+  ContactListName:
+    Description: The SES v2 contact list holding the audience.
+    Value:
+      Ref: ContactListName
+
+  DkimTokenName1:
+    Description: "#144: CNAME name 1 to add to infra/dns.yaml to verify SES sending."
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenName1]
+  DkimTokenValue1:
+    Description: CNAME value 1.
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenValue1]
+  DkimTokenName2:
+    Description: CNAME name 2.
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenName2]
+  DkimTokenValue2:
+    Description: CNAME value 2.
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenValue2]
+  DkimTokenName3:
+    Description: CNAME name 3.
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenName3]
+  DkimTokenValue3:
+    Description: CNAME value 3.
+    Value:
+      Fn::GetAtt: [SenderIdentity, DkimDNSTokenValue3]

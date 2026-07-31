@@ -11,6 +11,18 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Built the email-signup collection backend + a privacy policy (#140).** New `infra/signup.yaml`
+  (CloudFormation, long-form intrinsics, cfn-lint clean): a public **Lambda Function URL** — CORS-locked
+  to the site origin — validates an email and stores it **single opt-in** in an **SES v2 contact list we
+  own**. No third-party ESP; the list never leaves the account. The handler is idempotent,
+  honeypot-guarded, and never reveals whether an address is already on the list. The stack also declares
+  the SES domain **email-identity (EasyDKIM)** as the *sending foundation*, outputting the DKIM tokens for
+  the manual DNS step. `docs/privacy-policy.md` is a draft policy covering exactly this collection
+  (consent, own-list storage, unsubscribe via `hello@`); `docs/signup-deploy-walkthrough.md` is the
+  maintainer runbook. **This stack collects; it does not send** — deploy is billable (maintainer, via
+  change-set), and DKIM verification + sandbox exit + the launch send are #144 (double opt-in is #143).
+  Closes #140.
+
 - **Recorded the Coming Soon design language + the human/machine cast register as ADR 0019 (#138).**
   New `docs/adr/0019-coming-soon-design-and-human-machine-register.md` pins two coupled decisions from
   the #138 design session: (1) the show's cast splits **by medium** — real people are photographed
