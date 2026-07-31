@@ -51,6 +51,21 @@ visible in the diff and would otherwise evaporate.
   labels, not fields. Group-by, roadmap date fields, and a Status Insights chart have no API and
   are left as documented click-steps for the maintainer.
 
+### Changed
+
+- **Retired the custom Project #8 automation in favor of GitHub's built-in Project workflows
+  (#115, #121).** Removed `.github/workflows/project-automation.yml` and
+  `scripts/project_automation.py` (both added earlier the same day in #135). Project #8's native
+  workflows cover the whole lifecycle with no custom code and no credential: "Auto-add to project"
+  and "Item added to project" (→ Todo) for the add leg (#115); **"Pull request linked to issue"
+  (→ In Progress)** for the PR leg (#121); and the built-in merged/closed → Done plus "Item
+  reopened" → In Progress. This corrects #121's 2026-07-30 research, which concluded the built-ins
+  "only do Done transitions" and therefore that the In-Progress-on-linked-PR leg required custom
+  Actions + GraphQL — the "Pull request linked to issue" built-in does exactly that leg. Custom
+  automation was the right call for `ecg_anomaly_detection` (nine Project fields to populate) but
+  overkill for audio-lab's Status-only board. Retiring it also lets the account-wide, expiring
+  `PROJECT_AUTOMATION_TOKEN` classic PAT be revoked — one fewer standing credential to rotate.
+
 ### Fixed
 
 - **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as
