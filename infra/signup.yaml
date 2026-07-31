@@ -200,6 +200,16 @@ Resources:
           - content-type
         MaxAge: 3600
 
+  # Function URLs need a resource-based policy to be reachable. The console and AWS SAM
+  # write it for you; CloudFormation does NOT — with no policy every request gets a
+  # 403 Forbidden even though AuthType is NONE, and the stack still reports
+  # CREATE_COMPLETE. So both statements below are load-bearing, not belt-and-braces.
+  #
+  # TWO statements are required: AWS changed this in October 2025 — function URLs
+  # created from that date need lambda:InvokeFunctionUrl AND lambda:InvokeFunction.
+  # A template carrying only the first (the pre-2025 pattern) deploys clean and 403s
+  # on every signup. See https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html
+  # ("Using the NONE auth type").
   SignupUrlPublicInvoke:
     Type: AWS::Lambda::Permission
     Properties:
@@ -208,6 +218,17 @@ Resources:
       Action: lambda:InvokeFunctionUrl
       Principal: "*"
       FunctionUrlAuthType: NONE
+
+  # InvokedViaFunctionUrl keeps this grant narrow: Principal "*" may invoke the
+  # function ONLY through the function URL, not via the Invoke API or any other path.
+  SignupUrlPublicInvokeFunction:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Fn::GetAtt: [SignupFunction, Arn]
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
 
 Outputs:
   SignupEndpoint:
