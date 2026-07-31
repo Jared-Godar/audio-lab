@@ -199,12 +199,18 @@ visible in the diff and would otherwise evaporate.
   the signup stack with `AllowedOrigin` pointed at the CloudFront domain, then put it back) is in
   `docs/site-deploy-walkthrough.md`. Note this constrains ordering: page → DNS → *then* form test.
 
-- **The Coming Soon page's fonts are hosted by Adobe Typekit and fail silently (#128).** The page
-  loads `use.typekit.net/zol6gng.css`, and Adobe kits enforce a **domain allowlist**. If
-  `toldstraight.com` is not on that kit, every face falls back to Helvetica/Arial — nothing errors,
-  nothing appears in the console, the page simply stops looking like Told Straight. It is a
-  browser-only manual step (Adobe Fonts → the kit → Settings → Domains → publish) that no amount of
-  template correctness can cover, and it is invisible to every automated check we have.
+- **Adobe Fonts web projects have no domain allowlist — the Typekit-era requirement is gone (#128).**
+  An earlier entry in this section claimed `toldstraight.com` had to be added to kit `zol6gng` or the
+  page would silently fall back to Helvetica, and flagged it as a go-live blocker. That was wrong.
+  Adobe's documentation is explicit: "You don't need to specify a list of domain names for your web
+  projects. You can add the embed code to any website–no matter where it is hosted," with no cap on
+  how many sites use one project. The Adobe Fonts UI says the same ("You can embed this project on
+  any website you manage"). What made the stale advice look current is that the embed URL is still
+  `use.typekit.net`, so Typekit-era guidance still ranks and still reads as applicable. Corroborating
+  evidence was already in hand and under-weighted: the page rendered in Trade Gothic from `127.0.0.1`
+  during local testing, which was attributed to a localhost dev exemption when the simpler
+  explanation was that no restriction exists. Corrected in `docs/site-deploy-walkthrough.md`; a
+  Helvetica render means the stylesheet request itself failed, not a settings problem.
 
 - **CloudFormation does not create the resource policy for a `NONE`-auth Function URL; the console
   and AWS SAM do.** Per AWS docs (`lambda/latest/dg/urls-auth.html`): "If you're using the AWS CLI,

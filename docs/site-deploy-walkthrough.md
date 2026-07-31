@@ -3,6 +3,12 @@
 > **Revision history** — newest first. This doc is **rewritten in place** as blockers
 > surface during real deploys, so the top entry tells you at a glance how current it is.
 >
+> **2026-07-31 (later) — corrected after the first live deploy.** The stack deployed clean
+> and the page is verified live at the CloudFront domain. Two changes: the claim that Adobe
+> Fonts needs a **domain allowlist was wrong** and is removed (there is no such requirement —
+> it was a Typekit-era rule Adobe dropped), and the verification checklist no longer sends you
+> to Adobe settings when type looks wrong.
+>
 > **2026-07-31 — created** (#128) alongside `infra/site.yaml` and the tracked `site/`
 > directory. Not yet exercised against a live deploy; the first run will almost certainly
 > add to the failure notes below.
@@ -38,15 +44,25 @@ aws cloudformation deploy --stack-name toldstraight-signup \
 
 Otherwise, just verify the form after the cutover. Nothing is broken in the meantime.
 
-**2. Fonts come from Adobe Typekit and will silently fall back.** The page loads
-`https://use.typekit.net/zol6gng.css`. Adobe kits enforce a **domain allowlist** — if
-`toldstraight.com` (and the CloudFront domain, if you test there) is not on that kit, every
-face silently falls back to Helvetica/Arial. Nothing errors, nothing appears in the console;
-the page just stops looking like Told Straight.
+**2. Fonts load from Adobe Fonts — and need no setup.** The page loads
+`https://use.typekit.net/zol6gng.css` (web project `audio-lab`, 49 fonts). **There is no
+domain allowlist to configure.** Per Adobe's own documentation: "You don't need to specify a
+list of domain names for your web projects. You can add the embed code to any website–no
+matter where it is hosted." There is also no cap on how many sites use one project.
 
-Do this in the browser before go-live: **Adobe Fonts → My Kits → kit `zol6gng` → Settings →
-Domains** → add `toldstraight.com`, `www.toldstraight.com`, and the CloudFront domain if you
-plan to check there. Then publish the kit.
+The domain allowlist was a **Typekit-era** requirement that Adobe removed; the URL still says
+`typekit.net`, which makes the old advice look current. The project page states the same
+thing in the UI: "You can embed this project on any website you manage."
+
+So the fonts work on `localhost`, on the CloudFront domain, and on `toldstraight.com` with no
+Adobe-side step. Confirmed locally: the page renders in Trade Gothic served from
+`use.typekit.net` with no configuration.
+
+If the page *does* render in Helvetica, do not go looking at Adobe settings — check that the
+stylesheet request itself succeeded (DevTools → Network → `zol6gng.css`). A blocked request,
+a Content Security Policy, or an offline machine are the realistic causes.
+
+See [Domains | Adobe Fonts](https://helpx.adobe.com/fonts/using/domains.html).
 
 ---
 
@@ -141,8 +157,8 @@ Open the `DistributionDomainName` value in a browser. Check:
 - [ ] Page renders; the DECLASSIFY countdown is running
 - [ ] Cast portraits and the hero image all load
 - [ ] Images served as `.webp` (DevTools → Network → the `Type` column)
-- [ ] Typography is Trade Gothic, **not** Helvetica — if it is Helvetica, the Typekit domain
-      allowlist is the cause, not the deploy
+- [ ] Typography is Trade Gothic, **not** Helvetica — if it is Helvetica, check whether the
+      `zol6gng.css` request itself failed (no Adobe-side configuration is involved)
 - [ ] HTTPS with no certificate warning
 - [ ] The signup form is expected to fail here until DNS cutover (see the top of this doc)
 
