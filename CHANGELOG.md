@@ -182,6 +182,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **Fixed the hero image rendering squashed on the live site (#128).** `.hero img` set
+  `width:100%` with no `height:auto`. When intrinsic `width`/`height` attributes were added to the
+  `<img>` for layout-shift prevention, CSS overrode the width while the **height attribute still
+  applied literally** — the hero rendered 947×1004 instead of 947×528, a 0.94 ratio where the image
+  is 1.79. Measured on the live page, not inferred: `naturalWidth/naturalHeight` 1.793 vs a rendered
+  0.944. The cast portraits were unaffected because `.portrait img` sets `height:100%` with
+  `object-fit:cover` inside an `aspect-ratio:1/1` box. Adding `height:auto` restores it, with a
+  comment recording why that declaration is load-bearing rather than tidiness — retrofitting
+  intrinsic dimensions onto CSS that constrains only one axis is what caused this.
+
 - **Corrected a wrong go-live date in the largest type on the Coming Soon page (#128).** The
   `DECLASSIFY ON` stamp read **08 Aug 2026** while the countdown constant and ADR 0019 both say
   **2026-08-06** — a two-day error, hand-typed into the page's most prominent element, on the very

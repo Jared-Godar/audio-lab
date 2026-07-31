@@ -121,7 +121,13 @@ section{padding:3.4rem 0}
 
 /* ---- Hero band ---- */
 .hero{margin-top:1rem;border:2px solid var(--ts-ink)}
-.hero img{width:100%;display:block}
+/* height:auto is load-bearing, not tidiness. The <img> carries intrinsic width/height
+   attributes (1800x1004) so the browser can reserve space before the file arrives. With
+   `width:100%` alone, CSS overrides the width but the HEIGHT ATTRIBUTE still applies
+   literally — the hero rendered 947x1004 instead of 947x528, squashed to a 0.94 ratio
+   instead of 1.79. Removing height:auto reintroduces that. The cast portraits are immune
+   because .portrait img sets height:100% inside an aspect-ratio:1/1 box. */
+.hero img{width:100%;height:auto;display:block}
 .hero .cap{display:flex;justify-content:space-between;gap:1rem;padding:.7rem .9rem;border-top:2px solid var(--ts-ink);font-family:var(--ts-font-mono);font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ts-record)}
 
 /* ---- Notify ---- */
