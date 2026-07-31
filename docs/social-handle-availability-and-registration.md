@@ -385,11 +385,44 @@ Both are derived from the README's own description of the show, not newly invent
 
 ### 5.4 Profile art
 
-**Avatar — use this file, all six platforms:**
+**Avatar — variant A (ring), approved 2026-07-31.** Built by
+`tools/brand/20260731-adobe-illustrator-toldstraight-x-avatar-builder.jsx`; upload the
+**square 1000×1000 master**
+(`…-x-avatar-a-ring-1000.png`), never a crop preview — every one of these platforms
+applies its own circular mask, and a pre-cropped circle gets masked twice and picks up
+a halo.
 
-`brand/favicon/20260728-adobe-illustrator-toldstraight-favicon-512-maskable.png`
-(512×512, square, already in the repo). Every platform crops the avatar to a circle
-or rounded square; the maskable variant is the one built with that safe area.
+**Why the favicon was not reused.** The obvious candidate,
+`brand/favicon/…-favicon-512-maskable.png`, is the wrong asset for this slot, and the
+reason is geometric rather than aesthetic. A circular crop is the **inscribed circle**,
+radius `S/2`. A square frame inset by `i` has its outer corner at `√2 × (S/2 − i)`,
+which survives only if
+
+```text
+i  >=  (S/2)(1 − 1/√2)  =  0.1464 × S        (14.64%)
+```
+
+The 512 maskable uses inset 51 = **9.96%**, and needs 75 — short by 24px, so its frame
+corners are clipped. That file is not defective; it was built for a **square** favicon
+slot. "Maskable" protects the PWA *content* safe zone; it never promised a full-bleed
+frame's corners would survive a circular mask. A **ring has no corners**, needs no such
+inset, and can therefore carry a larger mark than any square-framed version — which is
+what variant A is.
+
+Three treatments were built and judged at **true 48px** (X's timeline size): A ring,
+B square-frame re-inset to 16%, C frameless. Raw legibility ranks **C > A > B**, but A
+was chosen because it keeps M1's ruled-container identity while being native to the
+crop — at 48px, C is just two letters. B reads as a square dropped into a circle.
+
+The builder measures the type by **outlining it** and reading the resulting paths'
+bounds (`cap/em 0.736` verified), because `geometricBounds` on live text returns the
+em/leading box, not the ink — two earlier revisions put the red bar through the letters
+and then well below the baseline before that was understood. It also prints a
+**PASS/FAIL fit check per board**, computed from the same numbers that drew the artwork.
+
+Variant A should serve **every** platform here — X, Instagram, YouTube, Facebook Pages
+and Bluesky all crop avatars circular — but confirm per platform at upload rather than
+assuming.
 
 **Banners / cover images — this is a genuine gap, not an oversight.** The repo's
 widest brand assets are the 1200×630 OG cards and the 1280×400 README headers in
@@ -504,6 +537,7 @@ Issue #111 was closed on merge of the research PR. The execution half is tracked
 | 2026-07-31 | Google Voice is declined for signup verification (VoIP), accepted for a public site contact number; never hosted on the YouTube Google account | § 5.2.2 |
 | 2026-07-31 | Where a platform forces a phone, verify then remove it as a login factor once TOTP is on | § 5.2.2 |
 | 2026-07-31 | X is registered via the **mobile app** with `social@toldstraight.com`; web signup and SSO coupling both declined | § 5.0 |
+| 2026-07-31 | Avatar is **variant A (ring)**, approved from a true-48px comparison; the 512 maskable favicon is declined for circular slots (9.96% inset, needs 14.64%) | § 5.4 |
 
 ## 8. 1Password inventory
 
