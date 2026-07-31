@@ -114,6 +114,15 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **Corrected a wrong go-live date in the largest type on the Coming Soon page (#128).** The
+  `DECLASSIFY ON` stamp read **08 Aug 2026** while the countdown constant and ADR 0019 both say
+  **2026-08-06** — a two-day error, hand-typed into the page's most prominent element, on the very
+  date the show launches. The countdown beneath it was correct the whole time, so the page contradicted
+  itself in public. Caught by reading a render, not a diff: both values look plausible in source. The
+  stamp is now **derived from the `GO_LIVE` constant** at runtime (formatted in `America/New_York`,
+  since the launch is a fixed wall-clock moment, not the visitor's local time), with the static markup
+  kept as a matching no-JS fallback — so the two can no longer drift.
+
 - **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as
   fact that Apple's Custom Email Domain verifier does a literal string comparison, so `-all`
   "can NEVER pass verification." That conclusion was never cleanly isolated from a

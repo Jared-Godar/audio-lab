@@ -126,10 +126,13 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
     <div class="double"><hr><hr></div>
     <div class="hero-mark">
       <h1 class="wordmark">Told<br>Straight</h1>
+      <!-- s2/s3 are rendered from the GO_LIVE constant at the bottom of this file
+           so the stamp and the countdown can never disagree. The static values are
+           the no-JS fallback and must match GO_LIVE. -->
       <div class="stamp">
         <div class="s1">Declassify On</div>
-        <div class="s2">08 Aug 2026</div>
-        <div class="s3">09:00 EDT</div>
+        <div class="s2" id="stamp-date">06 Aug 2026</div>
+        <div class="s3" id="stamp-time">09:00 EDT</div>
       </div>
     </div>
     <div class="authority">Dept. of Neurodevelopmental Affairs</div>
@@ -257,6 +260,24 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
 <script>
   const GO_LIVE = new Date("2026-08-06T09:00:00-04:00"); // 8/6/2026 — change here only
   const el = document.getElementById("cd");
+
+  // Render the DECLASSIFY stamp from the same constant. Before this, the stamp was
+  // hand-typed and had drifted two days off the countdown (it read 08 Aug while
+  // GO_LIVE and ADR 0019 both say the 6th) — a wrong launch date in the largest
+  // type on the page. Deriving it makes that class of bug impossible.
+  (function stampFromGoLive(){
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    // Format in the show's timezone (America/New_York), not the visitor's — the
+    // stamp states when the show launches, which is a fixed wall-clock moment.
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York", day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZoneName: "short"
+    }).formatToParts(GO_LIVE).reduce((a,p) => (a[p.type] = p.value, a), {});
+    const d = document.getElementById("stamp-date");
+    const t = document.getElementById("stamp-time");
+    if(d) d.textContent = `${parts.day} ${parts.month} ${parts.year}`;
+    if(t) t.textContent = `${parts.hour}:${parts.minute} ${parts.timeZoneName}`;
+  })();
   const pad = n => String(n).padStart(2,"0");
   function tick(){
     let ms = GO_LIVE - new Date();
