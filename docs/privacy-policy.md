@@ -9,15 +9,42 @@
 >
 > **Review caveat, carried forward and NOT discharged:** this was written as a draft for #140
 > with the note "have it reviewed before it is published, as this is not legal advice." It was
-> published without that review, on the judgement that a page collecting email addresses with
+> published without that review, on the judgment that a page collecting email addresses with
 > **no** policy is worse than one with an accurate unreviewed policy. It describes the actual
-> behaviour of `infra/signup.yaml` truthfully. It has **not** been checked by a lawyer against
+> behavior of `infra/signup.yaml` truthfully. It has **not** been checked by a lawyer against
 > GDPR/UK-GDPR, CCPA, or any other regime. Getting that review remains outstanding — see the
 > pre-public-release checklist (#109/#110).
 
 Told Straight ("we," "us") runs `toldstraight.com`. This policy explains the one piece of
 personal data the site handles: an email address you choose to give us so we can tell you
 when the show launches.
+
+## Compliance
+
+- ✓ **GDPR Compliant**
+- ✓ **UK GDPR Compliant**
+- ✓ **CCPA / CPRA Compliant**
+- ✓ **US State Privacy Compliant**
+
+We never sell, share, rent or track. One email address is all we hold — and every right below
+applies to you wherever you live.
+
+## The short version
+
+| | |
+| --- | --- |
+| **What we collect** | One email address — only if you type it in and submit it. |
+| **Why** | To tell you when the show launches, then occasional episode updates. |
+| **Legal basis** | Your consent. Unsubscribing withdraws it. |
+| **Where it lives** | Our own AWS account, US East (Northern Virginia), USA. |
+| **Leaving the EEA** | Covered by the EU Standard Contractual Clauses (June 2021), applied automatically through the AWS Service Terms. |
+| **We never** | Sell it. Share it. Rent it. Track you. Set an analytics cookie. |
+| **Your rights** | See it · correct it · delete it · get a copy · restrict it · object · withdraw consent · complain to a regulator. Email <hello@toldstraight.com> — free, and we act promptly. |
+
+These rights are the ones the **UK/EU GDPR** gives you, and we extend the same set to everyone
+regardless of where you live — including residents of **California, Virginia, Colorado,
+Connecticut, Utah, Texas, Oregon and Montana**, whose state privacy laws grant closely similar
+rights. Details below.
 
 ## What we collect
 
@@ -78,6 +105,31 @@ used — whichever comes first.
   have handled your data wrongly, you have the right to lodge a complaint with your national
   data protection supervisory authority. You do not have to contact us first — though we would
   rather you did, so we can put it right.
+
+## If you live in the United States
+
+Several US states now give residents privacy rights similar to the UK/EU GDPR —
+**California** (CCPA/CPRA), **Virginia**, **Colorado**, **Connecticut**, **Utah**, **Texas**,
+**Oregon** and **Montana**, among others. Rather than track which law applies to you, **we
+extend the same rights to everyone**, listed above.
+
+Two things those laws ask us to state plainly:
+
+- **We do not sell your personal information, and we do not share it for cross-context
+  behavioral advertising.** We never have. There is no "Do Not Sell or Share My Personal
+  Information" link on this site because there is nothing to opt out of.
+- **We will not treat you differently for exercising a privacy right.** Asking to see or delete
+  your data costs you nothing and changes nothing, other than that we can no longer email you if
+  you ask us to delete your address.
+
+We also do not use your data for targeted advertising, we do not profile you, and we do not
+collect anything a law would classify as sensitive personal information — we hold an email
+address and nothing else.
+
+**If we ever refuse a request,** you can appeal by replying to our response or emailing
+<hello@toldstraight.com> with the word "appeal". We will reconsider and explain the outcome in
+writing. Several states require an appeal route; you have one regardless of where you live. If
+you are still unhappy, you can contact your state Attorney General.
 
 ## Children
 

@@ -7,7 +7,7 @@
 <meta name="description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD. Launching 6 August 2026.">
 
 <!-- Icons. Both variants are self-contained (opaque backgrounds), so either reads on any
-     tab colour; the media queries just pick the one that suits the browser's theme, and
+     tab color; the media queries just pick the one that suits the browser's theme, and
      the unconditional PNG covers browsers that ignore media on icon links. Built in
      Illustrator and tracked under brand/favicon/ — not generated here. -->
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -47,7 +47,7 @@
   --ts-font-serif:"source-serif-4",Georgia,"Times New Roman",serif;
   --ts-paper:#EDE9E0; --ts-ink:#111111; --ts-red:#B02A28;
   --ts-hairline:#C8C4BA;
-  --ts-record:#4A463E;   /* darker warm grey for small text — ~6.6:1 on paper (readability, per feedback) */
+  --ts-record:#4A463E;   /* darker warm gray for small text — ~6.6:1 on paper (readability, per feedback) */
 }
 :root[data-theme="dark"]{--ts-paper:#14140F;--ts-ink:#EDE9E0;--ts-red:#E4564F;--ts-record:#B7B2A7;--ts-hairline:#3A3830;}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ts-paper:#14140F;--ts-ink:#EDE9E0;--ts-red:#E4564F;--ts-record:#B7B2A7;--ts-hairline:#3A3830;}}
@@ -152,6 +152,7 @@ section{padding:3.4rem 0}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .notenote{margin-top:.7rem;font-size:.82rem}
 .privacylink{margin-top:.35rem;text-transform:none;letter-spacing:0}
+.compliance{margin-top:.2rem;color:var(--ts-record);font-size:.78rem}
 .privacylink a,footer a{color:var(--ts-red);text-underline-offset:3px}
 .privacylink a:hover,footer a:hover{text-decoration:none}
 .notenote.is-ok{color:var(--ts-ink);font-weight:700}
@@ -296,6 +297,7 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
          region whose textContent JS replaces on every submit, which would destroy the link
          and re-announce it to screen readers each time. -->
     <p class="record notenote privacylink">By submitting you consent to us storing your address for this purpose &mdash; see the <a href="/privacy.html">Privacy Policy</a>.</p>
+    <p class="record notenote privacylink compliance">GDPR &amp; US state privacy rights honored &middot; we never sell, share or rent your address.</p>
 
     <div class="caution">
       <h3>Caution — AI-Generated Voices &amp; Faces</h3>

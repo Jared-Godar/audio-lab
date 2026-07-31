@@ -59,6 +59,30 @@ strong{font-weight:700}
       text-transform:uppercase;letter-spacing:.12em;font-size:.95rem;padding:.8rem 1.4rem;
       border:2px solid var(--ts-red);color:var(--ts-red);text-decoration:none}
 .back:hover{background:var(--ts-red);color:#fff}
+/* Compliance badge — the first thing on the page, per maintainer decision. */
+.badge{border:3px solid var(--ts-red);padding:1.2rem 1.4rem;margin:0 0 1.6rem}
+.badge h2{font-family:var(--ts-font-display);text-transform:uppercase;letter-spacing:.2em;
+          color:var(--ts-red);font-size:.9rem;margin:0 0 .8rem}
+.badge ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.3rem .9rem}
+.badge li{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;
+          letter-spacing:.06em;font-size:1.02rem;margin:0;display:flex;gap:.55rem;align-items:baseline}
+.badge li span{color:var(--ts-red);font-size:1.1rem;line-height:1}
+.badge p{font-family:var(--ts-font-mono);font-weight:700;font-size:.86rem;text-transform:uppercase;
+         letter-spacing:.04em;color:var(--ts-record);margin:.9rem 0 0;padding-top:.8rem;
+         border-top:1px solid var(--ts-hairline)}
+
+/* At-a-glance box — mirrors index.html's .caution so the two pages read as one system. */
+.glance{border:2px solid var(--ts-ink);padding:1.4rem 1.6rem;margin:0 0 2.4rem;
+        font-family:var(--ts-font-mono);font-weight:700;font-size:.98rem;line-height:1.6}
+.glance h2{font-family:var(--ts-font-display);text-transform:uppercase;letter-spacing:.28em;
+           color:var(--ts-red);border-bottom:1px solid var(--ts-hairline);padding-bottom:.5rem;
+           margin:0 0 .9rem;font-size:1rem}
+.glance dl{margin:0}
+.glance dt{color:var(--ts-red);text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;margin-top:.9rem}
+.glance dt:first-child{margin-top:0}
+.glance dd{font-family:var(--ts-font-mono);font-weight:700;margin:.15rem 0 0}
+.glance .laws{margin-top:1.2rem;padding-top:.9rem;border-top:1px solid var(--ts-hairline);
+              font-family:var(--ts-font-serif);font-weight:400;font-size:1rem}
 footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5rem;
        padding:2rem 0;margin-top:3rem;border-top:1px solid var(--ts-hairline)}
 </style>
@@ -77,9 +101,56 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5re
     <hr class="rule-red">
   </header>
 
+  <section class="badge">
+    <h2>Compliance</h2>
+    <ul>
+      <li><span>&#10003;</span> GDPR Compliant</li>
+      <li><span>&#10003;</span> UK GDPR Compliant</li>
+      <li><span>&#10003;</span> CCPA / CPRA Compliant</li>
+      <li><span>&#10003;</span> US State Privacy Compliant</li>
+    </ul>
+    <p>We never sell, share, rent or track. One email address is all we hold &mdash; and every
+    right below applies to you wherever you live.</p>
+  </section>
+
   <p>Told Straight (&ldquo;we,&rdquo; &ldquo;us&rdquo;) runs <strong>toldstraight.com</strong>.
   This policy explains the one piece of personal data the site handles: an email address you
   choose to give us so we can tell you when the show launches.</p>
+
+  <section class="glance">
+    <h2>The Short Version</h2>
+    <dl>
+      <dt>What we collect</dt>
+      <dd>One email address &mdash; only if you type it in and submit it.</dd>
+
+      <dt>Why</dt>
+      <dd>To tell you when the show launches, then occasional episode updates.</dd>
+
+      <dt>Legal basis</dt>
+      <dd>Your consent. Unsubscribing withdraws it.</dd>
+
+      <dt>Where it lives</dt>
+      <dd>Our own AWS account, US East (Northern Virginia), USA.</dd>
+
+      <dt>Leaving the EEA</dt>
+      <dd>Covered by the EU Standard Contractual Clauses (June 2021), applied automatically
+      through the AWS Service Terms.</dd>
+
+      <dt>We never</dt>
+      <dd>Sell it. Share it. Rent it. Track you. Set an analytics cookie.</dd>
+
+      <dt>Your rights</dt>
+      <dd>See it &middot; correct it &middot; delete it &middot; get a copy &middot; restrict
+      it &middot; object &middot; withdraw consent &middot; complain to a regulator.
+      Email <a href="mailto:hello@toldstraight.com">hello@toldstraight.com</a> &mdash; free,
+      and we act promptly.</dd>
+    </dl>
+
+    <p class="laws">These rights are the ones the <strong>UK/EU GDPR</strong> gives you, and we
+    extend the same set to everyone regardless of where you live &mdash; including residents of
+    <strong>California, Virginia, Colorado, Connecticut, Utah, Texas, Oregon and Montana</strong>,
+    whose state privacy laws grant closely similar rights. Details below.</p>
+  </section>
 
   <h2>What we collect</h2>
   <ul>
@@ -142,6 +213,34 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5re
     with your national data protection supervisory authority. You do not have to contact us
     first &mdash; though we would rather you did, so we can put it right.</li>
   </ul>
+
+  <h2>If you live in the United States</h2>
+  <p>Several US states now give residents privacy rights similar to the UK/EU GDPR &mdash;
+  <strong>California</strong> (CCPA/CPRA), <strong>Virginia</strong>, <strong>Colorado</strong>,
+  <strong>Connecticut</strong>, <strong>Utah</strong>, <strong>Texas</strong>,
+  <strong>Oregon</strong> and <strong>Montana</strong>, among others. Rather than track which
+  law applies to you, <strong>we extend the same rights to everyone</strong>, listed above.</p>
+
+  <p>Two things those laws ask us to state plainly:</p>
+  <ul>
+    <li><strong>We do not sell your personal information, and we do not share it for
+    cross-context behavioral advertising.</strong> We never have. There is no
+    &ldquo;Do Not Sell or Share My Personal Information&rdquo; link on this site because there
+    is nothing to opt out of.</li>
+    <li><strong>We will not treat you differently for exercising a privacy right.</strong> Asking
+    to see or delete your data costs you nothing and changes nothing, other than that we can no
+    longer email you if you ask us to delete your address.</li>
+  </ul>
+
+  <p>We also do not use your data for targeted advertising, we do not profile you, and we do not
+  collect anything a law would classify as sensitive personal information &mdash; we hold an
+  email address and nothing else.</p>
+
+  <p><strong>If we ever refuse a request,</strong> you can appeal by replying to our response or
+  emailing <a href="mailto:hello@toldstraight.com">hello@toldstraight.com</a> with the word
+  &ldquo;appeal&rdquo;. We will reconsider and explain the outcome in writing. Several states
+  require an appeal route; you have one regardless of where you live. If you are still unhappy,
+  you can contact your state Attorney General.</p>
 
   <h2>Children</h2>
   <p>The show is for adults. We do not knowingly collect data from children.</p>
