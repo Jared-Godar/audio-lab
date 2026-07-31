@@ -9,6 +9,23 @@ visible in the diff and would otherwise evaporate.
 
 ## 2026-07-31
 
+### Added
+
+- **Defined the pre-public-release readiness checklist (#109).** New tracked doc
+  `docs/pre-public-release-readiness.md` — the gate Told Straight must pass before it moves
+  from private beta to public. Every item across security (AWS posture / IAM / secrets),
+  DNS & mail (SPF/DKIM/DMARC/rua), content & licensing, legal (entity, trademark, privacy
+  policy), and accessibility (site + media) states HOW it is verified (an exact command or
+  method — `(no output)` counts, an assertion does not), maps to an owner or a tracking
+  issue, and is framed by what would BLOCK launch (`[BLOCKER]` vs `[SHOULD]`; accepted-risk
+  only with a recorded decision, never a silent skip). It references #67 (the
+  admin-principal long-lived access key — the load-bearing security blocker) and #59 (DMARC
+  now reports via `rua`, but nothing parses the reports yet) without modifying either. §7
+  lists the six gate items that have no tracking issue yet — full-history secret scan, `rua`
+  monitoring, LLC formation, trademark clearance, privacy policy, and a site-accessibility
+  bar — so they get filed before the audit runs. Parent of #110, which executes the
+  checklist and records a go/no-go; this PR defines the gate, it does not run it.
+
 ### Fixed
 
 - **Softened the overstated SPF `~all` vs `-all` finding (#122).** `infra/dns.yaml` stated as
