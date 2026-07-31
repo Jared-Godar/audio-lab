@@ -670,6 +670,94 @@ This document delivers the first acceptance criterion and prepares the rest. Ope
 Issue #111 was closed on merge of the research PR. The execution half is tracked in
 **#154**, which carries the owed rows above.
 
+## 6.1 Post-MVP backlog — everything deferred, in one place
+
+The 2026-07-31 session deliberately claimed handles first and refined second. This is
+the complete deferred list, so nothing survives only in a chat transcript. Ordered by
+consequence, not effort.
+
+### A. Security — highest priority, and X is the weak one
+
+| Item | Platform | Why it matters |
+| --- | --- | --- |
+| Add + **verify** `social@toldstraight.com` | **X** | X was created phone-first; it currently has **no email on file**, so a SIM is its only recovery path |
+| TOTP into 1Password | **X** | no second factor at all today |
+| Remove phone as a *login factor* | **X** | only after email verified AND TOTP confirmed working — doing it earlier locks you out |
+| TOTP into 1Password | **Instagram** | |
+| TOTP | **TikTok** | at creation |
+| Confirm 2FA on the Google account behind the Brand Account | **YouTube** | the channel inherits that account's security |
+| Record the 2FA method per account | all | § 5.6 |
+
+### B. Copy — two accounts carry pre-standardization wording
+
+- **X bio** — still the original phrasing; replace with the 128-char standard form.
+- **Instagram bio** — set before "With receipts" was adopted; same replacement.
+- **Spelling sweep, undecided.** The repo is uniformly **British "humour"**
+  (`README.md`, `episodes/ToldStraight-Ep01/show-notes.md` and `.html`); the bios are
+  now **US "humor"**. Decide one and unify — the show-notes and the bio will sit side
+  by side the moment Episode 1 ships.
+
+### C. Brand art — second pass
+
+- **X banner refinement.** The measured mobile envelope is applied and it renders
+  acceptably, but the maintainer called it MVP-grade, not finished.
+- **YouTube banner: measure the real mobile crop.** The 1235 × 338 safe area is a
+  *published* figure. X's published 3:1 turned out to be **2.62:1** on a real
+  handset. Screenshot the live channel on a phone, solve the scale from the red rule,
+  replace the constants.
+- **YouTube watermark: verify on a real video.** It only renders during playback, so
+  it cannot be checked until Episode 1 uploads.
+- **Rename the avatar master.** It lives at
+  `output/artwork/brand-x-avatar/…-x-avatar-a-ring-1000.png` but serves **every**
+  circular-crop platform. The `x-` prefix will read as X-only to a future session —
+  exactly the confusion the naming convention exists to prevent.
+- **Facebook / TikTok / Bluesky art** once those accounts exist.
+
+### D. Design-system debt — created by this session, not yet discharged
+
+- `--ts-green: #1F6B45` and `--ts-green-dark: #3C9963` into
+  `brand/20260727-toldstraight-design-tokens.css`. Both measured; neither is in the
+  system. **Written, not in force.**
+- **ADR for the green** — why a fourth colour entered a deliberately three-colour
+  system, and the measured basis (optical parity with the red in both themes).
+- **ADR 0011 annotation** — its stated reversal condition, *"more than roughly three
+  addresses"*, is in fact a **hard cap of 3, now fully consumed**. A future session
+  reading "roughly" would reasonably assume slack. There is none.
+- **ADR for the Instagram "AI creator" label** — declined 2026-07-31 with reasoning
+  (Meta's label targets generatively produced content; Told Straight is
+  human-researched and scripted with synthetic *voice performance*, already disclosed
+  more precisely by ADR 0019). Recorded so it is not silently re-litigated.
+
+### E. Infrastructure
+
+- **Bluesky `@toldstraight.com` handle** needs an `_atproto` TXT record. It must go
+  through `infra/dns.yaml` by reviewed change-set — **never a hand-made console
+  record**, which would silently drift the live zone from the IaC and be deleted by
+  the next deploy.
+
+### F. Platform decisions still open
+
+- **Facebook: Page vs personal profile.** A Page normally requires a personal profile
+  to administer. Decide before opening the form. Related: Instagram's "Banners"
+  feature offers to link a Facebook profile to the brand account — **decline it**; it
+  would publicly tie the brand to a personal identity.
+- **Professional/Creator account modes** on X and Instagram — reversible, worth
+  revisiting once posting starts.
+- **Threads** — the reservation is **unverified**; the checker's control failed, so
+  neither "reserved" nor "not reserved" can be claimed. Check in the app.
+
+### G. Launch day — 2026-08-06, 09:00 EDT
+
+One coordinated swap, all surfaces:
+
+- **X banner** → the green `LIVE AS OF` variant
+- **YouTube banner** → the green `LIVE AS OF` variant
+- **Instagram link title** → "Get launch updates" goes stale; replace
+- **~1 week later** → both banners to the `plain` (no stamp) variant, permanently
+
+All three banner states are already built and exported; launch day is a file swap,
+not a design task.
+
 ## 7. Decision log
 
 | Date | Decision | Where it binds |
