@@ -145,6 +145,24 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Told EU subscribers where their data actually goes, and completed the rights list (#165).** The
+  published privacy policy said the address lives "inside our AWS account" and stopped there — it
+  never said the account is in **US East (Northern Virginia)**, never said that leaving the EEA is a
+  transfer, and named no safeguard for it. It stopped being hypothetical when the **first genuine
+  signup arrived from Sweden**, putting a real EU data subject on the list. The policy now states the
+  storage region and country in plain language, and names the mechanism: the **Standard Contractual
+  Clauses adopted by the European Commission in June 2021**, which AWS incorporates into the AWS
+  Service Terms and applies automatically — verified against AWS's GDPR centre, not asserted from
+  memory. It explicitly does **not** cite Privacy Shield, invalidated by *Schrems II* in 2020, which
+  is the stale citation this kind of paragraph usually carries. The rights list grows from
+  access-and-delete to also cover **rectification, restriction, portability, and objection**, frames
+  unsubscribing as **withdrawing the consent** that is the stated legal basis, and adds the right to
+  **complain to a supervisory authority**. `docs/privacy-policy.md` and `site/privacy.html` were
+  updated together and checked for parity programmatically — thirteen claims confirmed present in
+  both, since a policy that disagrees with itself across two files is worse than one gap. **This
+  closes named disclosure gaps; it is not a compliance assessment** and does not discharge the legal
+  review outstanding since #140 (#109/#110). Closes #165.
+
 - **Retitled the cast section and replaced the "synthetic" disclosure vocabulary (#128).** The
   presentation ADR 0019 decided is unchanged and reaffirmed — photoreal host beside ligne-claire cast,
   the medium carrying the disclosure, a retained text disclosure for screen readers. Only the diction
