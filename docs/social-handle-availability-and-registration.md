@@ -750,6 +750,40 @@ consequence, not effort.
 - **Threads** — the reservation is **unverified**; the checker's control failed, so
   neither "reserved" nor "not reserved" can be claimed. Check in the app.
 
+### F.1 DATED ISSUE — TikTok handle is `@told.straight`, locked until 2026-08-30
+
+**What happened.** On 2026-07-31, typing `Told Straight` into TikTok's **Name** field
+caused TikTok to **auto-derive the username** as `told.straight` and immediately
+consume the account's 30-day username-change allowance. The UI disclosed the *Name*
+field's 7-day change limit; it did **not** disclose that it was spending the
+username's 30-day one. The next attempt returned *"Can't change your username since
+you just changed it in the last 30 days. You can change it again after August 30,
+2026."*
+
+**Current state**, measured with controls 2026-07-31:
+
+| Handle | State |
+| --- | --- |
+| `told.straight` | **TAKEN — this account.** Correctly spelled. |
+| `toldstraight` | **still free — and unclaimable by us until 2026-08-30** |
+
+**Why this is more than cosmetic.** Go-live is **2026-08-06**. The unlock is
+**2026-08-30**. So the show is public for **24 days** under a handle that does not
+match the other five platforms — and, worse, `toldstraight` sits unclaimed on TikTok
+during precisely the window when public exposure makes it a squatting target. That is
+the premise of issue #111 working against us on one platform.
+
+**ACTION REQUIRED ON OR AFTER 2026-08-30:** change the TikTok username to
+`toldstraight`, re-verify with the § 2.4 oEmbed checker, and update every recorded
+reference. If it has been taken in the interim, the fallback list in § 4 applies —
+but note `toldstraightpod` is **not** a safe fallback (see § 5.1.1).
+
+**The generalizable lesson:** on any platform, **set the username before the display
+name**. A name field that looks harmless can silently derive and spend a
+rate-limited handle. The runbook already said to set the username first for exactly
+this reason; the failure was that TikTok consumed the allowance from a *different*
+field than the one being edited.
+
 ### G. Launch day — 2026-08-06, 09:00 EDT
 
 One coordinated swap, all surfaces:
