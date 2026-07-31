@@ -101,6 +101,15 @@ visible in the diff and would otherwise evaporate.
   proven. Practical guidance is unchanged: ship `~all`, the value Apple issues; the record value
   itself is untouched.
 
+- **Fixed the signup walkthrough's unrunnable AWS commands and recorded the real SSO portal (#146).**
+  `docs/signup-deploy-walkthrough.md` used `--profile default` with no `--region` throughout; on this
+  SSO-only machine `default` is retired (#67) and regionless, so step 1 failed with `NoRegion` and would
+  then fail auth. All commands now use `--region us-east-1 --profile audio-lab`. Separately, the real
+  browser access portal — `https://d-906679548d.awsapps.com/start` — was never recorded (docs carried
+  only the `d-xxxxxxxxxx` placeholder), and the `identitycenter.amazonaws.com/ssoins-…` value in config is
+  a CLI-only endpoint that renders blank in a browser; `infra/README.md` now records both and the
+  distinction. Surfaced live during the #140 deploy.
+
 ## 2026-07-30
 
 ### Changed
