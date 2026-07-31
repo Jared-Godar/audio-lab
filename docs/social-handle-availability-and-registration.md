@@ -478,6 +478,27 @@ ring complete and uncropped at `ringR: 460`. The dialog preview is simply not a
 faithful render — judge avatars on the live profile, never on an upload preview.
 No builder change is needed for YouTube.
 
+**YouTube video watermark — variant A (ring), decided 2026-07-31.** 150 × 150,
+PNG with a real alpha channel (verified RGBA on export). Built by
+`tools/brand/20260731-adobe-illustrator-toldstraight-youtube-watermark-builder.jsx`.
+
+This is **not the avatar scaled down** and should never be replaced with one. It
+composites over arbitrary video at roughly 40–60px, so it faces two constraints at
+once: survive extreme downscaling, and read against footage that may be black,
+white, or anything between. It therefore carries its own full-bleed disc, with
+transparent corners — exporting it opaque would paste a cream square onto every
+video.
+
+Three treatments were composited over near-black and near-white fields. The
+prediction (knockout > frameless > ring, from the favicon run's "frames die below
+32px") was **wrong**: the ring survives cleanly at 48px, and it is the only variant
+that keeps a **visible boundary in both directions** — the cream disc carries it on
+dark footage, the black ring carries it on light. Frameless loses its edge on white;
+knockout loses its edge on black. All three stay legible; only A stays *contained*.
+
+The lesson generalizes: for anything composited over unknown backgrounds, test
+against both extremes. A single-background mock cannot show which edge disappears.
+
 Variant A should serve **every** platform here — X, Instagram, YouTube, Facebook Pages
 and Bluesky all crop avatars circular — but confirm per platform at upload rather than
 assuming.
