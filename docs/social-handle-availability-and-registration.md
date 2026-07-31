@@ -784,6 +784,30 @@ rate-limited handle. The runbook already said to set the username first for exac
 this reason; the failure was that TikTok consumed the allowance from a *different*
 field than the one being edited.
 
+### F.2 Facebook Page Transparency — MEASURED 2026-07-31, discloses less than expected
+
+The Page-vs-profile decision brief warned that Facebook's **Page Transparency** panel
+would surface *"the primary country of the people who manage it"*, and flagged that as
+the one real privacy cost of running a Page from a personal profile. **That was
+overstated.** Read directly from the live panel on the new Page:
+
+| Field shown | Value |
+| --- | --- |
+| Page ID | numeric |
+| Creation date | "Today" |
+| Admin info | *"This Page doesn't have any other admins."* |
+| Ads | *"This Page isn't currently running ads."* |
+
+**No admin name. No country.** Country-level admin disclosure applies to Pages with
+large audiences under Meta's publishing-authorization rules, not to a new small Page.
+The brief's caveat should have been stated as "verify — it may disclose country",
+which is what the brief did say to do; the verification came back cleaner than the
+warning.
+
+Recorded because the opposite error — assuming no disclosure and being surprised —
+is the one that actually costs something, and because a future session reading the
+brief would otherwise carry a caution that measurement has retired.
+
 ### C.1 Facebook cover — MEASURED 2026-07-31, needs its own composition
 
 **Facebook centres the Page profile picture OVER the cover.** Observed directly in
