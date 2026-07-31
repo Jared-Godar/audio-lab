@@ -1,5 +1,32 @@
 # Signup — deploy & go-live walkthrough
 
+> **Revision history** — newest first. This doc is **rewritten in place** as blockers surface
+> during real deploy attempts, so the top entry tells you at a glance how current it is. If
+> the newest entry predates your last failed attempt, it has not caught up yet.
+>
+> **2026-07-31 09:16 EDT — rewritten after the first live deploy attempt failed** (#150,
+> PR #151). Step count went 6 → 7, and every step now states what *failure* looks like, not
+> just the happy path. Changes:
+>
+> - **New lead section "Which profile"** — use `audio-lab-admin`, not `audio-lab`, until #148
+>   closes; plus the `lifeos`-default trap (a forgotten `--profile` surfaces as `AccessDenied`
+>   naming `LifeOSArchive`, not a credentials error).
+> - **New step 1, Pre-flight** — pull `main` before deploying (`--template-file` reads your
+>   local checkout, not GitHub), plus the three leftover checks that prevent `AlreadyExists`.
+> - **New "Recovering from `ROLLBACK_FAILED`"** — a failed stack cannot be updated; `deploy`
+>   refuses before it starts and produces *no new stack events*, which reads as a stale error.
+> - **New "Verify the endpoint actually answers" under step 3** — `CREATE_COMPLETE` does not
+>   mean the URL works. `get-policy` plus a malformed-email POST: `400` = good, `403` = the
+>   resource policy is missing.
+> - **Renumbering** — deploy is now step 2, outputs step 3 (pre-flight took the front).
+> - Also replaced an accidental terminal paste (duplicated deploy block, malformed fence).
+>
+> **2026-07-31 08:55 EDT — fixed unrunnable commands** (#146, PR #147). `--profile default`
+> → `--profile audio-lab`, added `--region us-east-1` throughout; recorded the real SSO
+> portal `https://d-906679548d.awsapps.com/start`.
+>
+> **2026-07-31 08:17 EDT — created** (#140, PR #145) alongside `infra/signup.yaml`.
+
 The manual steps behind `infra/signup.yaml` (#140) and the sending work (#144). The repo
 authors the template; **you deploy** (billable AWS) and do the console-only steps here.
 Collection works after step 4; sending needs steps 5–7.
