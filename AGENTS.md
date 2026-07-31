@@ -207,7 +207,13 @@ switching arms is his call, evidence-driven.
 8. **Post-merge closure, unprompted:** confirm `MERGED`/`CLOSED` via `gh`;
    `git switch main; and git pull --ff-only`; `git fetch --prune`; delete merged
    local branches (`git branch -D` — squash merges break `-d`); before removing a
-   worktree, copy any `artifacts/` handoffs into the primary checkout.
+   worktree, copy any `artifacts/` handoffs into the primary checkout. **Then sweep
+   the main checkout for stray untracked files in tracked paths —
+   `git status --porcelain --untracked-files=all -- artifacts/specs artifacts/issues`
+   (these are `.gitignore` exceptions, so a file sitting there uncommitted is spec/issue
+   provenance that never landed) — and commit or surface each; don't let them accumulate
+   across sessions.** Pruning worktrees and branches is not the same as leaving a clean
+   tree — end closure by confirming `git status` is clean.
 
 Definition of done, self-run with receipts: pre-commit green (pasted) · CI green ·
 metadata complete and read back · CHANGELOG entry · verification output shown per
