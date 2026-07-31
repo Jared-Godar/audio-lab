@@ -384,15 +384,19 @@ opening clause: the topic is what converts a visitor, the framing is not.
 Bottom line up front. Every claim sourced. No woo. No BS. Season 1: Adult ADHD.
 ```
 
-**Bio — long. 439 chars. YouTube only** (limit 1000). Facebook Intro and Bluesky
-cap near 255 — use the medium form below, not this one:
+**Bio — long. 458 chars. YouTube only** (limit 1000). Facebook Intro and Bluesky
+cap near 255 — use the medium form above, not this one:
 
 ```text
-A season-per-topic podcast that takes one complicated subject and covers it properly. Bottom line up front. Every claim sourced to peer-reviewed literature. Dark humor. No woo. No BS.
+A season-per-topic podcast that takes one complicated subject and covers it properly.
 
-It exists because "do your own research" now mostly means hunting for agreement in a narrow echo chamber, with no real intention of changing your mind. This is the opposite of that, done out loud.
+Bottom line up front. Every claim sourced to peer-reviewed literature. Dark humor. No woo. No BS.
 
-Season 1 is Adult ADHD. Orientation, not medical advice.
+It exists because "do your own research" now mostly means hunting for agreement in a narrow echo chamber, with no real intention of changing your mind.
+
+This is the opposite of that. Done out loud. With receipts.
+
+Season 1 is Adult ADHD. (Orientation, not medical advice.)
 ```
 
 Both are derived from the README's own description of the show, not newly invented.
@@ -427,7 +431,7 @@ platform's own counter or stated limit:
 | TikTok short | 79 | TikTok (~80) |
 | Standard | 134 | X (160), Instagram (150) |
 | Medium | 242 | Facebook Intro, Bluesky (~255) |
-| Long | 439 | YouTube (1000) |
+| Long | 458 | YouTube (1000) |
 
 ### 5.4 Profile art
 
