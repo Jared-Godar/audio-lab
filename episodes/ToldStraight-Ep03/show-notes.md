@@ -37,7 +37,7 @@ resolved via NCBI. Do not hand-abbreviate — see `docs/citation-standard.md`.
    [PubMed](https://pubmed.ncbi.nlm.nih.gov/27722208/) · [PMC full text](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5049699/)
 9. Sergeant, J. A. (2005). Modeling Attention-Deficit/Hyperactivity Disorder: A Critical Appraisal of the Cognitive-Energetic Model. *Biological Psychiatry*, *57*(11), 1248–1255. https://doi.org/10.1016/j.biopsych.2004.09.010  
    [PubMed](https://pubmed.ncbi.nlm.nih.gov/15949995/)
-10. van der Putten, W. J., Mol, A. J. J., Groenman, A. P., Radhoe, T. A., Torenvliet, C., van Rentergem, J. A. A., & Geurts, H. M. (2024). Is camouflaging unique for autism? A comparison of camouflaging between adults with autism and <scp>ADHD</scp>. *Autism Research*, *17*(4), 812–823. https://doi.org/10.1002/aur.3099  
+10. van der Putten, W. J., Mol, A. J. J., Groenman, A. P., Radhoe, T. A., Torenvliet, C., van Rentergem, J. A. A., & Geurts, H. M. (2024). Is camouflaging unique for autism? A comparison of camouflaging between adults with autism and ADHD. *Autism Research*, *17*(4), 812–823. https://doi.org/10.1002/aur.3099  
    [PubMed](https://pubmed.ncbi.nlm.nih.gov/38323512/)
 11. Gollwitzer, P. M., & Sheeran, P. (2006). Implementation Intentions and Goal Achievement: A Meta‐analysis of Effects and Processes. *Advances in Experimental Social Psychology*, 69–119. https://doi.org/10.1016/S0065-2601(06)38002-1
 12. Safren, S. A., Sprich, S., Mimiaga, M. J., Surman, C., Knouse, L., Groves, M., & Otto, M. W. (2010). Cognitive Behavioral Therapy vs Relaxation With Educational Support for Medication-Treated Adults With ADHD and Persistent Symptoms. *JAMA*, *304*(8), 875. https://doi.org/10.1001/jama.2010.1192  
