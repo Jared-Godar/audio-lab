@@ -11,6 +11,16 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Added the three SES EasyDKIM CNAMEs to the DNS stack (#144).** `SesDkimRecord1..3` in
+  `infra/dns.yaml`, read from the signup stack's outputs and **verified against live SES** rather
+  than transcribed. They are additive to Apple's `sig1` selector — different record names, different
+  jobs (Apple signs mail from the iCloud+ mailbox, SES signs mail from the sending identity) — and a
+  domain may publish any number of DKIM selectors, since receivers match on the selector named in
+  each signature. Inbound mail is untouched. Verified structurally against `main`: **CHANGED none,
+  REMOVED none** — every pre-existing record byte-identical, three added. Still needs deploying by
+  reviewed change-set; the procedure is §5 of `docs/signup-deploy-walkthrough.md`, which now expects
+  exactly three `Add` rows and names the records that must not appear. Advances #144.
+
 - **Published the privacy policy and gave the site an identity in link previews (#128).** The Coming
   Soon page collects email addresses and linked to **no privacy policy** — `docs/privacy-policy.md`
   existed as a draft from #140 but was never published. New `site/privacy.html` renders it in the
@@ -278,6 +288,18 @@ visible in the diff and would otherwise evaporate.
   in the working tree.
 
 ### Findings
+
+- **The standard "add a custom MAIL FROM domain" SES advice does not apply under strict DMARC
+  alignment (#144).** Every SES deliverability guide recommends a custom MAIL FROM so that SPF
+  aligns with the From domain. It would have been a wasted change on the mail-critical stack here.
+  A custom MAIL FROM is **always a subdomain** (`bounce.toldstraight.com`), and this domain's DMARC
+  is `p=reject; adkim=s; aspf=s` — **strict on both** — under which a subdomain does not align.
+  AWS's own guidance states the arrangement requires `aspf=r`. So adopting it would buy nothing
+  without first weakening the posture recorded in #59. It is not needed either way: DMARC passes if
+  **either** mechanism aligns, and EasyDKIM on a verified *domain* identity (as opposed to an email
+  identity) signs with `d=toldstraight.com` **exactly**, satisfying strict DKIM alignment — AWS's
+  scenario table lists this case as "Success – DKIM signature aligns." DKIM carries DMARC alone.
+  Deliberately not adopted, and recorded so the advice is not re-encountered as a gap.
 
 - **The repo's 1 MB large-file guardrail decides the hero image format, not preference (#128).**
   `check-added-large-files` (pre-commit, 1024 KB) rejects the 3.2 MB `hero.png`, so the hero ships

@@ -4,6 +4,11 @@
 > during real deploy attempts, so the top entry tells you at a glance how current it is. If
 > the newest entry predates your last failed attempt, it has not caught up yet.
 >
+> **2026-07-31 (later) — §5 is now a real procedure (#144).** The three SES DKIM CNAMEs are in
+> `infra/dns.yaml`, so §5 stopped saying "add them yourself" and became the change-set flow, with
+> the three-row expectation to check before executing and the records that must NOT appear. Also
+> records why a custom MAIL FROM is deliberately not adopted under strict DMARC alignment.
+>
 > **2026-07-31 09:16 EDT — rewritten after the first live deploy attempt failed** (#150,
 > PR #151). Step count went 6 → 7, and every step now states what *failure* looks like, not
 > just the happy path. Changes:
@@ -196,18 +201,76 @@ verification or sandbox exit is needed to collect addresses.
 
 ## 5. Verify SES sending (DKIM) — #144
 
-EasyDKIM tokens are generated at stack-create, so they are known only now. For each of the
-three pairs from step 3, add a **CNAME** RecordSet to `infra/dns.yaml` (name =
-`DkimTokenNameN`, value = `DkimTokenValueN`), then redeploy the DNS stack via change-set
-(same flow as `infra/README.md`). Then confirm SES shows the identity verified:
+**The three CNAMEs are already in `infra/dns.yaml`** as `SesDkimRecord1..3` — read from the
+stack outputs on 2026-07-31 and verified against live SES. You only need to deploy them.
+
+This edits the **DNS stack**, which also carries SPF, the Apple DKIM delegation, DMARC
+`p=reject` and CAA. Deploy it by **change-set you read before executing** — never `deploy`
+straight through.
+
+```fish
+cd ~/Code/audio-lab; and git checkout main; and git pull
+
+aws cloudformation create-change-set \
+    --stack-name toldstraight-dns \
+    --change-set-name ses-dkim \
+    --template-body file://infra/dns.yaml \
+    --parameters \
+        ParameterKey=HostedZoneId,UsePreviousValue=true \
+        ParameterKey=DomainName,UsePreviousValue=true \
+        ParameterKey=DeploySiteRecords,UsePreviousValue=true \
+        ParameterKey=SiteDistributionDomain,UsePreviousValue=true \
+        ParameterKey=DeployVoteRecord,UsePreviousValue=true \
+        ParameterKey=VoteTarget,UsePreviousValue=true \
+    --region us-east-1 --profile audio-lab-admin
+```
+
+Read it before executing:
+
+```fish
+aws cloudformation describe-change-set \
+    --stack-name toldstraight-dns --change-set-name ses-dkim \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Changes[].ResourceChange.{Action:Action,Resource:LogicalResourceId,Replace:Replacement}' \
+    --output table
+```
+
+**Expect exactly three rows, all `Add`:** `SesDkimRecord1`, `SesDkimRecord2`, `SesDkimRecord3`.
+**Stop** if anything else appears — in particular any `Modify` or `Remove` against `SpfRecord`,
+`NullMxRecord`, `DkimRecord`, `DmarcRecord`, `CaaRecord`, `ApexSiteRecord` or `WwwSiteRecord`.
+All of those are byte-identical in the template and must not be in the change-set at all.
+
+```fish
+aws cloudformation execute-change-set \
+    --stack-name toldstraight-dns --change-set-name ses-dkim \
+    --region us-east-1 --profile audio-lab-admin
+aws cloudformation wait stack-update-complete \
+    --stack-name toldstraight-dns --region us-east-1 --profile audio-lab-admin
+```
+
+Then confirm SES sees them. It polls, so this flips from `PENDING` to `SUCCESS` on its own —
+usually within minutes on Route 53, though AWS allows up to 72 hours:
 
 ```fish
 aws sesv2 get-email-identity --email-identity toldstraight.com \
-    --query 'DkimAttributes.Status' --region us-east-1 --profile audio-lab-admin
+    --query '{Dkim:DkimAttributes.Status,Verified:VerifiedForSendingStatus}' \
+    --region us-east-1 --profile audio-lab-admin
 ```
 
-Expect `SUCCESS`. Adding SES DKIM does not disturb inbound mail (still iCloud+) or the
-existing Apple DKIM selector — they are different record names.
+Expect `SUCCESS` / `true`.
+
+**This does not disturb inbound mail** (still iCloud+) **or Apple's `sig1` DKIM selector.** A
+domain may publish any number of DKIM selectors; receivers match on the selector named in each
+message's signature. Apple's signs mail from your iCloud+ mailbox, SES's signs mail from the
+sending identity. They are different record names and coexist by design.
+
+**Why no custom MAIL FROM.** The usual SES advice is to add one so SPF aligns — it does not
+apply here. This domain's DMARC is `adkim=s` **and** `aspf=s`, strict on both. A custom MAIL
+FROM is always a *subdomain* (`bounce.toldstraight.com`), which under `aspf=s` does not align;
+AWS's own guidance is that it requires `aspf=r`. Since DMARC passes if **either** mechanism
+aligns, and EasyDKIM on a verified *domain* identity signs with `d=toldstraight.com` exactly —
+satisfying strict DKIM alignment — DKIM carries DMARC on its own. Adopting a custom MAIL FROM
+would buy nothing without first weakening the posture recorded in #59.
 
 ## 6. Request SES production access (leave the sandbox) — #144
 
