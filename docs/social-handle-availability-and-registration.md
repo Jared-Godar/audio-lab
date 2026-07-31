@@ -614,6 +614,30 @@ Retrieval by CLI afterwards (`op item get … --otp`) is fine and is the intende
 day-to-day path — reading a rotating 6-digit code is not the same exposure as writing
 the seed that generates them.
 
+### 5.5.1 Platform UIs misreport state — verify on the live surface
+
+Three separate times on 2026-07-31 a platform's own interface contradicted reality.
+The pattern is consistent enough to be a rule: **judge on the live public surface,
+never on the editor's preview or its buttons.**
+
+- **Instagram** — the Edit-profile Submit gives *no feedback at all*. It saved
+  correctly; the absence of confirmation looked like failure. **No feedback is not
+  failure.**
+- **YouTube (avatar)** — the channel page showed a default placeholder while the
+  avatar had in fact saved. A stale render, read as a failed upload.
+- **YouTube (upload preview)** — the avatar preview showed the ring clipped at the
+  sides. The live channel renders it whole. **Upload previews are not faithful.**
+- **YouTube (Publish)** — Publish was greyed out with a fully-populated Description
+  on screen. The cause was an unrelated **incomplete link row**: a URL entered with
+  the `(required)` Link title left blank makes the whole form invalid, and Studio
+  disables Publish *without naming the offending field*. Filling the title released
+  it immediately.
+
+Corollary for any availability or state check: **run a known-positive control.** The
+description checker used above was initially trusted without one. It happened to be
+sound — `@nasa` and `@veritasium` both resolve through it — but that was luck, not
+method, and the same shortcut is exactly what § 2.7 exists to forbid.
+
 ### 5.6 After registering — record, don't store
 
 In the repo, record only:
