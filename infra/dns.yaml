@@ -336,6 +336,36 @@ Resources:
         - '0 issue "amazon.com"'
         - '0 issuewild "amazon.com"'
 
+  # --- Bluesky self-hosted handle ------------------------------------------
+  # Proves control of the domain to Bluesky's AT Protocol so the account can
+  # carry @toldstraight.com instead of @toldstraight.bsky.social. The handle is
+  # then self-hosted: the identity is anchored to a domain we own rather than
+  # rented from the platform, which is the whole reason for doing it (#173; see
+  # docs/social-handle-availability-and-registration.md section 4).
+  #
+  # The "did=" prefix is PART OF THE VALUE, not a label -- Bluesky's Change
+  # Handle dialog states the record in exactly this form.
+  #
+  # The DID was read back from the public API rather than transcribed from the
+  # dialog, because a mistyped DID fails verification with no useful error:
+  #   curl -s "https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=toldstraight.bsky.social"
+  #   -> {"did":"did:plc:ujnu6a4eqgnhmfr3aa5fmzot"}
+  #
+  # TTL 300: verified once at handle-change time, then re-checked only
+  # periodically. A short TTL costs nothing and keeps a correction cheap if the
+  # DID ever changes -- it changes if the account migrates to a different PDS.
+  BlueskyHandleRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Fn::Sub: "_atproto.${DomainName}."
+      Type: TXT
+      TTL: "300"
+      ResourceRecords:
+        - '"did=did:plc:ujnu6a4eqgnhmfr3aa5fmzot"'
+
   # --- Site records (gated OFF by default) ---------------------------------
   # Targets come from parameters at enable-time -- this template invents no
   # distribution.

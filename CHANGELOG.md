@@ -11,6 +11,17 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **`_atproto` TXT record so Bluesky can carry the `@toldstraight.com` handle (#173).** Proves
+  domain control to the AT Protocol, which lets the account drop `@toldstraight.bsky.social` for a
+  **self-hosted handle** — the identity anchored to a domain we own rather than rented from the
+  platform. That property stopped being abstract the same day: the X account was suspended within
+  about a day of registration (#172), and a platform-issued handle disappears with the account while
+  a domain-backed one does not. The `did=` prefix is part of the value, not a label. The DID was
+  **read back from the public `resolveHandle` API rather than transcribed** from Bluesky's dialog,
+  because a mistyped DID fails verification with no useful error. TTL 300, since the record is
+  checked once at handle-change time and a correction should stay cheap — the DID changes if the
+  account ever migrates to a different PDS.
+
 - **Corrected the cast roster's composition and gave the Works Cited its receipts (#167).** The
   roster read as four white men and one white woman, which was the first impression the Coming Soon
   page made on the first person outside the project to see it. Four new synthetic cast members —
