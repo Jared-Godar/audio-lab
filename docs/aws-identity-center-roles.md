@@ -230,8 +230,25 @@ select account → **Reprovision**.
 
 ## Part 2 — GitHub Actions via OIDC (no keys, ever)
 
-Needed when CI deploys the site or the community voting app. **Not needed yet** —
-build it when there is something to deploy.
+> **Status as of 2026-08-01: needed, and built as infrastructure-as-code.** This section used
+> to read *"Not needed yet — build it when there is something to deploy."* There is now
+> something to deploy: #187 moved site publication into CI, and ADR 0020 records the decision.
+>
+> **The console click-path and the inline JSON below are now a teaching reference, not the
+> procedure.** The real, reviewable artifact is
+> [`infra/github-oidc.yaml`](../infra/github-oidc.yaml), deployed by change-set per
+> [`site-deploy-walkthrough.md`](site-deploy-walkthrough.md) § 7 — clicking this together in
+> the console would produce an identity nothing in the repository describes. Where the sketch
+> below and the template disagree, **the template is what exists**; two differences are
+> deliberate and worth knowing:
+>
+> - The template **omits `ThumbprintList`**. It is optional on `AWS::IAM::OIDCProvider`, and
+>   when absent IAM retrieves the CA thumbprint itself. Hardcoding GitHub's SHA-1 thumbprint —
+>   which the AWS Security Blog example below still shows — breaks on certificate rotation.
+> - The template's S3 grant is scoped to the **one** site bucket, derived as
+>   `toldstraight-site-${AWS::AccountId}`, and `cloudfront:CreateInvalidation` to **one**
+>   distribution ARN. The `toldstraight-*` wildcard and `"Resource": "*"` in the sketch below
+>   are wider than what was built.
 
 The point: GitHub mints a short-lived OIDC token, AWS trusts it, and the workflow
 assumes a role. No secret in the repo, nothing to rotate or leak. This is strictly
@@ -330,13 +347,20 @@ does not get forgotten.
 4. Verify with `aws sts get-caller-identity` — expect `AWSReservedSSO_`.
 5. Test the deny direction: `aws iam create-user --user-name should-fail` →
    `AccessDenied`.
-6. GitHub OIDC (Part 2) only when CI has something to deploy.
+6. GitHub OIDC (Part 2) — **due now.** Deploy `infra/github-oidc.yaml` by change-set;
+   the step-by-step is `site-deploy-walkthrough.md` § 7.
 
 ## What changes for the agent workflow
 
-Nothing in `AGENTS.md` changes. The hold-for-the-maintainer list still governs:
-domain registration and billable AWS resources are your call regardless of which
-credential mechanism is underneath.
+The hold-for-the-maintainer list still governs: domain registration and billable AWS
+resources are your call regardless of which credential mechanism is underneath.
+
+**One thing did change, on 2026-08-01.** This section previously said *"Nothing in
+`AGENTS.md` changes"*, and that is no longer true. Conduct rule 6 gained exactly one
+named exception: publishing `site/` to the production bucket after a confirmed merge is
+pre-authorised, because CI performs it under a role no branch but `main` can assume
+(#187, ADR 0020). Nothing else about rule 6 moved, and no agent gained the ability to
+publish — the credentials live in GitHub Actions, not in any session.
 
 One practical difference worth knowing: **Identity Center sessions expire.** When a
 session dies mid-task, commands fail with `Error loading SSO Token`. That is an

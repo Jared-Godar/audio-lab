@@ -3,6 +3,20 @@
 > **Revision history** — newest first. This doc is **rewritten in place** as blockers
 > surface during real deploys, so the top entry tells you at a glance how current it is.
 >
+> **2026-08-01 (later) — §7 corrected after the first real deploy failed (#196).** The trust
+> policy trusted the classic OIDC subject; GitHub issues this repository the **immutable** form
+> with numeric ids, so `AssumeRole` was denied 12 of 12 times. §7 now takes the two ids as
+> parameters, expects a `Modify` rather than an `Add` on the second run, and documents the
+> CloudTrail lookup that reads the claim actually presented — the workflow log does **not**
+> contain it, which the previous revision wrongly implied.
+>
+> **2026-08-01 — content deploys move to CI; §3 reversed itself.** #187 replaced the manual
+> upload-after-every-merge loop with `.github/workflows/deploy-site.yml`, which publishes on push
+> to `main` via OIDC. §3's standing warning ("merging a PR that changes `site/` does not change
+> the site") therefore becomes **false once the §7 stack is deployed**, and is rewritten rather
+> than left to mislead. New §7 covers deploying `infra/github-oidc.yaml`. The manual §3–§4 steps
+> stay as the maintainer's fallback. Rule-6 basis: `docs/adr/0020-post-merge-site-deploy-is-pre-authorised.md`.
+>
 > **2026-07-31 (later still) — §6 is now a real procedure.** The DNS cutover template work is
 > done (`infra/dns.yaml`), so §6 replaced its "here is what the future PR will do" placeholder
 > with the actual change-set commands, the two-row expectation to check before executing, and
@@ -125,9 +139,19 @@ hours waiting on a record nobody added.
 
 ## 3. Upload the site content
 
-> **Merging a PR that changes `site/` does not change the site.** The bucket is a separate
-> deploy step, and it is easy to skip precisely because merging feels like shipping. After any
-> merge touching `site/`: `git pull`, then re-run this step **and** the invalidation below.
+> **This step is now automatic — read §7 before doing it by hand.** It used to say the opposite:
+> *"merging a PR that changes `site/` does not change the site"*, with an instruction to re-run
+> the sync manually after every merge. That is what #187 fixed. **Once the stack in §7 is
+> deployed, merging a `site/` PR publishes the site**, through
+> `.github/workflows/deploy-site.yml` on push to `main`.
+>
+> **Until §7 is deployed, the old warning still holds and these steps are the live path.** The
+> workflow is committed but fails at `AssumeRole` without the role — written, not in force.
+>
+> §3 and §4 remain here as the maintainer's fallback: use them if the workflow is disabled, if
+> the deploy role is removed, or to recover from a partial sync. They are **not** an agent's
+> path — an agent syncing from its own shell routes around branch protection, which is exactly
+> what ADR 0020 removed.
 
 ```fish
 set BUCKET (aws cloudformation describe-stacks --stack-name toldstraight-site \
@@ -267,6 +291,206 @@ aws sesv2 get-contact --contact-list-name toldstraight-audience \
 
 - [ ] Confirm the mail path still works — send yourself a message at `hello@toldstraight.com`.
       Nothing in this change touches it, but it costs one minute to prove.
+
+## 7. CI deploy identity — the stack that makes §3 and §4 automatic
+
+This is the one-time setup behind #187. After it, merging a `site/` PR publishes the site and
+nobody runs §3 or §4 again. `infra/github-oidc.yaml` creates exactly two things: the GitHub
+Actions OIDC identity provider for the account, and the `AudioLabGitHubDeploy` role that only
+this repository, only on `main`, can assume.
+
+**No GitHub secret is involved and none should be created.** GitHub mints a short-lived OIDC
+token per run and AWS trusts it. There is no access key to store, rotate, or leak — that is the
+whole point of the pattern.
+
+### 7a. Collect the parameter
+
+The distribution id is a required parameter with no default, deliberately: the alternative is a
+`*` resource on `cloudfront:CreateInvalidation`, which would let CI purge every distribution in
+the account.
+
+```fish
+set DIST (aws cloudformation describe-stacks --stack-name toldstraight-site \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' --output text)
+echo "distribution: $DIST"
+```
+
+Confirm no OIDC provider exists yet — there can be only one per URL per account, and a second
+declaration fails with `EntityAlreadyExists`:
+
+```fish
+aws iam list-open-id-connect-providers --profile audio-lab-admin
+```
+
+Expect an empty `OpenIDConnectProviderList` (it was empty on 2026-08-01). If it is **not** empty,
+stop: the template must be changed to reference the existing provider instead of creating one.
+
+### 7b. Create the change-set (this changes nothing yet)
+
+`CAPABILITY_NAMED_IAM` is required, not merely `CAPABILITY_IAM`, because the role is created with
+an explicit `RoleName`. The workflow references that name literally, which is why it is fixed
+rather than generated.
+
+**The stack already exists** (created 2026-08-01), so this is an **UPDATE** change-set — omit
+`--change-set-type`, which defaults to `UPDATE`. Pass `--change-set-type CREATE` only if the
+stack has been deleted and you are rebuilding it from nothing.
+
+The two numeric ids are GitHub's immutable owner and repository ids. Read them live rather than
+copying them — they are the whole subject of #196, and a wrong digit produces exactly the
+`AssumeRole` denial this section exists to prevent:
+
+```fish
+cd ~/Code/audio-lab; and git checkout main; and git pull
+
+set OWNERID (gh api repos/Jared-Godar/audio-lab --jq '.owner.id')
+set REPOID (gh api repos/Jared-Godar/audio-lab --jq '.id')
+echo "owner: $OWNERID  repo: $REPOID"
+
+# Control: GitHub reports the same two ids as the prefix it will actually send.
+gh api repos/Jared-Godar/audio-lab/actions/oidc/customization/sub --jq '.sub_claim_prefix'
+# expect: repo:Jared-Godar@<OWNERID>/audio-lab@<REPOID>
+
+aws cloudformation create-change-set \
+    --stack-name toldstraight-github-oidc \
+    --change-set-name ci-deploy-identity \
+    --template-body file://infra/github-oidc.yaml \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameters \
+        ParameterKey=GitHubOwner,ParameterValue=Jared-Godar \
+        ParameterKey=GitHubRepositoryName,ParameterValue=audio-lab \
+        ParameterKey=GitHubOwnerId,ParameterValue=$OWNERID \
+        ParameterKey=GitHubRepositoryId,ParameterValue=$REPOID \
+        ParameterKey=DeployBranch,ParameterValue=main \
+        ParameterKey=SiteDistributionId,ParameterValue=$DIST \
+        ParameterKey=SiteStackName,ParameterValue=toldstraight-site \
+    --region us-east-1 --profile audio-lab-admin
+```
+
+A change-set name can only be used once per stack. If `ci-deploy-identity` already exists from a
+previous run, either delete it (`delete-change-set`) or pick a new name.
+
+### 7c. Read it before executing
+
+```fish
+aws cloudformation describe-change-set \
+    --stack-name toldstraight-github-oidc --change-set-name ci-deploy-identity \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Changes[].ResourceChange.{Action:Action,Resource:LogicalResourceId}' \
+    --output table
+```
+
+**On a first CREATE, expect exactly two rows, both `Add`:** `GitHubOidcProvider` and
+`GitHubDeployRole`.
+
+**On the #196 UPDATE, expect exactly one row: `Modify` on `GitHubDeployRole`.** `Replacement`
+should read `False` — the trust policy changes in place and the role ARN is unchanged, which
+matters because the workflow carries that ARN literally. **`GitHubOidcProvider` must not appear
+at all**; if it does, stop and read why, because replacing the account's OIDC provider would
+break the trust relationship rather than fix it.
+
+The single thing worth reading character by character is the trust condition — a wrong or
+over-broad `sub` lets any GitHub repository assume this role. Read it from the change-set's
+resolved template rather than from the parameters, so what you inspect is the string that will
+actually be written:
+
+```fish
+aws cloudformation describe-change-set \
+    --stack-name toldstraight-github-oidc --change-set-name ci-deploy-identity \
+    --region us-east-1 --profile audio-lab-admin \
+    --query 'Parameters' --output table
+```
+
+Confirm `GitHubOwnerId` and `GitHubRepositoryId` match the values §7a printed, and that
+`DeployBranch` is `main`.
+
+### 7d. Execute
+
+```fish
+aws cloudformation execute-change-set \
+    --stack-name toldstraight-github-oidc --change-set-name ci-deploy-identity \
+    --region us-east-1 --profile audio-lab-admin
+aws cloudformation wait stack-create-complete \
+    --stack-name toldstraight-github-oidc --region us-east-1 --profile audio-lab-admin
+```
+
+### 7e. Verify the trust boundary, then the deploy
+
+First read back what the role actually trusts. This is the check that matters; everything else
+about this stack is recoverable, an over-broad `sub` is not.
+
+```fish
+aws iam get-role --role-name AudioLabGitHubDeploy --profile audio-lab-admin \
+    --query 'Role.AssumeRolePolicyDocument.Statement[0].Condition' --output json
+```
+
+- [ ] `sub` is a **list of two** fully-qualified subjects — the classic
+      `repo:Jared-Godar/audio-lab:ref:refs/heads/main` and the immutable
+      `repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`. Both name the same
+      repository and the same ref; **neither contains a `*`** (#196)
+- [ ] `aud` reads `sts.amazonaws.com`
+
+**Why two.** GitHub issues this repository an *immutable* subject carrying numeric ids, while
+almost all documentation — AWS's included — shows the classic name-based form. Trusting only the
+classic form is what made the first deploy after #187 fail 12 of 12 attempts. Trusting both is not
+a widening: it names one identity twice, so the deploy works whichever form GitHub sends.
+
+**GitHub's API is not the authority on which form is sent.**
+`/actions/oidc/customization/sub` reports `"use_immutable_subject": false` *and* an immutable
+`sub_claim_prefix` at the same time. The only reliable read of what was actually presented is
+CloudTrail — the claim appears in the event's `userName`:
+
+```fish
+aws cloudtrail lookup-events \
+    --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity \
+    --region us-east-1 --profile audio-lab-admin --max-results 3 \
+    --query 'Events[].{When:EventTime,Subject:Username}' --output table
+```
+
+Use that first on any future `AssumeRole` denial. It turns a guess into a one-command diagnosis.
+
+Confirm the permissions are the narrow set and nothing more:
+
+```fish
+aws iam get-role-policy --role-name AudioLabGitHubDeploy --policy-name SitePublish \
+    --profile audio-lab-admin --query 'PolicyDocument.Statement[].{Sid:Sid,Action:Action,Resource:Resource}' \
+    --output json
+```
+
+- [ ] Four statements: `ListSiteBucket`, `WriteSiteObjects`, `InvalidateSiteCache`,
+      `ReadSiteStackOutputs` — and no `"Resource": "*"` anywhere except where it is not present
+      at all
+
+Then run the deploy once by hand to prove the whole path end to end. GitHub → **Actions** →
+**Deploy site** → **Run workflow** → branch `main` → **Run workflow**. Or:
+
+```fish
+gh workflow run deploy-site.yml --ref main
+gh run list --workflow=deploy-site.yml --branch main --limit 1
+```
+
+- [ ] The run is green. Its summary table names the bucket, the distribution, and how many
+      objects were uploaded or deleted
+- [ ] Its final step confirms the live page serves the deployed `index.html` — a green sync with
+      a failing verify means the bucket took the content but the CDN is not serving it
+
+A failure at the **Assume the deploy role via OIDC** step is nearly always the `sub` claim. The
+stack's `TrustedSubjectClassic` and `TrustedSubjectImmutable` outputs print the exact strings the
+role expects; compare the CloudTrail `userName` above against both. A claim matching neither is a
+new form; a claim matching one while the role trusts only the other is #196 recurring.
+
+**Do not look for the claim in the workflow log — it is not there.** The failing run prints only
+`Not authorized to perform sts:AssumeRoleWithWebIdentity`, repeated across its retries, with no
+indication of what subject was presented. That is what makes the CloudTrail lookup above the
+diagnosis rather than a supplement to it.
+
+### 7f. What changes for you afterwards
+
+- §3 and §4 become fallback procedures. You stop running them.
+- Your two manual gates on website work are: **approve the local preview** (an agent runs
+  `scripts/preview-site.fish` and hands you two URLs before committing), and **merge the PR**.
+- If a deploy fails, it is surfaced to you. An agent must not "fix" it with a manual
+  `aws s3 sync` — see ADR 0020.
 
 ---
 

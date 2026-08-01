@@ -36,6 +36,34 @@ visible in the diff and would otherwise evaporate.
   **222 MB of 483 MB — 46% of the tree**. Nine numbered disconnects, each with the command that
   measured it. Analysis only; nothing moved.
 
+- **`scripts/preview-site.fish` — the website preview gate, as one command (#187).** Serves
+  `site/` twice on loopback: **8788 = before**, exported from `origin/main` with
+  `git archive`, and **8789 = after**, the working tree including uncommitted edits. Prints both
+  URLs and the list of what differs, and tears down both servers and the temporary export on
+  Ctrl-C. "Before" comes from `origin/main` rather than the local checkout because the local
+  `main` is routinely behind or dirty — it was five commits behind with three uncommitted files
+  the same day (#189) — so a comparison against it shows a difference nobody is about to merge.
+
+- **`.github/workflows/deploy-site.yml` — site publication on push to `main` (#187).** Assumes
+  `AudioLabGitHubDeploy` by OIDC, resolves the bucket and distribution from the live stack
+  outputs rather than carrying literals, runs `aws s3 sync site/ --delete`, invalidates the
+  distribution, then **verifies the live page actually serves the deployed `index.html`** before
+  reporting success. Neither a required nor an advisory PR check: it is push-triggered and never
+  runs on a pull request, so it gates nothing and blocks no merge.
+
+- **`infra/github-oidc.yaml` — the CI deploy identity (#187).** The GitHub Actions OIDC provider
+  plus a role whose trust policy pins the subject to
+  `repo:Jared-Godar/audio-lab:ref:refs/heads/main` — one repo, one ref, no wildcard — and whose
+  permissions are one bucket, one distribution, one stack read. **Authored, not deployed:**
+  creating an IAM identity provider and role is billable and outward-facing, so it goes through
+  the maintainer via the reviewed change-set in `docs/site-deploy-walkthrough.md` § 7. Until
+  then the workflow fails at `AssumeRole` — written, not in force.
+
+- **ADR 0020 — publishing `site/` after a confirmed merge is pre-authorised.** Records the one
+  named narrowing of conduct rule 6, with the maintainer's decision quoted verbatim, and three
+  reversal conditions. Also backfills the ADR index, which was missing rows for **0018 and
+  0019** — both files existed, neither was listed.
+
 - **D2 target file-structure proposal (#179) — `docs/20260801-repo-file-structure-d2-target-proposal.md`.**
   Maps **every** tracked path in `main@c9685af` to a destination, plus the gitignored zones. Takes the
   root from **14 non-dot directories to 7**, collapses brand content from **6 surfaces to 1**, and
@@ -43,7 +71,107 @@ visible in the diff and would otherwise evaporate.
   the maintainer's sketch are argued rather than silently applied; ten open questions are carried to
   gate 1 (#181) rather than decided. Proposal only — nothing moved.
 
+### Changed
+
+- **`AGENTS.md`: website work now has exactly two manual gates — approve the preview, merge the
+  PR (#187).** Four amendments: step 2 requires an approved rendered preview before the first
+  commit on any `site/` change; step 8 confirms the CI deploy after a `site/` merge; the
+  "Definition of done" list gains the preview receipt; and the hold-for-the-maintainer list
+  gains the rule-6 exception, **written as an exception naming the rule it narrows** rather
+  than as a silent absence. A new § "Website changes: preview before commit" carries the
+  procedure.
+
+- **The preview rule moved from machine-local memory into the tracked contract (#187).** It was
+  recorded on 2026-07-31 in agent memory under `~/.claude/projects/`, which does not reach
+  cloud, cold-start, or fresh-clone sessions — which is why it was applied inconsistently.
+  Promoting it to `AGENTS.md` *is* the substance of the change; the memory file is now a
+  pointer, not a second copy that can drift.
+
+- **`docs/site-deploy-walkthrough.md` § 3 reversed its own standing warning.** It read *"merging
+  a PR that changes `site/` does not change the site"* with an instruction to sync manually after
+  every merge. Once the § 7 stack is deployed the opposite is true, so the box was rewritten
+  rather than left to mislead, and § 3–4 are relabelled as the maintainer's fallback — explicitly
+  **not** an agent's path, since an agent syncing from its own shell routes around branch
+  protection. New § 7 covers deploying the OIDC stack, including the trust-policy read-back that
+  is the one check worth doing character by character.
+
+- **`docs/aws-identity-center-roles.md` Part 2 is no longer "not needed yet".** Its console
+  click-path and inline JSON are relabelled a teaching reference superseded by
+  `infra/github-oidc.yaml`, with the two deliberate differences named. Its closing claim that
+  *"Nothing in `AGENTS.md` changes"* was corrected — rule 6 now carries one named exception.
+
+### Fixed
+
+- **The site deploy never worked as merged — the trust policy expected the wrong OIDC subject
+  (#196).** The first run after #192 merged failed 12 of 12 `AssumeRole` attempts. The role
+  trusted the classic `repo:Jared-Godar/audio-lab:ref:refs/heads/main`; GitHub issues this
+  repository the **immutable** form, `repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`.
+  `infra/github-oidc.yaml` now trusts **both**, as a two-element `StringLike` list with the
+  numeric ids as named, verifiable parameters rather than opaque literals. **This is not a
+  widening** — both entries are fully qualified for the same repository and the same ref, and
+  neither contains a wildcard; it names one identity twice. Nothing was lost in the meantime:
+  #192 touched no `site/` files, so no content was pending publication. Maintainer decision on
+  the three options was "trust both forms."
+
 ### Findings
+
+- **GitHub issues immutable OIDC subject claims, and its own API will tell you it does not.**
+  `/actions/oidc/customization/sub` returns `"use_immutable_subject": false` while
+  simultaneously reporting `"sub_claim_prefix": "repo:Jared-Godar@16855088/audio-lab@1309379475"`
+  — and the claim actually presented to AWS is the immutable one. **The API is not the authority
+  on this; CloudTrail is.** A failed `AssumeRoleWithWebIdentity` records the real subject in the
+  event's `userName`:
+
+  ```console
+  $ aws cloudtrail lookup-events --lookup-attributes \
+      AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity ...
+  "userName": "repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main",
+  "errorCode": "AccessDenied"
+  ```
+
+- **The GitHub Actions log does not contain the subject claim.** A failing
+  `configure-aws-credentials` step prints only `Not authorized to perform
+  sts:AssumeRoleWithWebIdentity`, repeated once per retry, with no indication of what was
+  presented — so the log tells you *that* the trust failed and never *why*. Reaching for
+  CloudTrail first turns this from a guessing exercise into one command. Nearly every published
+  example of this pattern, AWS's own included, shows the classic name-based subject, which is
+  what makes the mismatch easy to author and hard to see.
+
+- **`ThumbprintList` is optional on `AWS::IAM::OIDCProvider`, and omitting it is the safer
+  choice.** The IAM User Guide is explicit: *"If you choose not to include a thumbprint, IAM will
+  retrieve the top intermediate CA thumbprint of the OIDC IdP server certificate."* AWS also now
+  verifies the JWKS endpoint's TLS certificate against its own trusted-CA library. Nearly every
+  GitHub-OIDC tutorial still hardcodes `6938fd4d98bab03faadb97b34396831e3780aea1` — including the
+  AWS Security Blog post this repo's own Part 2 sketch was based on — and that literal breaks with
+  an opaque authentication failure when GitHub rotates the certificate. `infra/github-oidc.yaml`
+  omits it deliberately.
+
+- **The account had zero OIDC identity providers before this work.**
+  `aws iam list-open-id-connect-providers` returned an empty `OpenIDConnectProviderList` on
+  2026-08-01. This matters because the provider is an **account-level singleton per URL**: the
+  stack can safely create it, but any future stack needing GitHub OIDC must reference the ARN
+  rather than declare its own — a second declaration fails with `EntityAlreadyExists`, and
+  deleting this stack would pull the provider out from under the other one.
+
+- **`aws-actions/configure-aws-credentials` is at v6 (v6.2.3), not the v4 in the repo's sketch.**
+  Pinned by commit SHA `e6de054238d6b7531b4efff3b6587d9aade6a06c`, with `role-to-assume`,
+  `aws-region` and `role-session-name` confirmed present in that revision's `action.yml` rather
+  than assumed from the older example.
+
+- **Fish's `--on-signal` replaces a signal's default disposition; it does not augment it.** This
+  differs from bash `trap`, and it bit the first version of `scripts/preview-site.fish`: defining
+  an `--on-signal INT` cleanup handler meant Ctrl-C stopped both servers and removed the temp
+  export, then **left the script running** in its idle loop, serving nothing. A handler that is
+  meant to end the script must call `exit` itself. Verified in isolation: `exit` inside an
+  `--on-signal` handler does terminate the script, and `--on-event fish_exit` does fire for
+  non-interactive script runs, so the two handlers are split — one idempotent cleanup on
+  `fish_exit`, one interrupt handler that cleans up and exits 130.
+
+- **`pgrep -f <script>` matches the shell wrapper before the script itself.** Signalling the
+  first PID it returns can therefore hit the parent `zsh -c`, whose death leaves the real process
+  and its children running — which reads exactly like "the cleanup handler is broken" when in
+  fact the signal never reached it. Confirm the target with `ps -eo pid,ppid,command` before
+  concluding anything from a signal test.
 
 - **The 4 files in `prompts/` that are not duplicates are not specs — they are session-seed
   templates.** D1 established 23 of 27 were byte-identical to `artifacts/specs/` but left the
