@@ -100,7 +100,42 @@ visible in the diff and would otherwise evaporate.
   `infra/github-oidc.yaml`, with the two deliberate differences named. Its closing claim that
   *"Nothing in `AGENTS.md` changes"* was corrected — rule 6 now carries one named exception.
 
+### Fixed
+
+- **The site deploy never worked as merged — the trust policy expected the wrong OIDC subject
+  (#196).** The first run after #192 merged failed 12 of 12 `AssumeRole` attempts. The role
+  trusted the classic `repo:Jared-Godar/audio-lab:ref:refs/heads/main`; GitHub issues this
+  repository the **immutable** form, `repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`.
+  `infra/github-oidc.yaml` now trusts **both**, as a two-element `StringLike` list with the
+  numeric ids as named, verifiable parameters rather than opaque literals. **This is not a
+  widening** — both entries are fully qualified for the same repository and the same ref, and
+  neither contains a wildcard; it names one identity twice. Nothing was lost in the meantime:
+  #192 touched no `site/` files, so no content was pending publication. Maintainer decision on
+  the three options was "trust both forms."
+
 ### Findings
+
+- **GitHub issues immutable OIDC subject claims, and its own API will tell you it does not.**
+  `/actions/oidc/customization/sub` returns `"use_immutable_subject": false` while
+  simultaneously reporting `"sub_claim_prefix": "repo:Jared-Godar@16855088/audio-lab@1309379475"`
+  — and the claim actually presented to AWS is the immutable one. **The API is not the authority
+  on this; CloudTrail is.** A failed `AssumeRoleWithWebIdentity` records the real subject in the
+  event's `userName`:
+
+  ```console
+  $ aws cloudtrail lookup-events --lookup-attributes \
+      AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity ...
+  "userName": "repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main",
+  "errorCode": "AccessDenied"
+  ```
+
+- **The GitHub Actions log does not contain the subject claim.** A failing
+  `configure-aws-credentials` step prints only `Not authorized to perform
+  sts:AssumeRoleWithWebIdentity`, repeated once per retry, with no indication of what was
+  presented — so the log tells you *that* the trust failed and never *why*. Reaching for
+  CloudTrail first turns this from a guessing exercise into one command. Nearly every published
+  example of this pattern, AWS's own included, shows the classic name-based subject, which is
+  what makes the mismatch easy to author and hard to see.
 
 - **`ThumbprintList` is optional on `AWS::IAM::OIDCProvider`, and omitting it is the safer
   choice.** The IAM User Guide is explicit: *"If you choose not to include a thumbprint, IAM will
