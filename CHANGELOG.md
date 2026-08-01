@@ -240,6 +240,42 @@ visible in the diff and would otherwise evaporate.
 - **A local checkout 5 commits behind `origin/main` reports 301 tracked files against the real 327.**
   Structural counts must be taken from an `origin/main` worktree, not the working checkout.
 
+### Changed — #190 triage, case B (cast manifest)
+
+- **`episodes/cast/portraits/manifest.json` gains `revised_2026_07_31`, rescued from the
+  `sparkle-cleanup` worktree; the rest of that copy was discarded.** The note records that Owen,
+  Des Fable, Michael Voss and Anna Sinclair were promoted from starter-sketch to **LOCKED**
+  (maintainer-approved 2026-07-31), and their four `subject_prompt` entries were updated to match
+  so the file does not contradict its own note. **Only the note was taken.** The uncommitted copy
+  it came from was written before the #167 cast expansion and, applied whole, would have deleted
+  every `demographics` block, the `demographics_note` and `demographics_schema`, and the four
+  `20260731-` cast entries (Rosa Villalobos, Yolanda Bridges, Mei-Lin Chao, Hector Salazar) —
+  9 portraits down to 5. Verified after the edit: 9 entries, demographics blocks byte-identical to
+  `origin/main`, all three trailing keys unchanged.
+
+### Findings — #190 triage
+
+- **The rescued note's sparkle-removal claim was false and was not imported as written.** It said
+  the Gemini export "sparkle" badge "was removed from the portraits." The five `20260729-` PNGs on
+  `main` are still the blobs committed in #90/#93 on 2026-07-29 and have never been rewritten, so
+  the badge is still there. The note as landed says the removal is **not done**. A provenance file
+  that records an intention as an accomplishment is worse than one that records nothing.
+
+- **`git diff origin/main <branch>` alone cannot answer "has this landed."** It also fires when the
+  branch is merely *behind*. `bsky-atproto-dns-173` and `worktree-social-links-164` both show a
+  `CHANGELOG.md` difference while every line they added is already present in `main` verbatim —
+  the difference is `main` moving on, not unlanded work. The reliable test is per-file against the
+  **merge-base**: for each file the branch changed since `git merge-base origin/main HEAD`, ask
+  whether `main`'s blob now matches. Applied across the six worktrees this reclassified two of them
+  from "differs" to "landed" and exposed one genuinely unlanded set (below).
+
+- **`x-avatar-builder-154` holds four Illustrator builders that exist nowhere on `main`.**
+  `…-x-avatar-builder.jsx` (540L), `…-x-header-builder.jsx` (597L), `…-youtube-banner-builder.jsx`
+  (480L) and `…-youtube-watermark-builder.jsx` (354L) — 1,971 lines absent from `main` — plus
+  `docs/social-handle-availability-and-registration.md` at 893 lines against `main`'s 602. All of it
+  is pushed to `origin/x-avatar-builder-154`, so nothing is at risk of loss, but the branch is not
+  merged and was not in #190's original triage.
+
 ## 2026-07-31
 
 ### Added
