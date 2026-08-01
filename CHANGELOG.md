@@ -240,6 +240,66 @@ visible in the diff and would otherwise evaporate.
 - **A local checkout 5 commits behind `origin/main` reports 301 tracked files against the real 327.**
   Structural counts must be taken from an `origin/main` worktree, not the working checkout.
 
+### Added — the approved card standard, recovered by measurement
+
+- **`brand/20260801-toldstraight-approved-card-standard.md` — the design decisions carried by
+  `episodes/ToldStraight-Ep01/cover.png`, written down and tracked for the first time.** Faces,
+  palette, and every element's ink box, cap height, fitted point size and tracking, for both the
+  cover and the chapter-card format. Marked **IN FORCE**, not "written, not in force": it is the
+  reference a builder is checked against.
+
+- **`tools/brand/20260801-python-pillow-toldstraight-approved-card-measurement.py`** — regenerates
+  the entire standard from the PNG (`--identify` fits the faces, `--proof` renders the card back
+  from the measured numbers and diffs it). The standard is reproducible rather than asserted.
+
+- **`tools/brand/20260801-adobe-illustrator-toldstraight-approved-card-system-builder.jsx`** — one
+  builder for covers and chapter cards, driven by the measured constants, with `SUBTITLE_SCALE` and
+  `BOTTOM_SCALE` knobs for the requested size bumps. **It fails loudly on an unresolved face and
+  never substitutes a wide fallback**, which is the specific defect that produced the divergence.
+
+### Findings — the Ep01 fonts were recoverable all along
+
+- **No script ever produced the approved Ep01 cover, and none was lost.** The cover landed
+  2026-07-23 in `f9e662a` — its only commit, byte-identical to `_v1-archive/cover.png`. The
+  earliest builder in the repo is 2026-07-27 (`a54befb`). Every `.jsx` blob in the object
+  database **including unreachable objects** is a known builder dated ≥ 2026-07-27. The card was
+  made outside the repo; the PNG is the only source that ever existed.
+
+- **"Unknown, and unknowable from the PNGs" was wrong.** The 2026-07-27 type shootout recorded the
+  Ep01 faces that way (its own #60 Gap 4), noted the type scale was *"eyeballed, not measured —
+  the pixel-measurement script was refused by the lane guard"*, chose different faces, and re-set
+  every downstream asset in them. That is the root cause of only Ep01 looking right. The lane guard
+  was removed with the governance consolidation (#94), so the measurement finally ran.
+
+- **The Ep01 title is CONDENSED, and had been read as wide by eye more than once.** Identified by
+  per-glyph ink-width ÷ cap-height — a ratio independent of point size *and* tracking — fitted
+  against **987 faces installed on this machine** (all macOS system fonts plus all 215 Adobe
+  CoreSync synced faces), then confirmed by pixel overlap at matched cap height:
+
+  | Candidate | per-glyph RMS | IoU | tracking needed |
+  | --- | --- | --- | --- |
+  | **Arial Narrow Bold** | **0.0179** | **0.777** | −4.3 px |
+  | Helvetica Neue Condensed Bold | 0.0491 | 0.540 | +2.5 px |
+  | Arial Bold | 0.1621 | 0.546 | −30.3 px |
+  | Helvetica Bold | 0.1588 | 0.556 | −29.0 px |
+
+  Wide faces are 15–20% too wide on **every** glyph and only reach the measured line width at
+  roughly −145/1000 em, which visibly collides the letters. Mono is **Courier New Bold**
+  (IoU 0.587 against 0.406 Menlo, 0.358 Courier New Regular, 0.229 Andale Mono).
+
+- **Both faces are macOS system fonts, not Adobe Fonts — and the Adobe faces the builders ask for
+  are not installed.** Trade Gothic Next, Letter Gothic and Univers appear in **none** of the 215
+  synced CoreSync faces on this machine. A builder requesting `TradeGothicNextLTPro-BdCn` or
+  `LetterGothicStd` therefore resolves down its fallback chain, which is precisely how a wide face
+  entered the system.
+
+- **The measured standard reproduces the card: ink IoU 0.80** rendering §3 back out and diffing
+  against the original (rotated `MEMBER` stamp excluded — its geometry is estimated, not measured,
+  and the builder says so in its audit).
+
+- **Two numbers earlier work guessed, now measured.** The short-title-line ratio is **0.755**
+  (111/147 px), not 0.66. The cover subtitle's tracking is **≈ +142–164/1000 em**, not 300.
+
 ### Changed — #190 triage, case B (cast manifest)
 
 - **`episodes/cast/portraits/manifest.json` gains `revised_2026_07_31`, rescued from the
