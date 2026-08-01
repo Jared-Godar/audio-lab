@@ -101,7 +101,14 @@ section{padding:3.4rem 0}
 .subtitle{margin-top:.3rem}
 
 /* ---- Cast cards ---- */
-.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.4rem;margin-top:1.8rem}
+/* Explicit column counts, NOT auto-fit. auto-fit packs as many >=180px columns
+   as the container allows, which at ~1135px is five — leaving the eight-card
+   roster as a ragged 5 + 3. The roster divides evenly by 2 and by 4, so
+   restricting the count to those two values guarantees a full final row at
+   every width. If the roster ever stops being a multiple of 4, this comment is
+   the thing to re-read. */
+.cast{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.4rem;margin-top:1.8rem}
+@media(min-width:840px){.cast{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .card{border:2px solid var(--ts-ink);background:var(--ts-paper);display:flex;flex-direction:column}
 .portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#e2ddd2;border-bottom:2px solid var(--ts-ink)}
 .portrait img{width:100%;height:100%;object-fit:cover;display:block}
