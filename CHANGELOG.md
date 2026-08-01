@@ -64,6 +64,13 @@ visible in the diff and would otherwise evaporate.
   reversal conditions. Also backfills the ADR index, which was missing rows for **0018 and
   0019** — both files existed, neither was listed.
 
+- **D2 target file-structure proposal (#179) — `docs/20260801-repo-file-structure-d2-target-proposal.md`.**
+  Maps **every** tracked path in `main@c9685af` to a destination, plus the gitignored zones. Takes the
+  root from **14 non-dot directories to 7**, collapses brand content from **6 surfaces to 1**, and
+  reduces four competing homes for a document to one with a stated sorting rule. Five deviations from
+  the maintainer's sketch are argued rather than silently applied; ten open questions are carried to
+  gate 1 (#181) rather than decided. Proposal only — nothing moved.
+
 ### Changed
 
 - **`AGENTS.md`: website work now has exactly two manual gates — approve the preview, merge the
@@ -130,6 +137,23 @@ visible in the diff and would otherwise evaporate.
   and its children running — which reads exactly like "the cleanup handler is broken" when in
   fact the signal never reached it. Confirm the target with `ps -eo pid,ppid,command` before
   concluding anything from a signal test.
+
+- **The 4 files in `prompts/` that are not duplicates are not specs — they are session-seed
+  templates.** D1 established 23 of 27 were byte-identical to `artifacts/specs/` but left the
+  remainder uncharacterised. They are `EXECUTOR-SEED-PROMPT-TEMPLATE.md` plus three PM-thread seeds
+  (two being versions of one file), dating from the standing-PM era that Experiment A replaced.
+  That is why they had no counterpart in `artifacts/specs/`, and it changes their destination from
+  `docs/specs/` to `tooling/templates/` alongside `templates/task-spec.md`.
+
+- **Moving `pipeline/` would be the highest-risk move in the reorg and buys nothing.** The
+  maintainer's sketch groups it under `infrastructure/` with AWS IaC, repo scripts and a template.
+  It is the product, not infrastructure, and relocating it breaks `pyproject.toml` packaging, the
+  `uv run voicelab` entry point, every intra-package import, pre-commit paths and CI — for a rename
+  that does not help locate anything, since it is already one obvious top-level directory.
+
+- **The `website/` rename collides with #187's automated S3 deploy.** `infra/site.yaml` and the
+  deploy walkthrough both key on `site/`, and #187 is actively adding a CI deploy against that path.
+  The rename must land after #187, not beside it.
 
 - **Raw `create-change-set` resets omitted parameters to template defaults, not to their current
   values.** This is the opposite of `aws cloudformation deploy`, and on `toldstraight-dns` it is a
