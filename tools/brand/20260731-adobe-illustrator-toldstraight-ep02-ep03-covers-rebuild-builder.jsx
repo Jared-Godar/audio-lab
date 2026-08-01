@@ -524,17 +524,40 @@
         // stamp at a fixed x and got away with it only because its values were
         // short ("RESULTS IN"). "YOUNG SCHEMA QUESTIONNAIRE" runs straight under
         // it — and the word we spelled out on purpose is the one that disappears.
-        var STAMP_PT = 82, STAMP_H = 150;
+        // FIRST ATTEMPT AT THIS WAS WRONG AND THE RE-RUN PROVED IT. Shrinking
+        // the values to squeeze past a stamp sitting in the middle of the field
+        // block left a ~220pt column, so "YOUNG SCHEMA QUESTIONNAIRE" hit the
+        // 19pt floor and STILL ran under the stamp -- illegible AND obscured.
+        // The conflict is spatial, not typographic: a 700pt stamp and a 500pt
+        // value cannot share a 980pt row, and a size floor just turns an
+        // impossible constraint into a quiet failure.
+        //
+        // So the stamp moves OUT of the field block, into the empty band between
+        // the last rule and the footer. Values keep their full column at full
+        // size. The fitter below stays as a backstop and now simply never fires.
+        var STAMP_PT = 72, STAMP_H = 118, STAMP_ROT = -7;
         var sm = measure(spec.stamp, fTitle, STAMP_PT, 40);
-        var sw = Math.max(400, sm.w + 80);
-        // EP-140 rather than EP-96: rotating the group swings its corners
-        // outward, so a box whose right edge sits inside the keyline can still
-        // print across it. The margin has to pay for the rotation.
-        var sx = EP - 140 - sw, sy = 1150;
+        var sw = Math.max(380, sm.w + 70);
 
         var valueX = M + 400, valueFullW = W - 430, STAMP_GUTTER = 44;
 
         var fy = 1060;
+        // Field block runs from 1060 in 96pt steps, its last hairline at +60.
+        var fieldsEnd = 1060 + spec.fields.length * 96 - 96 + 60;
+        // Baselines sit 34pt below each row's top; this is the lowest word on
+        // the card above the footer, and the thing the stamp must clear.
+        var lastBaseline = 1060 + (spec.fields.length - 1) * 96 + 34;
+        // Position the stamp from the CLEARANCE it must keep, not from a fixed
+        // offset. A wider stamp swings further when rotated, so a constant y
+        // gives "RESULTS ENCLOSED" 9pt of air where "IN SESSION" gets 22 --
+        // which is how the long one ends up touching a word again.
+        var STAMP_CLEAR = 24;
+        var stampSwing = (sw / 2) * Math.abs(Math.sin(STAMP_ROT * Math.PI / 180));
+        var sy = lastBaseline + STAMP_CLEAR + stampSwing;
+        // EP-120 rather than EP-96: rotating the group swings its corners
+        // outward, so a box whose right edge sits inside the keyline can still
+        // print across it. The margin has to pay for the rotation.
+        var sx = EP - 120 - sw;
         for (var i = 0; i < spec.fields.length; i++) {
             baselineText(b, fy + 34, M + 30, spec.fields[i].k, 32, C.grey, fMono, 140);
 
@@ -560,17 +583,45 @@
             var sh = STAMP_H;
             var box = lyType.pathItems.rectangle(py(b, sy), px(b, sx), sw, sh);
             box.filled = false; box.stroked = true; box.strokeColor = C.red; box.strokeWidth = 8;
+
             var st = lyType.textFrames.add();
             st.contents = spec.stamp;
-            try { PS.cStamp.applyTo(st.textRange, true); } catch (e) {}
+            var sca = st.textRange.characterAttributes;
+            sca.autoLeading = false;
+            // Size the TEXT at the same point size the BOX was measured from.
+            // These had drifted apart -- the box was measured at STAMP_PT while
+            // the text was set from a style pinned at 82pt, so the box no longer
+            // fitted its own contents.
+            sca.size = STAMP_PT; sca.leading = STAMP_PT; sca.tracking = 40;
+            sca.fillColor = C.red;
+            if (fTitle) sca.textFont = fTitle;
             try { app.redraw(); } catch (eR3) {}
             try {
                 st.left = px(b, sx + (sw - st.width) / 2);
-                st.top  = py(b, sy + 32);
+                st.top  = py(b, sy + (sh - st.height) / 2);
             } catch (e) {}
+
             var g = lyType.groupItems.add();
             box.moveToBeginning(g); st.moveToBeginning(g);
-            g.rotate(-9);
+            g.rotate(STAMP_ROT);
+
+            // Rotation swings the corners out; report the real occupied band so a
+            // collision shows up as a number here rather than as a covered word
+            // in the PNG.
+            var swing = stampSwing;
+            log("  " + b.name + " stamp: x " + Math.round(sx) + "-" + Math.round(sx + sw)
+                + "  y " + Math.round(sy - swing) + "-" + Math.round(sy + sh + swing)
+                + "   last value baseline at " + Math.round(lastBaseline)
+                + "   bottom keyline at " + (EP - 44));
+            // Test against the last VALUE's baseline, not the hairline beneath
+            // it. The stamp is meant to sit across the rules -- that is the
+            // rubber-stamp look. What it must never touch is a word.
+            if (sy - swing < lastBaseline) {
+                log("    ** stamp reaches the last value's baseline — a value may be covered **");
+            }
+            if (sy + sh + swing > EP - 44) {
+                log("    ** stamp crosses the bottom keyline **");
+            }
         } catch (eStamp) { log("WARN: " + b.name + " stamp — " + eStamp); }
 
         area(b, EP - M - 66, M + 30, 700, 34, spec.foot1, PS.cFoot1);
