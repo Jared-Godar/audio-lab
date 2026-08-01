@@ -4,6 +4,12 @@
 > during real deploy attempts, so the top entry tells you at a glance how current it is. If
 > the newest entry predates your last failed attempt, it has not caught up yet.
 >
+> **2026-07-31 (evening) — DKIM verified; §6 gains the request answers.** The SES DKIM CNAMEs
+> deployed and SES reported `SUCCESS` after ~4 hours, so §5 is marked done with what the timing
+> actually looked like. §6 records that the console **gates** the production-access request behind
+> domain verification — it is not the independent step it appears to be from the CLI — and now
+> carries ready-to-paste answers for the request form.
+>
 > **2026-07-31 (later) — §5 is now a real procedure (#144).** The three SES DKIM CNAMEs are in
 > `infra/dns.yaml`, so §5 stopped saying "add them yourself" and became the change-set flow, with
 > the three-row expectation to check before executing and the records that must NOT appear. Also
@@ -259,6 +265,14 @@ aws sesv2 get-email-identity --email-identity toldstraight.com \
 
 Expect `SUCCESS` / `true`.
 
+> **Done — 2026-07-31.** The change-set executed cleanly (exactly three `Add` rows, no mail
+> record touched), all three CNAMEs resolve from Google DNS, Cloudflare and the authoritative
+> nameservers, and SES flipped to `SUCCESS` / `VerifiedForSendingStatus: true` about **four
+> hours** after the records went live. Four hours is unremarkable — AWS allows up to 72 — but it
+> is much longer than the "usually minutes" case, so do not start debugging early. The
+> diagnostic that matters is whether the CNAMEs resolve publicly; if they do, the remaining
+> variable is entirely SES's polling.
+
 **This does not disturb inbound mail** (still iCloud+) **or Apple's `sig1` DKIM selector.** A
 domain may publish any number of DKIM selectors; receivers match on the selector named in each
 message's signature. Apple's signs mail from your iCloud+ mailbox, SES's signs mail from the
@@ -273,6 +287,56 @@ satisfying strict DKIM alignment — DKIM carries DMARC on its own. Adopting a c
 would buy nothing without first weakening the posture recorded in #59.
 
 ## 6. Request SES production access (leave the sandbox) — #144
+
+> **Unblocked as of 2026-07-31.** The console gates this request behind domain verification —
+> the **Request production access** card stays greyed with "Domain verification needed" until
+> DKIM reports `SUCCESS`. It now does, so the request can be filed. It is **not** independent of
+> step 5, which is the opposite of what you might assume from the CLI, where nothing indicates
+> the dependency.
+
+**Console path:** SES → make sure the region picker reads **US East (N. Virginia)**, or you get
+a "Get set up" splash with no identities → left sidebar → **Account dashboard** → **Request
+production access** (top right).
+
+Approval typically takes ~24h, so start it early. Until then SES sends only to *verified*
+addresses and is capped at 200/day — which means real signups on the list cannot receive the
+launch email.
+
+### Draft answers
+
+The free-text answers affect approval time, so they are worth writing once and reusing.
+
+**Mail type:** Transactional — closest fit for a release notification someone explicitly asked
+for. "Marketing" invites more scrutiny.
+
+**Website URL:** `https://toldstraight.com`
+
+**Use case description:**
+
+> Told Straight is an independent podcast launching 6 August 2026. Visitors opt in on our Coming
+> Soon page to be notified when the show launches. We send one launch announcement and occasional
+> new-episode updates — no advertising, no purchased or rented lists, and the list is never shared.
+>
+> Addresses are collected only via a form on our own site and stored in an SES v2 contact list we
+> own in this account. Every send uses the list's subscription management so unsubscribe is one
+> click, and unsubscribe requests are also honored at <hello@toldstraight.com>. Our privacy policy
+> at <https://toldstraight.com/privacy.html> describes exactly this collection.
+>
+> The domain is authenticated with EasyDKIM and publishes DMARC p=reject with strict alignment.
+> Expected volume is low — dozens to low hundreds of recipients.
+
+**How do you handle bounces and complaints:**
+
+> Volume is low enough to monitor directly at first via the SES account dashboard's bounce and
+> complaint rates. Hard bounces are removed from the contact list, and complaints are treated as
+> an unsubscribe and suppressed permanently. If volume grows we will wire SNS notifications to
+> automate both.
+
+This last answer is the one that most often triggers a follow-up rather than an approval.
+Reviewers are checking that you understand list hygiene, not that you have automated it — a
+specific, honest answer about low volume and manual handling reads better than claiming
+automation that does not exist. A live privacy policy at a real URL helps too; it is checkable,
+and most sandbox requests have nothing to point at.
 
 In the console: **SES → Account dashboard → Request production access**. State the use
 (release notifications + occasional show updates to an opted-in list, with unsubscribe).

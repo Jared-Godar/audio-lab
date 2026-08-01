@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Told Straight — Coming Soon</title>
-<meta name="description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD. Launching 6 August 2026.">
+<title>Told Straight — Fake experts. Real evidence.</title>
+<meta name="description" content="Fake experts. Real evidence. Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD. Launching 6 August 2026.">
 
 <!-- Icons. Both variants are self-contained (opaque backgrounds), so either reads on any
      tab color; the media queries just pick the one that suits the browser's theme, and
@@ -24,7 +24,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Told Straight">
 <meta property="og:title" content="Told Straight — Coming Soon">
-<meta property="og:description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
+<meta property="og:description" content="Fake experts. Real evidence. Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
 <meta property="og:url" content="https://toldstraight.com/">
 <meta property="og:image" content="https://toldstraight.com/assets/og-card.png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <meta property="og:image:alt" content="Told Straight — Season One, Adult ADHD. Dept. of Neurodevelopmental Affairs.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Told Straight — Coming Soon">
-<meta name="twitter:description" content="Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
+<meta name="twitter:description" content="Fake experts. Real evidence. Evidence-based deep dives — one subject a season, researched to the studs and told to you straight. Season One: Adult ADHD.">
 <meta name="twitter:image" content="https://toldstraight.com/assets/og-card.png">
 
 <link rel="canonical" href="https://toldstraight.com/">
@@ -101,7 +101,14 @@ section{padding:3.4rem 0}
 .subtitle{margin-top:.3rem}
 
 /* ---- Cast cards ---- */
-.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.4rem;margin-top:1.8rem}
+/* Explicit column counts, NOT auto-fit. auto-fit packs as many >=180px columns
+   as the container allows, which at ~1135px is five — leaving the eight-card
+   roster as a ragged 5 + 3. The roster divides evenly by 2 and by 4, so
+   restricting the count to those two values guarantees a full final row at
+   every width. If the roster ever stops being a multiple of 4, this comment is
+   the thing to re-read. */
+.cast{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.4rem;margin-top:1.8rem}
+@media(min-width:840px){.cast{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .card{border:2px solid var(--ts-ink);background:var(--ts-paper);display:flex;flex-direction:column}
 .portrait{position:relative;aspect-ratio:1;overflow:hidden;background:#e2ddd2;border-bottom:2px solid var(--ts-ink)}
 .portrait img{width:100%;height:100%;object-fit:cover;display:block}
@@ -136,6 +143,15 @@ section{padding:3.4rem 0}
 .hero .cap{display:flex;justify-content:space-between;gap:1rem;padding:.7rem .9rem;border-top:2px solid var(--ts-ink);font-family:var(--ts-font-mono);font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ts-record)}
 
 /* ---- Notify ---- */
+/* The show's line. Chiasmus is the point — the second half is the argument, so the
+   two halves are broken onto their own lines and never reflowed into one. */
+.tagline{font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1.5rem,3.6vw,2.3rem);line-height:1.1;letter-spacing:-.01em;
+  margin:0 0 .4rem}
+/* Each half of the chiasmus is its own block and must not reflow mid-clause —
+   breaking "REAL EVIDENCE FROM FAKE / EXPERTS." destroys the mirror that IS the line. */
+.tagline span{display:block;text-wrap:balance}
+.tagline .b{color:var(--ts-red)}
 .notify{display:grid;grid-template-columns:1fr auto;gap:.6rem;max-width:540px;margin-top:1.4rem}
 /* Required. The `hidden` attribute works via the UA rule [hidden]{display:none}, which
    any author `display` declaration outranks -- so `.notify{display:grid}` silently beat
@@ -163,6 +179,43 @@ section{padding:3.4rem 0}
 .caution h3{font-family:var(--ts-font-display);text-transform:uppercase;letter-spacing:.28em;color:var(--ts-red);border-bottom:1px solid var(--ts-hairline);padding-bottom:.5rem;margin-bottom:.8rem;font-size:1rem}
 .caution ol{margin:0;padding-left:1.4rem}
 .caution li{margin:.35rem 0}
+
+/* ---- Works Cited ---- */
+.wc-intro{font-family:var(--ts-font-serif);font-size:1.05rem;max-width:60ch;margin:1.2rem 0 2rem}
+/* Episode block: citations run full width, then a larger title card floats in and the
+   remaining citations wrap beside it, returning to full width once past it. Text cannot
+   wrap both sides of a centred element in CSS, so the card sits left and the list is
+   split at ~38% so it reads as centred in the block. */
+.wc-block{padding:2.4rem 0;border-top:1px solid var(--ts-hairline)}
+.wc-block::after{content:"";display:table;clear:both}
+.wc-block:first-of-type{border-top:0;padding-top:.6rem}
+/* The card is deliberately large: it has to read as artwork, not as a
+   thumbnail, and the wall of citations wrapping tight around it is the
+   point of the block. clamp() keeps it from crowding the column on a
+   narrow laptop before the 760px float-drop kicks in. */
+.wc-card{float:left;width:clamp(300px,42%,400px);margin:1.1rem 2.1rem 1.3rem 0;padding:0}
+.wc-cover{width:100%;height:auto;border:2px solid var(--ts-ink);display:block}
+.wc-card figcaption{margin-top:.65rem}
+@media(max-width:760px){.wc-card{float:none;width:min(260px,70%);margin:1.4rem auto}}
+.wc-num{display:block;font-family:var(--ts-font-mono);font-weight:700;font-size:.95rem;
+  letter-spacing:.14em;color:var(--ts-red);margin-bottom:.25rem}
+.wc-title{display:block;font-family:var(--ts-font-display);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1rem,2.2vw,1.3rem);letter-spacing:.02em;line-height:1.15}
+/* Hanging indent, as APA reference lists are set. The counter replaces the default
+   marker so the number sits in the hang rather than inside the text block. */
+.wc-list{list-style:none;counter-reset:wc;padding:0;margin:0}
+.wc-list li:last-child{margin-bottom:0}
+.wc-list li{counter-increment:wc;font-family:var(--ts-font-serif);font-size:.92rem;
+  line-height:1.45;padding-left:2.3rem;text-indent:-2.3rem;margin:0 0 .7rem}
+.wc-list li::before{content:counter(wc) ".";display:inline-block;width:2.3rem;
+  text-indent:0;font-family:var(--ts-font-mono);font-size:.85rem;color:var(--ts-record)}
+.wc-list em{font-style:italic}
+.wc-links{font-family:var(--ts-font-mono);font-weight:700;font-size:.86rem;white-space:nowrap}
+.wc-links a{color:var(--ts-red);text-decoration:underline;text-decoration-thickness:1.5px;
+  text-underline-offset:2px}
+.wc-links a:hover{text-decoration:none}
+@media(max-width:520px){.wc-list li{padding-left:1.9rem;text-indent:-1.9rem}
+  .wc-list li::before{width:1.9rem}.wc-links{white-space:normal}}
 
 footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
 @media(max-width:640px){.intro{grid-template-columns:1fr}.notify{grid-template-columns:1fr}}
@@ -224,28 +277,18 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
             <source srcset="assets/host.webp" type="image/webp">
             <img src="assets/host.png" alt="Jared Godar, host" width="700" height="700" loading="lazy" decoding="async">
           </picture>
-          <span class="strip">Real Person · Host</span></div>
-        <div class="meta"><div class="name">Jared Godar</div><div class="role">Host · Creator</div></div>
+          <span class="strip">Real Person &middot; Host</span></div>
+        <div class="meta"><div class="name">Jared Godar</div><div class="role">Host &middot; Creator</div></div>
       </div>
 
       <div class="card">
         <div class="portrait">
           <picture>
-            <source srcset="assets/owen.webp" type="image/webp">
-            <img src="assets/owen.png" alt="Owen, an AI-generated expert co-host" width="520" height="520" loading="lazy" decoding="async">
+            <source srcset="assets/mei-lin-chao.webp" type="image/webp">
+            <img src="assets/mei-lin-chao.png" alt="Dr. Mei-Lin Chao, an AI-generated behavioral geneticist" width="520" height="520" loading="lazy" decoding="async">
           </picture>
           <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
-        <div class="meta"><div class="name">Owen</div><div class="role">Expert Co&#8209;host · Ep.01</div></div>
-      </div>
-
-      <div class="card">
-        <div class="portrait">
-          <picture>
-            <source srcset="assets/anna-sinclair.webp" type="image/webp">
-            <img src="assets/anna-sinclair.png" alt="Dr. Anna Sinclair, an AI-generated clinician" width="520" height="520" loading="lazy" decoding="async">
-          </picture>
-          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
-        <div class="meta"><div class="name">Dr. Anna Sinclair</div><div class="role">Clinician · Ep.03</div></div>
+        <div class="meta"><div class="name">Dr. Mei-Lin Chao</div><div class="role">Genetics &amp; Heritability</div></div>
       </div>
 
       <div class="card">
@@ -255,14 +298,64 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
             <img src="assets/michael-voss.png" alt="Dr. Michael Voss, an AI-generated expert" width="520" height="520" loading="lazy" decoding="async">
           </picture>
           <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
-        <div class="meta"><div class="name">Dr. Michael Voss</div><div class="role">Expert · Ep.02</div></div>
+        <div class="meta"><div class="name">Dr. Michael Voss</div><div class="role">Research Methods</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/yolanda-bridges.webp" type="image/webp">
+            <img src="assets/yolanda-bridges.png" alt="Dr. Yolanda Bridges, an AI-generated education and accommodation specialist" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
+        <div class="meta"><div class="name">Dr. Yolanda Bridges</div><div class="role">Education &amp; Accommodation</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/rosa-villalobos.webp" type="image/webp">
+            <img src="assets/rosa-villalobos.png" alt="Dr. Rosa Villalobos, an AI-generated pharmacologist" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
+        <div class="meta"><div class="name">Dr. Rosa Villalobos</div><div class="role">Pharmacology</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/owen.webp" type="image/webp">
+            <img src="assets/owen.png" alt="Owen, an AI-generated expert co-host" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
+        <div class="meta"><div class="name">Owen</div><div class="role">Research &middot; Lived Experience</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/anna-sinclair.webp" type="image/webp">
+            <img src="assets/anna-sinclair.png" alt="Dr. Anna Sinclair, an AI-generated clinician" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
+        <div class="meta"><div class="name">Dr. Anna Sinclair</div><div class="role">Clinical Practice</div></div>
+      </div>
+
+      <div class="card">
+        <div class="portrait">
+          <picture>
+            <source srcset="assets/hector-salazar.webp" type="image/webp">
+            <img src="assets/hector-salazar.png" alt="Hector Salazar, an AI-generated executive function coach" width="520" height="520" loading="lazy" decoding="async">
+          </picture>
+          <span class="corner-stamp">No Such<br>Person</span><span class="strip">AI-Generated<br>Voice &amp; Face</span></div>
+        <div class="meta"><div class="name">Hector Salazar</div><div class="role">Executive Function Coaching</div></div>
       </div>
 
     </div>
   </section>
 
   <section style="padding-top:0">
-    <div class="sechead"><div class="sectitle">Exhibit A — The Studio</div><span class="record">Fig. 01</span></div>
+    <p class="tagline"><span>Real evidence from fake experts.</span><span class="b">Not fake evidence from real ones.</span></p>
     <hr class="rule-red">
     <div class="hero">
       <!-- WebP only, no PNG fallback: the 3.2 MB source PNG exceeds the repo's
@@ -271,7 +364,7 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
            browser this page targets has supported WebP since 2020, so the
            fallback would be dead weight even if the file were committable. The
            cast portraits below are small enough to keep both formats. -->
-      <img src="assets/hero.webp" alt="The host, photographed, seated among the show's AI-generated cartoon expert cast in a study." width="1800" height="1004">
+      <img src="assets/hero.webp" alt="The host, photographed, seated among the show's eight AI-generated cartoon expert cast members in a study." width="2752" height="1536">
       <div class="cap"><span>The host (real) &amp; the cast (AI-generated)</span><span>Told Straight / Studio</span></div>
     </div>
   </section>
@@ -308,6 +401,80 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
       </ol>
     </div>
   </section>
+  <section id="works-cited" style="padding-top:0">
+    <div class="sechead"><div class="sectitle">Works Cited</div><span class="record">Receipts for the receipts</span></div>
+    <hr class="rule-red">
+    <p class="wc-intro">Every claim on this show is traceable to a source. Here are the sources for the
+    first three episodes &mdash; the papers themselves, not summaries of them. Nothing below spoils an
+    episode; it just shows what the work is built on.</p>
+      <div class="wc-block">
+        <ol class="wc-list">
+        <li>Faraone, S. V., &amp; Larsson, H. (2018). Genetics of attention deficit hyperactivity disorder. <em>Molecular Psychiatry</em>, <em>24</em>(4), 562&ndash;575. <span class="wc-links"><a href="https://doi.org/10.1038/s41380-018-0070-0">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/29892054/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6477889/">PMC full text</a></span></li>
+        <li>Faraone, S. V., Perlis, R. H., Doyle, A. E., Smoller, J. W., Goralnick, J. J., Holmgren, M. A., &amp; Sklar, P. (2005). Molecular Genetics of Attention-Deficit/Hyperactivity Disorder. <em>Biological Psychiatry</em>, <em>57</em>(11), 1313&ndash;1323. <span class="wc-links"><a href="https://doi.org/10.1016/j.biopsych.2004.11.024">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/15950004/">PubMed</a></span></li>
+        <li>Faraone, S. V., Banaschewski, T., Coghill, D., Zheng, Y., Biederman, J., Bellgrove, M. A., Newcorn, J. H., Gignac, M., Al Saud, N. M., Manor, I., Rohde, L. A., Yang, L., Cortese, S., Almagor, D., Stein, M. A., Albatti, T. H., Aljoudi, H. F., Alqahtani, M. M. J., Asherson, P., &hellip; Wang, Y. (2021). The World Federation of ADHD International Consensus Statement: 208 Evidence-based conclusions about the disorder. <em>Neuroscience &amp; Biobehavioral Reviews</em>, <em>128</em>, 789&ndash;818. <span class="wc-links"><a href="https://doi.org/10.1016/j.neubiorev.2021.01.022">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/33549739/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8328933/">PMC full text</a></span></li>
+        <li>Faraone, S. V., Asherson, P., Banaschewski, T., Biederman, J., Buitelaar, J. K., Ramos-Quiroga, J. A., Rohde, L. A., Sonuga-Barke, E. J. S., Tannock, R., &amp; Franke, B. (2015). Attention-deficit/hyperactivity disorder. <em>Nature Reviews Disease Primers</em>, <em>1</em>(1). <span class="wc-links"><a href="https://doi.org/10.1038/nrdp.2015.20">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/27189265/">PubMed</a></span></li>
+        <li>Shaw, P., Eckstrand, K., Sharp, W., Blumenthal, J., Lerch, J. P., Greenstein, D., Clasen, L., Evans, A., Giedd, J., &amp; Rapoport, J. L. (2007). Attention-deficit/hyperactivity disorder is characterized by a delay in cortical maturation. <em>Proceedings of the National Academy of Sciences</em>, <em>104</em>(49), 19649&ndash;19654. <span class="wc-links"><a href="https://doi.org/10.1073/pnas.0707741104">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/18024590/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2148343/">PMC full text</a></span></li>
+        <li>Song, P., Zha, M., Yang, Q., Zhang, Y., Li, X., &amp; Rudan, I. (2021). The prevalence of adult attention-deficit hyperactivity disorder: A global systematic review and meta-analysis. <em>Journal of Global Health</em>, <em>11</em>. <span class="wc-links"><a href="https://doi.org/10.7189/jogh.11.04009">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/33692893/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7916320/">PMC full text</a></span></li>
+        </ol>
+        <figure class="wc-card"><img class="wc-cover" src="assets/ep01-cover.webp" alt="Episode artwork: Form ADHD-01, Membership Has Requirements — adult ADHD, told straight" width="800" height="800" loading="lazy" decoding="async"><figcaption><span class="wc-num">Episode One</span><span class="wc-title">Membership Has Requirements: Adult ADHD, Told Straight</span></figcaption></figure>
+        <ol class="wc-list" start="7" style="counter-reset:wc 6">
+        <li>Cortese, S., Adamo, N., Del Giovane, C., Mohr-Jensen, C., Hayes, A. J., Carucci, S., Atkinson, L. Z., Tessari, L., Banaschewski, T., Coghill, D., Hollis, C., Simonoff, E., Zuddas, A., Barbui, C., Purgato, M., Steinhausen, H. C., Shokraneh, F., Xia, J., &amp; Cipriani, A. (2018). Comparative efficacy and tolerability of medications for attention-deficit hyperactivity disorder in children, adolescents, and adults: a systematic review and network meta-analysis. <em>The Lancet Psychiatry</em>, <em>5</em>(9), 727&ndash;738. <span class="wc-links"><a href="https://doi.org/10.1016/S2215-0366(18)30269-4">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/30097390/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6109107/">PMC full text</a></span></li>
+        <li>The MTA Cooperative Group (1999). A 14-Month Randomized Clinical Trial of Treatment Strategies for Attention-Deficit/Hyperactivity Disorder. <em>Archives of General Psychiatry</em>, <em>56</em>(12), 1073. <span class="wc-links"><a href="https://doi.org/10.1001/archpsyc.56.12.1073">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/10591283/">PubMed</a></span></li>
+        <li>Dalsgaard, S., Østergaard, S. D., Leckman, J. F., Mortensen, P. B., &amp; Pedersen, M. G. (2015). Mortality in children, adolescents, and adults with attention deficit hyperactivity disorder: a nationwide cohort study. <em>The Lancet</em>, <em>385</em>(9983), 2190&ndash;2196. <span class="wc-links"><a href="https://doi.org/10.1016/S0140-6736(14)61684-6">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/25726514/">PubMed</a></span></li>
+        <li>Chang, Z., Quinn, P. D., Hur, K., Gibbons, R. D., Sjölander, A., Larsson, H., &amp; D’Onofrio, B. M. (2017). Association Between Medication Use for Attention-Deficit/Hyperactivity Disorder and Risk of Motor Vehicle Crashes. <em>JAMA Psychiatry</em>, <em>74</em>(6), 597. <span class="wc-links"><a href="https://doi.org/10.1001/jamapsychiatry.2017.0659">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28492937/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5539840/">PMC full text</a></span></li>
+        <li>Lichtenstein, P., Halldner, L., Zetterqvist, J., Sjölander, A., Serlachius, E., Fazel, S., Långström, N., &amp; Larsson, H. (2012). Medication for Attention Deficit–Hyperactivity Disorder and Criminality. <em>New England Journal of Medicine</em>, <em>367</em>(21), 2006&ndash;2014. <span class="wc-links"><a href="https://doi.org/10.1056/NEJMoa1203241">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/23171097/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3664186/">PMC full text</a></span></li>
+        <li>Quinn, P. D., Chang, Z., Hur, K., Gibbons, R. D., Lahey, B. B., Rickert, M. E., Sjölander, A., Lichtenstein, P., Larsson, H., &amp; D’Onofrio, B. M. (2017). ADHD Medication and Substance-Related Problems. <em>American Journal of Psychiatry</em>, <em>174</em>(9), 877&ndash;885. <span class="wc-links"><a href="https://doi.org/10.1176/appi.ajp.2017.16060686">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28659039/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5581231/">PMC full text</a></span></li>
+        <li>Zheng, Q., Wang, X., Chiu, K. Y., &amp; Shum, K. K. m. (2020). Time Perception Deficits in Children and Adolescents with ADHD: A Meta-analysis. <em>Journal of Attention Disorders</em>, <em>26</em>(2), 267&ndash;281. <span class="wc-links"><a href="https://doi.org/10.1177/1087054720978557">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/33302769/">PubMed</a></span></li>
+        <li>Sonuga-Barke, E. J. S. (2003). The dual pathway model of AD/HD: an elaboration of neuro-developmental characteristics. <em>Neuroscience &amp; Biobehavioral Reviews</em>, <em>27</em>(7), 593&ndash;604. <span class="wc-links"><a href="https://doi.org/10.1016/j.neubiorev.2003.08.005">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/14624804/">PubMed</a></span></li>
+        <li>Karalunas, S. L., &amp; Huang-Pollock, C. L. (2011). Examining Relationships Between Executive Functioning and Delay Aversion in Attention Deficit Hyperactivity Disorder. <em>Journal of Clinical Child &amp; Adolescent Psychology</em>, <em>40</em>(6), 837&ndash;847. <span class="wc-links"><a href="https://doi.org/10.1080/15374416.2011.614578">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/22023275/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4649931/">PMC full text</a></span></li>
+        <li>Beheshti, A., Chavanon, M. L., &amp; Christiansen, H. (2020). Emotion dysregulation in adults with attention deficit hyperactivity disorder: a meta-analysis. <em>BMC Psychiatry</em>, <em>20</em>(1). <span class="wc-links"><a href="https://doi.org/10.1186/s12888-020-2442-7">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/32164655/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7069054/">PMC full text</a></span></li>
+        </ol>
+      </div>
+      <div class="wc-block">
+        <ol class="wc-list">
+        <li>Safren, S. A., Sprich, S., Mimiaga, M. J., Surman, C., Knouse, L., Groves, M., &amp; Otto, M. W. (2010). Cognitive Behavioral Therapy vs Relaxation With Educational Support for Medication-Treated Adults With ADHD and Persistent Symptoms. <em>JAMA</em>, <em>304</em>(8), 875. <span class="wc-links"><a href="https://doi.org/10.1001/jama.2010.1192">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/20736471/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3641654/">PMC full text</a></span></li>
+        <li>Safren, S. A., Otto, M. W., Sprich, S., Winett, C. L., Wilens, T. E., &amp; Biederman, J. (2005). Cognitive-behavioral therapy for ADHD in medication-treated adults with continued symptoms. <em>Behaviour Research and Therapy</em>, <em>43</em>(7), 831&ndash;842. <span class="wc-links"><a href="https://doi.org/10.1016/j.brat.2004.07.001">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/15896281/">PubMed</a></span></li>
+        <li>Pan, M. R., Dong, M., Zhang, S. Y., Liu, L., Li, H. M., Wang, Y. F., &amp; Qian, Q. J. (2024). One-year follow-up of the effectiveness and mediators of cognitive behavioural therapy among adults with attention-deficit/hyperactivity disorder: secondary outcomes of a randomised controlled trial. <em>BMC Psychiatry</em>, <em>24</em>(1). <span class="wc-links"><a href="https://doi.org/10.1186/s12888-024-05673-8">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/38491411/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10943890/">PMC full text</a></span></li>
+        <li>Knouse, L. E., Teller, J., &amp; Brooks, M. A. (2017). Meta-analysis of cognitive–behavioral treatments for adult ADHD. <em>Journal of Consulting and Clinical Psychology</em>, <em>85</em>(7), 737&ndash;750. <span class="wc-links"><a href="https://doi.org/10.1037/ccp0000216">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28504540/">PubMed</a></span></li>
+        <li>Lopez, P. L., Torrente, F. M., Ciapponi, A., Lischinsky, A. G., Cetkovich-Bakmas, M., Rojas, J. I., Romano, M., &amp; Manes, F. F. (2018). Cognitive-behavioural interventions for attention deficit hyperactivity disorder (ADHD) in adults. <em>Cochrane Database of Systematic Reviews</em>, <em>2018</em>(3). <span class="wc-links"><a href="https://doi.org/10.1002/14651858.CD010840.pub2">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/29566425/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6494390/">PMC full text</a></span></li>
+        </ol>
+        <figure class="wc-card"><img class="wc-cover" src="assets/ep02-cover.webp" alt="Episode artwork: Form TS-02, Additional Training Required — the skills that complement the pills" width="800" height="800" loading="lazy" decoding="async"><figcaption><span class="wc-num">Episode Two</span><span class="wc-title">Session One: The Skills That Complement the Pills</span></figcaption></figure>
+        <ol class="wc-list" start="6" style="counter-reset:wc 5">
+        <li>Seery, C., Leonard-Curtin, A., Naismith, L., King, N., O'Donnell, F., Byrne, B., Boyd, C., Kilbride, K., Wrigley, M., McHugh, L., &amp; Bramham, J. (2024). Feasibility of the Understanding and Managing Adult ADHD Programme: open-access online group psychoeducation and acceptance and commitment therapy for adults with attention-deficit hyperactivity disorder. <em>BJPsych Open</em>, <em>10</em>(5). <span class="wc-links"><a href="https://doi.org/10.1192/bjo.2024.743">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/39324244/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11457231/">PMC full text</a></span></li>
+        <li>Normann, N., &amp; Morina, N. (2018). The Efficacy of Metacognitive Therapy: A Systematic Review and Meta-Analysis. <em>Frontiers in Psychology</em>, <em>9</em>. <span class="wc-links"><a href="https://doi.org/10.3389/fpsyg.2018.02211">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/30487770/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6246690/">PMC full text</a></span></li>
+        <li>Normann, N., van Emmerik, A. A. P., &amp; Morina, N. (2014). THE EFFICACY OF METACOGNITIVE THERAPY FOR ANXIETY AND DEPRESSION: A META-ANALYTIC REVIEW. <em>Depression and Anxiety</em>, <em>31</em>(5), 402&ndash;411. <span class="wc-links"><a href="https://doi.org/10.1002/da.22273">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/24756930/">PubMed</a></span></li>
+        <li>Solanto, M. V., Marks, D. J., Wasserstein, J., Mitchell, K., Abikoff, H., Alvir, J. M. J., &amp; Kofman, M. D. (2010). Efficacy of Meta-Cognitive Therapy for Adult ADHD. <em>American Journal of Psychiatry</em>, <em>167</em>(8), 958&ndash;968. <span class="wc-links"><a href="https://doi.org/10.1176/appi.ajp.2009.09081123">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/20231319/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3633586/">PMC full text</a></span></li>
+        <li>Philipsen, A., Lam, A. P., Breit, S., Lücke, C., Müller, H. H., &amp; Matthies, S. (2016). Early maladaptive schemas in adult patients with attention deficit hyperactivity disorder. <em>ADHD Attention Deficit and Hyperactivity Disorders</em>, <em>9</em>(2), 101&ndash;111. <span class="wc-links"><a href="https://doi.org/10.1007/s12402-016-0211-8">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28012033/">PubMed</a></span></li>
+        <li>Kiraz, S., &amp; Sertçelik, S. (2021). Adult attention deficit hyperactivity disorder and early maladaptive schemas. <em>Clinical Psychology &amp; Psychotherapy</em>, <em>28</em>(5), 1055&ndash;1064. <span class="wc-links"><a href="https://doi.org/10.1002/cpp.2569">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/33586830/">PubMed</a></span></li>
+        <li>Krishnamoorthy, T., Das, S., &amp; Thomas, N. (2026). Stigma in adults with ADHD: a systematic review of types, experiences, and potential implications for quality of life. <em>Frontiers in Psychiatry</em>, <em>17</em>. <span class="wc-links"><a href="https://doi.org/10.3389/fpsyt.2026.1783271">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/42137527/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC13167982/">PMC full text</a></span></li>
+        </ol>
+      </div>
+      <div class="wc-block">
+        <ol class="wc-list">
+        <li>Philipsen, A., Lam, A. P., Breit, S., Lücke, C., Müller, H. H., &amp; Matthies, S. (2016). Early maladaptive schemas in adult patients with attention deficit hyperactivity disorder. <em>ADHD Attention Deficit and Hyperactivity Disorders</em>, <em>9</em>(2), 101&ndash;111. <span class="wc-links"><a href="https://doi.org/10.1007/s12402-016-0211-8">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28012033/">PubMed</a></span></li>
+        <li>Kiraz, S., &amp; Sertçelik, S. (2021). Adult attention deficit hyperactivity disorder and early maladaptive schemas. <em>Clinical Psychology &amp; Psychotherapy</em>, <em>28</em>(5), 1055&ndash;1064. <span class="wc-links"><a href="https://doi.org/10.1002/cpp.2569">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/33586830/">PubMed</a></span></li>
+        <li>Hoza, B., Mrug, S., Gerdes, A. C., Hinshaw, S. P., Bukowski, W. M., Gold, J. A., Kraemer, H. C., Pelham, W. E., Wigal, T., &amp; Arnold, L. E. (2005). What Aspects of Peer Relationships Are Impaired in Children With Attention-Deficit/Hyperactivity Disorder? <em>Journal of Consulting and Clinical Psychology</em>, <em>73</em>(3), 411&ndash;423. <span class="wc-links"><a href="https://doi.org/10.1037/0022-006X.73.3.411">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/15982139/">PubMed</a></span></li>
+        <li>Shaw, P., Stringaris, A., Nigg, J., &amp; Leibenluft, E. (2014). Emotion Dysregulation in Attention Deficit Hyperactivity Disorder. <em>American Journal of Psychiatry</em>, <em>171</em>(3), 276&ndash;293. <span class="wc-links"><a href="https://doi.org/10.1176/appi.ajp.2013.13070966">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/24480998/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4282137/">PMC full text</a></span></li>
+        <li>Barkley, R. A. (1997). Behavioral inhibition, sustained attention, and executive functions: Constructing a unifying theory of ADHD. <em>Psychological Bulletin</em>, <em>121</em>(1), 65&ndash;94. <span class="wc-links"><a href="https://doi.org/10.1037/0033-2909.121.1.65">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/9000892/">PubMed</a></span></li>
+        <li>Sonuga-Barke, E. J. S. (2003). The dual pathway model of AD/HD: an elaboration of neuro-developmental characteristics. <em>Neuroscience &amp; Biobehavioral Reviews</em>, <em>27</em>(7), 593&ndash;604. <span class="wc-links"><a href="https://doi.org/10.1016/j.neubiorev.2003.08.005">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/14624804/">PubMed</a></span></li>
+        </ol>
+        <figure class="wc-card"><img class="wc-cover" src="assets/ep03-cover.webp" alt="Episode artwork: Form TS-03, Your Results May Vary — but here are mine" width="800" height="800" loading="lazy" decoding="async"><figcaption><span class="wc-num">Episode Three</span><span class="wc-title">Session Two: The Results Are In</span></figcaption></figure>
+        <ol class="wc-list" start="7" style="counter-reset:wc 6">
+        <li>Marx, I., Hacker, T., Yu, X., Cortese, S., &amp; Sonuga-Barke, E. (2018). ADHD and the Choice of Small Immediate Over Larger Delayed Rewards: A Comparative Meta-Analysis of Performance on Simple Choice-Delay and Temporal Discounting Paradigms. <em>Journal of Attention Disorders</em>, <em>25</em>(2), 171&ndash;187. <span class="wc-links"><a href="https://doi.org/10.1177/1087054718772138">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/29806533/">PubMed</a></span></li>
+        <li>Jackson, J. N. S., &amp; MacKillop, J. (2016). Attention-Deficit/Hyperactivity Disorder and Monetary Delay Discounting: A Meta-Analysis of Case-Control Studies. <em>Biological Psychiatry: Cognitive Neuroscience and Neuroimaging</em>, <em>1</em>(4), 316&ndash;325. <span class="wc-links"><a href="https://doi.org/10.1016/j.bpsc.2016.01.007">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/27722208/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5049699/">PMC full text</a></span></li>
+        <li>Sergeant, J. A. (2005). Modeling Attention-Deficit/Hyperactivity Disorder: A Critical Appraisal of the Cognitive-Energetic Model. <em>Biological Psychiatry</em>, <em>57</em>(11), 1248&ndash;1255. <span class="wc-links"><a href="https://doi.org/10.1016/j.biopsych.2004.09.010">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/15949995/">PubMed</a></span></li>
+        <li>van der Putten, W. J., Mol, A. J. J., Groenman, A. P., Radhoe, T. A., Torenvliet, C., van Rentergem, J. A. A., &amp; Geurts, H. M. (2024). Is camouflaging unique for autism? A comparison of camouflaging between adults with autism and ADHD. <em>Autism Research</em>, <em>17</em>(4), 812&ndash;823. <span class="wc-links"><a href="https://doi.org/10.1002/aur.3099">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/38323512/">PubMed</a></span></li>
+        <li>Gollwitzer, P. M., &amp; Sheeran, P. (2006). Implementation Intentions and Goal Achievement: A Meta‐analysis of Effects and Processes. <em>Advances in Experimental Social Psychology</em>, 69&ndash;119. <span class="wc-links"><a href="https://doi.org/10.1016/S0065-2601(06)38002-1">doi</a></span></li>
+        <li>Safren, S. A., Sprich, S., Mimiaga, M. J., Surman, C., Knouse, L., Groves, M., &amp; Otto, M. W. (2010). Cognitive Behavioral Therapy vs Relaxation With Educational Support for Medication-Treated Adults With ADHD and Persistent Symptoms. <em>JAMA</em>, <em>304</em>(8), 875. <span class="wc-links"><a href="https://doi.org/10.1001/jama.2010.1192">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/20736471/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3641654/">PMC full text</a></span></li>
+        <li>Solanto, M. V., Marks, D. J., Wasserstein, J., Mitchell, K., Abikoff, H., Alvir, J. M. J., &amp; Kofman, M. D. (2010). Efficacy of Meta-Cognitive Therapy for Adult ADHD. <em>American Journal of Psychiatry</em>, <em>167</em>(8), 958&ndash;968. <span class="wc-links"><a href="https://doi.org/10.1176/appi.ajp.2009.09081123">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/20231319/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3633586/">PMC full text</a></span></li>
+        <li>Knouse, L. E., Teller, J., &amp; Brooks, M. A. (2017). Meta-analysis of cognitive–behavioral treatments for adult ADHD. <em>Journal of Consulting and Clinical Psychology</em>, <em>85</em>(7), 737&ndash;750. <span class="wc-links"><a href="https://doi.org/10.1037/ccp0000216">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/28504540/">PubMed</a></span></li>
+        <li>Levin, M. E., Hildebrandt, M. J., Lillis, J., &amp; Hayes, S. C. (2012). The Impact of Treatment Components Suggested by the Psychological Flexibility Model: A Meta-Analysis of Laboratory-Based Component Studies. <em>Behavior Therapy</em>, <em>43</em>(4), 741&ndash;756. <span class="wc-links"><a href="https://doi.org/10.1016/j.beth.2012.05.003">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/23046777/">PubMed</a></span></li>
+        <li>Beaton, D. M., Sirois, F., &amp; Milne, E. (2022). The role of self‐compassion in the mental health of adults with ADHD. <em>Journal of Clinical Psychology</em>, <em>78</em>(12), 2497&ndash;2512. <span class="wc-links"><a href="https://doi.org/10.1002/jclp.23354">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/35334113/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9790285/">PMC full text</a></span></li>
+        <li>Normann, N., &amp; Morina, N. (2018). The Efficacy of Metacognitive Therapy: A Systematic Review and Meta-Analysis. <em>Frontiers in Psychology</em>, <em>9</em>. <span class="wc-links"><a href="https://doi.org/10.3389/fpsyg.2018.02211">doi</a> &middot; <a href="https://pubmed.ncbi.nlm.nih.gov/30487770/">PubMed</a> &middot; <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6246690/">PMC full text</a></span></li>
+        </ol>
+      </div>
+  </section>
+
 
   <footer>
     <span class="record">Told Straight &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></span>

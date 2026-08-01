@@ -20,7 +20,15 @@
       "real": true,
       "generated": true,
       "source": "derived from the maintainer's own reference photos, uploaded privately to Gemini; the photos are NEVER committed to this public repo",
-      "subject_prompt": "Lean-to-stocky man, late 40s, warm olive/tan skin, fuller rounder face and heavier build, near-black hair greying at the temples, full two-tone beard (dark with a grey-white chin), hazel-green eyes, warm slightly-smiling expression, open plaid flannel over a plain tee, thin pendant necklace."
+      "subject_prompt": "Lean-to-stocky man, late 40s, warm olive/tan skin, fuller rounder face and heavier build, near-black hair greying at the temples, full two-tone beard (dark with a grey-white chin), hazel-green eyes, warm slightly-smiling expression, open plaid flannel over a plain tee, thin pendant necklace.",
+      "demographics": {
+        "gender": "male",
+        "race_ethnicity": null,
+        "census_label": null,
+        "origin_country": "United States",
+        "age_band": "40s",
+        "note": "Real person. Race/ethnicity is the maintainer's to self-identify; not inferred here."
+      }
     },
     {
       "file": "20260729-gemini-nano-banana-2-owen-ep01-expert-cast-portrait-1x1.png",
@@ -29,7 +37,14 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "Expert who studies ADHD and has it himself; mid-30s to 40s, glasses, tidy short hair, clean or lightly stubbled, bookish but warm. STARTER SKETCH — look not yet locked."
+      "subject_prompt": "Expert who studies ADHD and has it himself; mid-30s to 40s, glasses, tidy short hair, clean or lightly stubbled, bookish but warm. STARTER SKETCH — look not yet locked.",
+      "demographics": {
+        "gender": "male",
+        "race_ethnicity": "white_non_hispanic",
+        "census_label": "White alone, not Hispanic or Latino",
+        "origin_country": "United States",
+        "age_band": "30s-40s"
+      }
     },
     {
       "file": "20260729-gemini-nano-banana-2-des-fable-ep02-host-cast-portrait-1x1.png",
@@ -38,7 +53,14 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "British everyman co-host and 'fellow club member', lived-in and slightly scattered, warm and self-deprecating; late 30s-40s, slightly rumpled, expressive eyebrows, casual layered clothing. STARTER SKETCH — look not yet locked."
+      "subject_prompt": "British everyman co-host and 'fellow club member', lived-in and slightly scattered, warm and self-deprecating; late 30s-40s, slightly rumpled, expressive eyebrows, casual layered clothing. STARTER SKETCH — look not yet locked.",
+      "demographics": {
+        "gender": "male",
+        "race_ethnicity": "white_non_hispanic",
+        "census_label": "White alone, not Hispanic or Latino",
+        "origin_country": "United Kingdom",
+        "age_band": "30s-40s"
+      }
     },
     {
       "file": "20260729-gemini-nano-banana-2-michael-voss-ep02-expert-cast-portrait-1x1.png",
@@ -47,7 +69,14 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "American academic who 'speaks fluent effect size'; polished, credentialed, self-aware; 40s-50s, glasses, blazer or collared shirt, composed slightly-smug-but-likable expression. STARTER SKETCH — look not yet locked."
+      "subject_prompt": "American academic who 'speaks fluent effect size'; polished, credentialed, self-aware; 40s-50s, glasses, blazer or collared shirt, composed slightly-smug-but-likable expression. STARTER SKETCH — look not yet locked.",
+      "demographics": {
+        "gender": "male",
+        "race_ethnicity": "white_non_hispanic",
+        "census_label": "White alone, not Hispanic or Latino",
+        "origin_country": "United States",
+        "age_band": "40s-50s"
+      }
     },
     {
       "file": "20260729-gemini-nano-banana-2-anna-sinclair-ep03-clinician-cast-portrait-1x1.png",
@@ -56,8 +85,87 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "Clinician who treats and explains the condition at the bedside; warm, direct, reassuring authority; 40s-50s, auburn-brown hair with a grey streak pulled back off the face, small stud earrings, holding tortoiseshell glasses to her chin, maroon/burgundy blazer over a cream blouse, warm slight smile. STARTER SKETCH — look not yet locked."
+      "subject_prompt": "Clinician who treats and explains the condition at the bedside; warm, direct, reassuring authority; 40s-50s, auburn-brown hair with a grey streak pulled back off the face, small stud earrings, holding tortoiseshell glasses to her chin, maroon/burgundy blazer over a cream blouse, warm slight smile. STARTER SKETCH — look not yet locked.",
+      "demographics": {
+        "gender": "female",
+        "race_ethnicity": "white_non_hispanic",
+        "census_label": "White alone, not Hispanic or Latino",
+        "origin_country": "United Kingdom",
+        "age_band": "40s-50s"
+      }
+    },
+    {
+      "file": "20260731-gemini-nano-banana-2-rosa-villalobos-pharmacology-cast-portrait-1x1.png",
+      "subject": "Dr. Rosa Villalobos",
+      "role": "expert / pharmacology",
+      "real": false,
+      "generated": true,
+      "source": "Gemini, seeded with the existing cast portraits as style and framing references; two passes (second added facial line-work, aged to mid-40s, warmed the blazer).",
+      "subject_prompt": "Woman, 40s, warm medium-brown skin, straight dark-brown shoulder-length hair tucked behind one ear, dark brown eyes, strong straight brows, calm level expression with a faint dry half-smile. Stud earrings, warm charcoal blazer over a white blouse, thin silver chain.",
+      "demographics": {
+        "gender": "female",
+        "race_ethnicity": "hispanic_or_latino",
+        "census_label": "Hispanic or Latino (of any race)",
+        "origin_country": "Mexico",
+        "age_band": "40s"
+      }
+    },
+    {
+      "file": "20260731-gemini-nano-banana-2-yolanda-bridges-education-cast-portrait-1x1.png",
+      "subject": "Dr. Yolanda Bridges",
+      "role": "expert / education and accommodation",
+      "real": false,
+      "generated": true,
+      "source": "Gemini, seeded with the existing cast portraits as style and framing references.",
+      "subject_prompt": "Woman, 50s, deep-brown skin, short natural coily hair greying at the temples, dark brown eyes, reading glasses pushed up on her head, warm knowing expression with a real smile. Bold geometric brass earrings, deep teal jacket over a cream top.",
+      "demographics": {
+        "gender": "female",
+        "race_ethnicity": "black_or_african_american",
+        "census_label": "Black or African American alone",
+        "origin_country": "United States",
+        "age_band": "50s"
+      }
+    },
+    {
+      "file": "20260731-gemini-nano-banana-2-mei-lin-chao-genetics-cast-portrait-1x1.png",
+      "subject": "Dr. Mei-Lin Chao",
+      "role": "expert / genetics and heritability",
+      "real": false,
+      "generated": true,
+      "source": "Gemini, seeded with the existing cast portraits as style and framing references.",
+      "subject_prompt": "Woman, late 30s, light-medium warm skin, straight black chin-length bob with a blunt fringe, dark eyes behind slim rectangular black frames, alert curious expression. Small gold hoops, rust-red knit sweater over a collared shirt.",
+      "demographics": {
+        "gender": "female",
+        "race_ethnicity": "asian",
+        "census_label": "Asian alone",
+        "origin_country": "United States (Hong Kong heritage)",
+        "age_band": "30s-40s"
+      }
+    },
+    {
+      "file": "20260731-gemini-nano-banana-2-hector-salazar-coaching-cast-portrait-1x1.png",
+      "subject": "Hector Salazar",
+      "role": "practitioner / executive function coaching",
+      "real": false,
+      "generated": true,
+      "source": "Gemini, seeded with the existing cast portraits as style and framing references.",
+      "subject_prompt": "Man, mid-30s, medium-tan skin, short dark-brown hair with a neat fade, close-trimmed beard, dark brown eyes, open friendly expression with a slight smile. Muted olive henley, leather-band watch.",
+      "demographics": {
+        "gender": "male",
+        "race_ethnicity": "hispanic_or_latino",
+        "census_label": "Hispanic or Latino (of any race)",
+        "origin_country": "Puerto Rico",
+        "age_band": "30s"
+      }
     }
   ],
-  "synthetic_disclosure": "The four synthetic characters must stay identifiable as synthetic; the Ep02 personnel-file cards with the NOT REAL stamp remain the standing device."
+  "synthetic_disclosure": "The eight synthetic characters must stay identifiable as synthetic; the NO SUCH PERSON corner stamp and the AI-GENERATED / VOICE & FACE strip are the standing device on the site, and the photoreal-host / cartoon-cast split is the disclosure in the hero (ADR 0019).",
+  "demographics_note": "Per issue #167: each portraits[] entry carries a demographics block so the roster can be measured against US Census proportions and future characters cast to correct the standing skew. race_ethnicity uses Census-mappable keys. This is a maintainer design choice recorded in the repo and in the tooling; it is NEVER surfaced on the site, in show notes, on air, or on social media. Existing portraits are classified only -- no image is reworked.",
+  "demographics_schema": {
+    "gender": "male | female | nonbinary",
+    "race_ethnicity": "white_non_hispanic | black_or_african_american | hispanic_or_latino | asian | american_indian_or_alaska_native | native_hawaiian_or_pacific_islander | two_or_more | null (real people self-identify)",
+    "census_label": "human-readable Census category for the key above",
+    "origin_country": "country of origin / heritage, for backstory grounding",
+    "age_band": "loose decade band, for casting balance"
+  }
 }
