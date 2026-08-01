@@ -223,16 +223,15 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
    Official glyph geometry (Simple Icons, CC0), not redrawn.
 
    Colour is measured, not assumed. WCAG floor for non-text graphics is 3.0:1:
-       TikTok     #000000   17.33 on #EDE9E0    1.14 on #14140F  <- invisible
+       X          #000000   17.33 on #EDE9E0    1.14 on #14140F  <- invisible
+       TikTok     #000000   17.33               1.14             <- invisible
        Instagram  #FF0069    3.18               4.80
        YouTube    #FF0000    3.30               4.62
        Facebook   #0866FF    3.98               3.83
        Bluesky    #1083FB    3.06               4.98  <- see note below
-       (X         #000000   17.33               1.14   — measured, not shipped;
-                                                         see the footer comment)
-   So TikTok inherits --ts-ink, which already flips with the theme and therefore
-   stays perceivable in both. The others clear the floor in both themes and keep
-   their brand colour.
+   So X and TikTok inherit --ts-ink, which already flips with the theme and
+   therefore stays perceivable in both. The others clear the floor in both themes
+   and keep their brand colour.
 
    BLUESKY IS THE ONE ADJUSTED MARK. Its brand blue measures 2.98:1 on the light
    stock (#1185FE Simple Icons) and 2.99:1 (#0085FF brand kit) — both land just
@@ -537,12 +536,11 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
          list, so a changed handle is a one-line edit here. -->
     <nav class="social--footer" aria-label="Told Straight on social media">
       <ul class="social" id="social-source">
-        <!-- X is deliberately absent. x.com/toldstraight was suspended within a day
-             of registration (verified logged-out 2026-07-31) and the site is already
-             public, so the mark is held back rather than linking a suspended profile.
-             The glyph and its contrast measurement stay in brand/social-icons/ so
-             restoring this is one block. Appeal and the wider "do we want an X
-             presence at all" question are tracked in #172. -->
+        <li><a class="social__link" href="https://x.com/toldstraight"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Told Straight on X">
+          <svg class="social__mark--ink" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z"/></svg>
+        </a></li>
         <li><a class="social__link" href="https://www.instagram.com/toldstraight/"
                target="_blank" rel="noopener noreferrer"
                aria-label="Told Straight on Instagram">

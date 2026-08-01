@@ -11,12 +11,12 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
-- **Recorded the live account status for all six social surfaces, and corrected the rule that got X
-  suspended (#164, #172, #173).** `docs/social-handle-availability-and-registration.md` gains a § 0
+- **Recorded the live account status for all six social surfaces, and corrected the agent
+  browser-automation rule (#164, #172, #173).** `docs/social-handle-availability-and-registration.md` gains a § 0
   that states what **exists** rather than what was planned — the two had diverged within a day. It
   records the **Bluesky account** (registered 2026-07-31, now on the self-hosted `@toldstraight.com`
-  handle, verified through both `dig` and `resolveHandle`) and **X's suspension and 2026-08-01
-  reinstatement** after the maintainer's appeal. It also notes that
+  handle, verified through both `dig` and `resolveHandle`) and confirms **X live at
+  `@toldstraight`**. It also notes that
   `@toldstraight.bsky.social` **stops resolving** once the custom handle takes over — Bluesky's
   "remains reserved" means switch-back-able, not aliased, so any recorded old URL is now dead.
 
@@ -27,13 +27,10 @@ visible in the diff and would otherwise evaporate.
   enforcement targets. The rule is now that the agent does not touch an authenticated social session
   at all — logged-out public checks only, which is all any verification here needs.
 
-- **Social links on the Coming Soon page, header and footer (#164).** Five marks — Instagram,
-  YouTube, TikTok, Facebook and Bluesky — as inline SVG, no external requests, so the
-  page stays self-contained and CSP-tight. **X is deliberately absent**: `x.com/toldstraight` was
-  suspended within about a day of registration (#172) and the site is already public, so the mark is
-  held back rather than linking a suspended profile from a live page. **Bluesky replaces it as the
-  fifth surface**, linking the self-hosted `@toldstraight.com` handle (#173) rather than a
-  platform-issued one — a distinction that stopped being academic the day X was suspended.
+- **Social links on the Coming Soon page, header and footer (#164).** All six accounts — X,
+  Instagram, YouTube, TikTok, Facebook and Bluesky — as inline SVG, no external requests, so the
+  page stays self-contained and CSP-tight. Bluesky links the **self-hosted `@toldstraight.com`
+  handle** (#173) rather than a platform-issued one, so the identity is anchored to a domain we own.
   **The footer list is the canonical copy and the header is
   cloned from it at runtime**, the same one-source-of-truth shape as `GO_LIVE` already in the file,
   and for a concrete reason: two handles are already scheduled to change (TikTok is `@told.straight`
@@ -355,13 +352,12 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
-- **TikTok no longer carries its brand colour on the site, because it could not be seen (#164).**
-  The mark is `#000000`, which measures **1.14:1** against the dark stock `#14140F` — against a WCAG
-  floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible. It inherits
-  `--ts-ink`, which already flips with the theme, so it inverts automatically. Instagram, YouTube
+- **X and TikTok do not carry their brand colour on the site, because they could not be seen
+  (#164).** Both marks are `#000000`, which measures **1.14:1** against the dark stock `#14140F` — against a WCAG
+  floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible. They inherit
+  `--ts-ink`, which already flips with the theme, so they invert automatically. Instagram, YouTube
   and Facebook clear the floor in both themes (3.18/4.80, 3.30/4.62, 3.98/3.83) and keep brand
-  colour. X measured identically to TikTok and would have inherited the ink token too, had it
-  shipped.
+  colour. X measures identically to TikTok and inherits the ink token for the same reason.
 
 - **Bluesky's brand blue is darkened 1% so it clears the contrast floor (#164).** Both official
   candidates land *just* under it on the light stock — `#1185FE` (Simple Icons) at **2.98:1** and

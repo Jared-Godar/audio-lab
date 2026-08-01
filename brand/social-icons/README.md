@@ -5,19 +5,13 @@ builder `tools/brand/20260731-adobe-illustrator-toldstraight-social-icons-builde
 
 ## Which marks ship
 
-| Mark | On the site | Note |
-| --- | --- | --- |
-| Instagram, YouTube, Facebook | **Yes** | Brand colour, clears the floor in both themes |
-| TikTok | **Yes** | Inherits `--ts-ink`; brand `#000000` is 1.14:1 on the dark stock |
-| Bluesky | **Yes** | Brand blue adjusted 1% — the one adjusted mark, see below |
-| **X** | **No** | Held back; account suspended, see below |
+All six. Every mark in this directory is live on `site/index.html`.
 
-**X is deliberately not on the site.** `x.com/toldstraight` was suspended within about
-a day of registration (verified logged-out, 2026-07-31), and `toldstraight.com` is
-already public — linking a suspended profile from a live page is worse than one fewer
-mark. The glyph and its measurement stay here so restoring it is a single block in the
-footer list. Appeal and the wider "do we want an X presence at all" question are
-tracked in **#172**.
+| Mark | Colour on the site |
+| --- | --- |
+| Instagram, YouTube, Facebook | Brand colour — clears the contrast floor in both themes |
+| X, TikTok | Inherit `--ts-ink` — brand `#000000` is 1.14:1 on the dark stock |
+| Bluesky | Brand blue adjusted 1% — the one adjusted mark, see below |
 
 ## Status — APPROVED for web, 2026-07-31
 
@@ -27,22 +21,22 @@ approval has a boundary, and it matters:
 | Surface | Status |
 | --- | --- |
 | The six vector glyphs in this directory | **Approved** |
-| The inline-SVG marks now live in `site/index.html` | **Approved** — shipped under #164 |
-| The Illustrator PNG row for non-web surfaces | **Not approved** — see the X defect below |
+| The inline-SVG marks live in `site/index.html` | **Approved** — shipped under #164 |
+| The Illustrator PNG row for non-web surfaces | **Approved** — re-run 2026-08-01, all marks solid |
 
-**The X mark renders hollow from the Illustrator builder.** In the 2026-07-31 export
-(`output/artwork/brand-social-icons/`, gitignored) the X is an outline instead of a
-solid glyph, in both themes. TikTok — same `useInk: true` code path — renders solid
-and inverts correctly, so the recolour logic itself works.
+**The hollow-X defect is resolved.** An earlier export rendered X as an outline rather
+than a solid glyph. The compound-path recolour fix (`87fe132`) corrected it, and a
+maintainer re-run on 2026-08-01 confirmed X solid in both rows, inverting correctly with
+the ink token — the audit board reported 22 paths recoloured with no zero counts.
 
-**The website is not affected.** The X glyph's path has two subpaths, and the browser
-applies the SVG default `fill-rule: nonzero`, under which the interior fills solid.
-The defect is confined to how Illustrator resolves the compound path on import. Two
-candidate causes, neither yet tested: an `evenodd` compound-path property, or the
-recolour function setting `filled = true` on each subpath individually. Fixing it
-needs an Illustrator run, so it is deliberately **not** patched here — an untested
-edit shipped beside approved art is worse than a documented defect. Re-export before
-using these marks on episode art, cards, or print.
+**What that same run did expose** was a worse class of bug, now fixed in the builder: it
+resolved its icon source by probing for **one** file and taking the first directory that
+matched, which silently preferred a **stale** five-glyph directory over the current
+six-glyph one. It rendered five marks, reported "0 missing", and produced a set with no
+Bluesky. Every check passed, because every check asked *"is what I expected present?"* and
+never *"is anything I declared absent?"* The builder now requires a candidate directory to
+hold **every** mark in `MARKS`; a partial directory is refused outright, with a per-
+candidate report of what was found and what was missing.
 
 ## Deviation from issue #164 — accepted by the maintainer, 2026-07-31
 

@@ -68,8 +68,13 @@
        marks missing for that reason alone. Resolving a list makes the script
        work before AND after the merge, and on any future worktree, without
        anyone editing it. The resolved path is printed in the AUDIT board. */
+    /* Candidate list, most-canonical first. The main checkout wins once the
+       branch merges; the worktree entries only matter before that. Order is
+       NOT what protects against a stale set -- the full-set check below is.
+       An entry that has gone stale simply stops qualifying. */
     var ICON_DIRS = [
         "~/Code/audio-lab/brand/social-icons",
+        "~/Code/audio-lab/.claude/worktrees/social-links-164/brand/social-icons",
         "~/Code/audio-lab/.claude/worktrees/social-handles-111/brand/social-icons"
     ];
     var EXPORT_DIR = "~/Code/audio-lab/output/artwork/brand-social-icons";
@@ -96,12 +101,18 @@
     /* useInk:true  -> take the theme's ink token (X, TikTok — brand colour is
                        #000 and measures 1.14:1 on dark stock)
        useInk:false -> keep the brand hex (clears 3.0:1 in both themes) */
+    /* Bluesky's hex is 1083FB, not its published 1185FE. Both official candidates
+       land just UNDER the 3.0:1 WCAG floor on the paper stock -- 1185FE at 2.98,
+       0085FF (brand kit) at 2.99. Darkening 1% clears it at 3.06 while staying
+       visually indistinguishable. Dropping it to the ink token instead would have
+       discarded the brand identity to fix a 0.7% shortfall. */
     var MARKS = [
         { name: "X",         file: "20260731-simpleicons-x-official-glyph.svg",         useInk: true,  hex: "000000" },
         { name: "Instagram", file: "20260731-simpleicons-instagram-official-glyph.svg", useInk: false, hex: "FF0069" },
         { name: "YouTube",   file: "20260731-simpleicons-youtube-official-glyph.svg",   useInk: false, hex: "FF0000" },
         { name: "TikTok",    file: "20260731-simpleicons-tiktok-official-glyph.svg",    useInk: true,  hex: "000000" },
-        { name: "Facebook",  file: "20260731-simpleicons-facebook-official-glyph.svg",  useInk: false, hex: "0866FF" }
+        { name: "Facebook",  file: "20260731-simpleicons-facebook-official-glyph.svg",  useInk: false, hex: "0866FF" },
+        { name: "Bluesky",   file: "20260731-simpleicons-bluesky-official-glyph.svg",   useInk: false, hex: "1083FB" }
     ];
 
     var report = [];
@@ -110,22 +121,42 @@
     log("Built " + new Date().toString());
     log("");
 
-    /* Resolve the icon directory: first candidate that actually contains the
-       marks wins. Probe for a real FILE, not just the folder — an empty or
-       stale directory would otherwise satisfy the check and fail later, one
-       mark at a time, which is a worse failure than not starting. */
+    /* Resolve the icon directory: the first candidate holding EVERY mark in
+       MARKS wins — not the first one holding any single probe file.
+
+       The earlier version probed for one file (the X glyph) and took the first
+       hit. That silently preferred a STALE directory over a current one: on
+       2026-08-01 it resolved to a five-glyph worktree, rendered five marks,
+       reported "0 missing", and produced a set with no Bluesky in it. Every
+       check passed, because every check asked "is what I expected present?"
+       and never "is anything I declared absent?"
+
+       Requiring the full set makes staleness a resolution failure rather than
+       a silent downgrade: a directory missing the newest mark is no longer a
+       candidate at all. */
     var ICON_DIR = null;
+    var dirReport = [];
     for (var di = 0; di < ICON_DIRS.length; di++) {
-        var probe = new File(ICON_DIRS[di] + "/20260731-simpleicons-x-official-glyph.svg");
-        if (probe.exists) { ICON_DIR = ICON_DIRS[di]; break; }
+        var have = 0, missingHere = [];
+        for (var mi = 0; mi < MARKS.length; mi++) {
+            if (new File(ICON_DIRS[di] + "/" + MARKS[mi].file).exists) have++;
+            else missingHere.push(MARKS[mi].name);
+        }
+        dirReport.push("  " + ICON_DIRS[di] + "  ->  " + have + "/" + MARKS.length
+            + (missingHere.length ? "  (missing: " + missingHere.join(", ") + ")" : "  COMPLETE"));
+        if (have === MARKS.length && !ICON_DIR) ICON_DIR = ICON_DIRS[di];
     }
     if (!ICON_DIR) {
-        var tried = ICON_DIRS.join("\n  ");
-        alert("MARKS NOT FOUND\n\nNo candidate directory contains the platform SVGs.\n\nTried:\n  "
-            + tried + "\n\nNothing was created. Add the path to ICON_DIRS at the top of this script.");
+        alert("INCOMPLETE MARK SET\n\nNo candidate directory holds all "
+            + MARKS.length + " marks declared in MARKS.\n\n" + dirReport.join("\n")
+            + "\n\nNothing was created. A PARTIAL directory is refused on purpose -- "
+            + "rendering the marks that happen to be present is how a stale set ships "
+            + "unnoticed. Add the current path to ICON_DIRS at the top of this script.");
         return;
     }
     log("ICON SOURCE: " + ICON_DIR);
+    log("  candidates probed for the FULL set of " + MARKS.length + " marks:");
+    for (var dr = 0; dr < dirReport.length; dr++) log(dirReport[dr]);
     log("");
 
     // ---- document ----
