@@ -7,6 +7,49 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-08-01
+
+### Added
+
+- **`docs/audience-and-aws-access-guide.md` — one page for reading the audience list, reaching
+  the console, and finishing #148 and #144.** Covers the SSO sign-in URL
+  (`https://d-906679548d.awsapps.com/start`, which is **not** the `sso_start_url` in
+  `~/.aws/config` — the newer `identitycenter.amazonaws.com/ssoins-…` form renders no browser
+  portal), the `aws sesv2 list-contacts` blocks for a table view / bare email list / count, and the
+  click path to `toldstraight-site-448795057993`. The #144 section is split by **who can do it**:
+  reading DKIM state, `dig`-checking the CNAMEs, preparing an unexecuted change-set and authoring
+  the send script are executor work; executing the DNS change-set, the sandbox-exit support case,
+  and the launch send are maintainer-only because they are outward-facing or unrecallable.
+
+- **`infra/policies/20260801-aws-iam-AudioLabSignup-v1-signup-collection.json` — the fourth
+  customer-managed policy, closing #148.** 6 statements, **2,127 characters minified, 4,017 of
+  headroom**. It is a **new** policy rather than an edit to `AudioLabSiteInfra` for a measured
+  reason: that policy is already 5,072 of the 6,144-character limit, the additions do not fit, and
+  the same limit was already breached once on 2026-07-27. A pure add also cannot break the working
+  audition deploy while fixing the signup one. `iam:AttachRolePolicy` is **deliberately excluded** —
+  combined with the `PassRole` grant it is a privilege-escalation path, and the signup stack only
+  uses an inline role policy. Recorded alongside: `AudioLabSiteInfra` v4 grants that pair on
+  `audiolab-*` already, which is pre-existing and should not be replicated.
+
+### Findings
+
+- **Raw `create-change-set` resets omitted parameters to template defaults, not to their current
+  values.** This is the opposite of `aws cloudformation deploy`, and on `toldstraight-dns` it is a
+  live-outage footgun: `DeploySiteRecords` defaults to `"false"`, so a change-set adding the three
+  DKIM CNAMEs while omitting `--parameters` would also propose **deleting the apex and `www`
+  records**. Only `HostedZoneId` having no default makes the careless form fail loudly instead of
+  quietly arming the deletion. Every parameter now carries an explicit `UsePreviousValue=true`.
+
+- **SES stores no signup timestamp.** `list-contacts` returns only `LastUpdatedTimestamp`, which
+  rewrites on any modification. For a never-modified contact it approximates the signup time, but it
+  is not a durable acquisition date — if that ever needs reporting, the Lambda has to capture it at
+  write time, because it cannot be recovered from SES afterward.
+
+- **The tracked `AudioLabSiteInfra` JSON says v4 while the live default version was observed as
+  v3.** Either the v4 JSON was authored and never applied, or applied and rolled back. The file is
+  meant to be the verbatim record of what is live, so one of the two is wrong. Also unrecorded
+  anywhere in `infra/policies/`: `AudioLabDnsDomains`, which exists only inline in `infra/README.md`.
+
 ## 2026-07-31
 
 ### Added
