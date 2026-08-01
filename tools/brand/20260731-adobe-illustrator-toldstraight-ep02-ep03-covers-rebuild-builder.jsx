@@ -61,58 +61,76 @@
     //    Ep01 and Ep03 builders on purpose: one system, one resolution path.
     // ==============================================================
 
-    // ---- TITLE FACE: matching the approved Ep01 card, not the locked role ----
+    // ---- TITLE FACE: the recorded decision, full stop ----
     //
-    // NAMING THE COLLISION, because it is a real one. The 2026-07-27 type
-    // shootout locked TradeGothicNextLTPro-BdCn — a CONDENSED face — as the
-    // title role. The Ep01 cover the maintainer approved predates that shootout
-    // (commit f9e662a, 2026-07-23) and is set in a WIDE grotesque. It was never
-    // produced by any builder in this repo; output/artwork/ep01/ does not exist.
+    // TradeGothicNextLTPro-BdCn. Recorded in
+    // tools/brand/20260727-...-ep01-exhibit-cards-builder.jsx, dated 2026-07-27:
     //
-    // Asked to match Ep01, the maintainer's live instruction outranks the
-    // recorded type decision, so "ep01-wide" ships. Flip to "locked-condensed"
-    // to return these two cards to the shootout's face without touching
-    // anything else.
-    var TITLE_FACE_MODE = "ep01-wide";   // "ep01-wide" | "locked-condensed"
+    //   "The maintainer chose candidate E — TRADE GOTHIC NEXT BOLD CONDENSED —
+    //    across all three plates of the type shootout, run 2. Run 1 had produced
+    //    a false result ... C won that run. With the field corrected, the answer
+    //    changed. Do not treat run 1's outcome as history — it was measurement
+    //    error."
+    //
+    // An earlier revision of THIS file overrode that with a "wide grotesque"
+    // read off the Ep01 PNG by eye, which resolved to Arial by fallback. Arial
+    // was never part of Ep01; it was introduced by that fallback chain. A dated
+    // written decision is not overridden by a visual impression. The wide-face
+    // mode and its fallback groups have been removed rather than left switchable,
+    // so nothing can reach for a non-Trade-Gothic face again.
+
+    // ---- MONO FACE: same collision, and the dates settle it ----
+    //
+    // docs/20260727-...-type-shootout-guide.md §3.2 says of the monospace
+    // candidates: "None of these are in your kit; all are yours to add." That
+    // shootout is 2026-07-27. The approved Ep01 card is 2026-07-23. So on the
+    // day E1 was set, Letter Gothic Std WAS NOT INSTALLED — E1's mono cannot be
+    // Letter Gothic, and setting these cards in it is why they read as a
+    // different family however carefully the sizes are matched. E1's mono is a
+    // system typewriter face: Courier, which is slab-serifed where Letter
+    // Gothic is not.
+    //
+    // "ep01-courier" matches the approved card. "locked-lettergothic" returns to
+    // the shootout's winner. Same trade as the title: continuity with the art
+    // the maintainer approved, versus the type system recorded afterwards.
+    var MONO_FACE_MODE = "ep01-courier";  // "ep01-courier" | "locked-lettergothic"
 
     var FACE = {
-        title: (TITLE_FACE_MODE === "locked-condensed")
-                 ? "TradeGothicNextLTPro-BdCn"
-                 : "HelveticaNeue-Bold",
+        title: "TradeGothicNextLTPro-BdCn",
         label: null,
-        mono:  "LetterGothicStd",
+        mono:  (MONO_FACE_MODE === "locked-lettergothic")
+                 ? "LetterGothicStd"
+                 : "CourierNewPSMT",
         // The approved Ep01 card sets EVERY mono element bold — header,
         // subtitle, field keys and values. At the subtitle's 300-unit tracking
         // the regular weight thins out into unreadable hairlines, which is
         // exactly what went wrong on the first two runs. Bold is not a flourish
         // here; it is what makes the letterspaced line survive.
-        monoBold: "LetterGothicStd-Bold"
+        // CONFIRMED, 2026-07-31, by two independent signals:
+        //   1. The maintainer's Illustrator Find/Replace Font panel lists
+        //      "Courier New Bold" under Recent Fonts.
+        //   2. The Ep01 artwork's mono has visible SLAB SERIFS on the stems
+        //      ("ESTABLISHED:", "1775 (older than the U.S.)"). Letter Gothic Std
+        //      is a SANS mono with squared terminals and cannot produce those.
+        // Both agree with the dates: the shootout guide records that on
+        // 2026-07-27 none of the mono candidates were installed, and the card is
+        // 2026-07-23 — so it had to be a system typewriter face.
+        monoBold: (MONO_FACE_MODE === "locked-lettergothic")
+                    ? "LetterGothicStd-Bold"
+                    : "CourierNewPS-BoldMT"
     };
 
-    // Title fallbacks follow the chosen mode: wide grotesques first for
-    // "ep01-wide", condensed first for "locked-condensed". Getting a CONDENSED
-    // fallback while trying to match Ep01 would silently reintroduce the exact
-    // mismatch this rebuild is meant to remove, so the wide groups explicitly
-    // exclude condensed cuts.
-    var TITLE_SEARCH_WIDE = [
-        { require: ["helveticaneue"], exclude: ["italic", "oblique", "obl", "cn", "cond", "thin", "light"],
-          prefer: ["bold", "black", "heavy"] },
-        { require: ["helvetica"], exclude: ["italic", "oblique", "cn", "cond", "neue"],
-          prefer: ["bold", "black"] },
-        { require: ["arial"], exclude: ["italic", "narrow", "cond"], prefer: ["bold", "black"] },
-        { require: ["tradegothicnext"], exclude: ["italic", "oblique", "cn"], prefer: ["bold", "heavy"] }
-    ];
-    var TITLE_SEARCH_CONDENSED = [
-        { require: ["tradegothicnext"], exclude: ["italic", "oblique"],
-          prefer: ["bdcn", "boldcond", "condbold", "hvcn"] },
-        { require: ["helveticaneueltpro"], exclude: ["italic", "oblique", "obl"],
-          prefer: ["bdcn", "blkcn"] },
-        { require: ["oswald"], exclude: ["italic"], prefer: ["bold", "semibold"] }
-    ];
-
     var SEARCH = {
-        title: (TITLE_FACE_MODE === "locked-condensed")
-                 ? TITLE_SEARCH_CONDENSED : TITLE_SEARCH_WIDE,
+        // Verbatim from the Ep01 builder — same family, same preference order,
+        // same weight-compromise shout. No wide or non-Trade-Gothic fallbacks.
+        title: [
+            { require: ["tradegothicnext"], exclude: ["italic", "oblique"],
+              prefer: ["bdcn", "boldcond", "condbold", "hvcn", "condheavy", "bd", "bold"] },
+            { require: ["universnextpro", "cond"], exclude: ["italic", "oblique"],
+              prefer: ["boldcond", "condbold", "heavycond", "blackcond"] },
+            { require: ["helveticaneueltpro"], exclude: ["italic", "oblique", "obl"],
+              prefer: ["bdcn", "blkcn"] }
+        ],
         label: [
             { require: ["tradegothicnext"], exclude: ["italic", "oblique", "cn"],
               prefer: ["regular", "bold"] },
@@ -122,22 +140,24 @@
         // Bold mono is its OWN role, not a variant looked up later. Every mono
         // element on the Ep01 card is bold; resolving the regular weight is what
         // made the letterspaced subtitle disappear on the first two runs.
-        monoBold: [
-            { require: ["lettergothic", "bold"], exclude: ["italic", "oblique"], prefer: ["bold"] },
+        monoBold: (MONO_FACE_MODE === "locked-lettergothic") ? [
             { require: ["lettergothic"], exclude: ["italic", "oblique"], prefer: ["bold", "bd"] },
             { require: ["oratorstd"],    exclude: ["italic", "oblique"], prefer: ["bold", "medium", "std"] },
-            { require: ["courierprime"], exclude: ["italic", "oblique"], prefer: ["bold"] },
-            { require: ["ibmplexmono"],  exclude: ["italic", "oblique"], prefer: ["bold", "semibold"] },
-            { require: ["sourcecodepro"],exclude: ["italic", "oblique"], prefer: ["bold", "semibold"] },
             { require: ["courier"],      exclude: ["italic", "oblique"], prefer: ["bold", "bo"] }
+        ] : [
+            { require: ["couriernew"],   exclude: ["italic", "oblique"], prefer: ["bold", "boldmt", "bd"] },
+            { require: ["courier"],      exclude: ["italic", "oblique", "prime"], prefer: ["bold", "boldmt", "bo"] },
+            { require: ["courierprime"], exclude: ["italic", "oblique"], prefer: ["bold"] },
+            { require: ["nimbusmono"],   exclude: ["italic", "oblique"], prefer: ["bold"] }
         ],
-        mono: [
-            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "bold", "medium"] },
+        mono: (MONO_FACE_MODE === "locked-lettergothic") ? [
+            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "medium"] },
             { require: ["oratorstd"],     exclude: ["italic", "oblique"], prefer: ["std", "medium"] },
-            { require: ["courierprime"],  exclude: ["italic", "oblique"], prefer: ["regular", "prime"] },
-            { require: ["ibmplexmono"],   exclude: ["italic", "oblique"], prefer: ["regular", "text"] },
-            { require: ["sourcecodepro"], exclude: ["italic", "oblique"], prefer: ["regular"] },
             { require: ["courier"],       exclude: ["italic", "oblique"], prefer: ["regular", "psmt"] }
+        ] : [
+            { require: ["couriernew"],    exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
+            { require: ["courier"],       exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
+            { require: ["courierprime"],  exclude: ["italic", "oblique"], prefer: ["regular", "prime"] }
         ]
     };
 
@@ -443,6 +463,38 @@
     // The tighter constraint wins. A shared size is the typographically correct
     // answer for a stacked title: per-line sizing would make the block look
     // like a ransom note.
+    // One line of point text positioned by BASELINE rather than by box top, so a
+    // value that had to shrink still sits on the same baseline as its key.
+    // tf.height on all-caps text is the cap height, which is exactly the offset
+    // needed -- no font-metrics guesswork.
+    function baselineText(b, baselineY, x, text, size, colour, font, tracking) {
+        var tf = null;
+        try {
+            tf = lyType.textFrames.add();
+            tf.contents = text;
+            var ca = tf.textRange.characterAttributes;
+            ca.autoLeading = false;
+            ca.size = size; ca.leading = size; ca.tracking = tracking;
+            if (colour) ca.fillColor = colour;
+            if (font) ca.textFont = font;
+            try { app.redraw(); } catch (eR) {}
+            tf.left = px(b, x);
+            tf.top  = py(b, baselineY - tf.height);
+        } catch (e) { log("WARN: line '" + text + "' - " + e); return null; }
+        return tf;
+    }
+
+    // Field values are fitted the same way titles are: measure, shrink to the
+    // column, never clip. Area text silently swallows overflow, so a value
+    // running under the stamp looked like success to the script.
+    function fitValue(b, baselineY, x, maxW, text, maxPt) {
+        var size = maxPt;
+        var m = measure(text, fMonoB, size, 60);
+        if (m.w > maxW && m.w > 0) size = Math.max(19, size * (maxW / m.w));
+        baselineText(b, baselineY, x, text, size, C.ink, fMonoB, 60);
+        return { size: size, wanted: m.w, avail: maxW };
+    }
+
     // E1's title is set in TWO sizes, not one. "MEMBERSHIP" and "REQUIREMENTS"
     // share a big size while the short connector "HAS" drops to about two
     // thirds of it. Setting every line at one shared size -- which is what the
