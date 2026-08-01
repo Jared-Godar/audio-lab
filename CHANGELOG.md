@@ -11,6 +11,46 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Corrected the cast roster's composition and gave the Works Cited its receipts (#167).** The
+  roster read as four white men and one white woman, which was the first impression the Coming Soon
+  page made on the first person outside the project to see it. Four new synthetic cast members —
+  Dr. Rosa Villalobos, Dr. Yolanda Bridges, Dr. Mei-Lin Chao and Hector Salazar — take the site
+  roster to 4M/4F, and every entry in `episodes/cast/portraits/manifest.json` now carries a
+  `demographics` block (gender, race/ethnicity with its census label, origin, age band) so the
+  roster's composition is a **recorded property** rather than something inferred from the portraits
+  afterwards. The existing five portraits are **not** reworked — the correction is forward-only. This
+  is recorded in the repo and in #167 and appears **nowhere audience-facing**: not on the site, not in
+  show notes, not on air, not on social. The host stays photoreal while the cast stay ligne-claire
+  cartoons in the new eight-person hero, because that split **is** the AI disclosure (ADR 0019).
+
+- **Added a Works Cited block with full APA 7 references and episode artwork (#167).** Every journal
+  article referenced across Episodes 1–3, set as a proper reference list with hanging indents and
+  direct links to the PubMed or PMC abstract page — leaning into the "with receipts" claim by giving
+  receipts for the receipts, and showing what the content will contain without spoiling it. Show notes
+  for all three episodes were rewritten from abbreviated citations to full APA 7. One reference
+  carried CrossRef's small-caps markup through to the page, printing a literal `<scp>ADHD</scp>`
+  mid-citation; the tags are stripped in both the page and the show notes (all three episodes swept,
+  Ep03 was the only hit). The visible numbering also disagreed with the markup: each episode's list is
+  split around a floated cover, and **CSS counters ignore the `start` attribute**, so the continuation
+  lists restarted at 1 on screen while the accessibility tree correctly read 7–16. The counter is now
+  seeded to match.
+
+- **Rebuilt the Ep02 and Ep03 covers from a new Illustrator builder with a fitted title engine
+  (#167).** `tools/brand/20260731-...-ep02-ep03-covers-rebuild-builder.jsx`. **Ep02 never had a
+  builder** — its cover predates the 2026-07-27 type shootout that locked the faces, making it the
+  only episode card never rebuilt into the system and the reason it read as the odd one out. The Ep03
+  builder could not simply be reused: it sets the title at a literal 215pt at hard-coded y=330/560
+  against a red rule at y=820, which is a tracing of "SESSION / TWO" rather than a layout. Titles are
+  now **fitted** — one shared size derived from the zone height and the widest line, block centred in
+  the zone — so line count and word length cannot collide with the rule. The stamp sits below the
+  field block, positioned from the **clearance it must keep** rather than a fixed offset, because
+  rotation swings a wider stamp further and a constant y gave "RESULTS ENCLOSED" 9pt of air where
+  "IN SESSION" got 22. It still prints across the field rules, which is the rubber-stamp look; it no
+  longer reaches a word. The audit artboard reports achieved sizes and measured clearances in points,
+  so a regression appears as a number rather than hiding inside a PNG. Covers were rendered by the
+  maintainer in Illustrator, per the standing rule that this repo authors builders and never renders
+  episode art itself.
+
 - **Added the three SES EasyDKIM CNAMEs to the DNS stack (#144).** `SesDkimRecord1..3` in
   `infra/dns.yaml`, read from the signup stack's outputs and **verified against live SES** rather
   than transcribed. They are additive to Apple's `sig1` selector — different record names, different
