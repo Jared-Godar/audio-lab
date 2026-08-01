@@ -182,6 +182,19 @@ switching arms is his call, evidence-driven.
 - Deleting or overwriting under `episodes/`, `prompts/`, or `~/ToldStraight-*`
   unprompted.
 
+**One named exception to conduct rule 6 — publishing `site/` after a merge.** Rule 6
+requires his confirmation *at the time of the action* for anything destructive,
+irreversible, or outward-facing, and `aws s3 sync site/ --delete` to the production
+bucket is all three. That action, and only that action, is pre-authorised once GitHub
+reports the PR `MERGED` (maintainer decision, #187; recorded as
+[ADR 0020](docs/adr/0020-post-merge-site-deploy-is-pre-authorised.md)). The exception is
+narrow on purpose and does not generalise: every other outward-facing, billable, or
+destructive action still needs confirmation at action time, and prior authorisation
+still never carries forward. It is also **not** a licence for an agent to run the sync —
+CI performs it, for the reasons in § "Website changes: preview before commit". An agent
+running `aws s3 sync` from its own shell routes around branch protection and is a
+rule 6 violation with or without this exception.
+
 ### Work-item workflow
 
 `main` is protected: PR-only, required checks, linear history, `enforce_admins: true`.
@@ -189,6 +202,9 @@ switching arms is his call, evidence-driven.
 1. **Sync, then branch** — `git fetch`; confirm `main..origin/main` is empty; cut the
    branch.
 2. **Implement, gating every commit** — `pre-commit run --all-files` green each time.
+   **Anything under `site/` additionally needs a rendered preview approved before the
+   first commit** — see § "Website changes: preview before commit" below. The preview
+   is offered unasked; a `site/` diff that reaches a commit without one is a defect.
 3. **CHANGELOG entry in the same PR** — merge gate, not archaeology
    (`skip-changelog` is for genuinely trivial changes only). The § Findings section
    records what was learned about external services that a diff cannot show.
@@ -213,14 +229,77 @@ switching arms is his call, evidence-driven.
    (these are `.gitignore` exceptions, so a file sitting there uncommitted is spec/issue
    provenance that never landed) — and commit or surface each; don't let them accumulate
    across sessions.** Pruning worktrees and branches is not the same as leaving a clean
-   tree — end closure by confirming `git status` is clean.
+   tree — end closure by confirming `git status` is clean. **If the merged PR touched
+   `site/`, also confirm the site deploy** — see § "Website changes: preview before
+   commit" below. Confirming it is closure work; running the sync by hand is not.
 
 Definition of done, self-run with receipts: pre-commit green (pasted) · CI green ·
 metadata complete and read back · CHANGELOG entry · verification output shown per
 claimed step · a PR adding or renaming a CI job states whether the check is required
-or advisory · a PR recording a decision adds or updates an ADR under `docs/adr/` · a
+or advisory · **a PR touching `site/` states that the rendered preview was offered
+and approved, before the first commit** · a PR recording a decision adds or updates an ADR under `docs/adr/` · a
 PR closing a milestone's last open issue refreshes the README status section (the
 `readme-staleness` scheduled workflow catches misses).
+
+### Website changes: preview before commit, CI deploys after merge
+
+Two manual gates on website work, and only two: **he approves the rendered preview**, and
+**he merges the PR.** Everything else is automatic. Decided in #187; the rule-6 narrowing
+this rests on is [ADR 0020](docs/adr/0020-post-merge-site-deploy-is-pre-authorised.md).
+
+**Before any commit touching `site/`** — offered unasked, not on request:
+
+```fish
+scripts/preview-site.fish
+```
+
+It serves `site/` twice on `127.0.0.1`: **8788 = before**, exported from `origin/main`,
+and **8789 = after**, the working tree including uncommitted edits. Hand over both URLs
+and what differs, and wait. He approves **the rendered page, not the diff**. Three
+details are not stylistic preferences and are why the script exists rather than a
+prose instruction:
+
+- **"Before" comes from `origin/main`, never the local checkout.** The local `main` is
+  routinely behind, dirty, or both (it was five commits behind with three uncommitted
+  files on 2026-08-01, #189), so a comparison against it shows a difference nobody is
+  about to merge.
+- **`file://` is not acceptable evidence.** Under a file origin, relative asset paths
+  resolve differently, `fetch()` is blocked outright, and inline-script behaviour does
+  not exercise as it will in production. It must be served over HTTP.
+- **Use `--after-only` for a brand-new page** where there is no "before" to compare.
+
+Hand over **specific URLs, not just the index**: every changed page, plus the theme
+variants the page supports (`#light` / `#dark` on this site). Say which port is which
+and that the servers are his to kill. **An agent's own screenshots do not substitute** —
+a screenshot is the agent's evidence, the running server is his; see
+`never-declare-ready-on-unverified-work` in project memory. The preview is a
+*precondition of review*, in the same class as the CHANGELOG entry and PR metadata: a
+`site/` PR handed over without one has not been delivered.
+
+Origin: stated on PR #170, 2026-07-31 — *"before I touch your PR - give me a local
+preview of the site first remember to alway do this with PRs making website changes."*
+The rule then lived only in machine-local agent memory, which does not reach cloud,
+cold-start, or fresh-clone sessions — which is exactly why it was applied
+inconsistently. It lives here now; that memory is superseded, not duplicated.
+
+**After merge, the deploy is CI's job, not a session's.**
+`.github/workflows/deploy-site.yml` runs on push to `main`, assumes
+`AudioLabGitHubDeploy` by OIDC, syncs `site/` to the bucket, invalidates the
+distribution, and verifies the live page serves the deployed `index.html`. The role's
+trust policy pins the OIDC subject to `refs/heads/main`, so a workflow edited on a
+branch cannot deploy early — the gate is in AWS, not only in the workflow file.
+
+The post-merge closure pass (step 8) **confirms** that deploy and reports the outcome:
+
+```fish
+gh run list --workflow=deploy-site.yml --branch main --limit 1
+```
+
+Report the conclusion honestly — a failed or still-running deploy is surfaced, never
+worked around. **Do not run `aws s3 sync` by hand to "fix" it.** Doing so publishes from
+a session's own credentials, which is the thing #187 removed. The manual procedure in
+`docs/site-deploy-walkthrough.md` § 3–4 stays documented for the maintainer's use and as
+the fallback if the workflow is ever disabled; it is not an agent's path.
 
 ### Issues — tiered house standard
 

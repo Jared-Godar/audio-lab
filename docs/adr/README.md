@@ -32,6 +32,9 @@ that trip.
 | [0015](0015-wordmark-dual-lockup-system.md) | The wordmark system is a dual lockup, not a single primary | accepted | 2026-07-28 | M1, M5 |
 | [0016](0016-favicon-readme-header-and-card-surfaces.md) | The favicon set, README header, and social/OG cards are decided, and only two of them theme-switch | accepted | 2026-07-28 | M5 |
 | [0017](0017-ivc-patch-tool-config.md) | Host-line patches render with IVC "Jared 1.0" on `eleven_multilingual_v2` | accepted | 2026-07-29 | M4 |
+| [0018](0018-cast-card-portrait-standard.md) | The colour cartoon portrait is the cast-card image standard, across all episodes | accepted (amended by 0019) | 2026-07-30 | M4, M7 |
+| [0019](0019-coming-soon-design-and-human-machine-register.md) | Real cast are photographed, synthetic cast stay cartoons; the Coming Soon page is a field-notice with a declassify countdown | accepted | 2026-07-31 | M5, M7 |
+| [0020](0020-post-merge-site-deploy-is-pre-authorised.md) | Publishing `site/` after a confirmed merge is pre-authorised, and CI performs it | accepted | 2026-08-01 | M5, M10 |
 
 Dates marked *not recorded* were never dated in the migrated `ROADMAP.md` entries;
 inventing one after the fact would be worse than the gap.

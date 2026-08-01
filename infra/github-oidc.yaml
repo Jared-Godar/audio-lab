@@ -1,0 +1,209 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# NOTE: long-form intrinsics (Ref:, Fn::Sub, Fn::GetAtt) only — no !Ref / !Sub
+# short tags — so the repo's generic check-yaml pre-commit hook can parse this
+# file (a safe YAML loader cannot construct the custom !-tags). Matches
+# infra/dns.yaml, infra/signup.yaml and infra/site.yaml.
+#
+# This stack is the CI DEPLOY IDENTITY for the static site (#187, ADR 0020).
+# It exists so that pushing to main publishes site/ without anybody running
+# `aws s3 sync` by hand -- not the maintainer, and not an agent shell. It
+# creates two things and nothing else:
+#
+#   1. The GitHub Actions OIDC identity provider for this AWS account.
+#   2. A role that ONLY .github/workflows/deploy-site.yml, running on main in
+#      this repository, can assume -- and that can only publish site content.
+#
+# Deploy is billable AWS and outward-facing: the maintainer runs it via a
+# reviewed change-set, this repo only authors the template. See
+# docs/site-deploy-walkthrough.md § 7.
+#
+# THE ONE THING TO GET RIGHT IS THE `sub` CONDITION. Without it -- or with a
+# wildcard in the wrong place -- ANY repository on GitHub can mint a token that
+# assumes this role and overwrite the live site. That is the classic failure in
+# this pattern, not a hypothetical. The condition below pins the full subject
+# string: one owner, one repository, one ref.
+
+Description: >-
+  Told Straight CI deploy identity (#187). A GitHub Actions OIDC identity
+  provider plus a role assumable only by this repository on the deploy branch,
+  carrying only the permissions needed to sync site/ to the site bucket and
+  invalidate the CloudFront distribution. Creates no site infrastructure of its
+  own; it grants access to what infra/site.yaml already built.
+
+Parameters:
+  GitHubRepository:
+    Type: String
+    Default: Jared-Godar/audio-lab
+    AllowedPattern: "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}$"
+    Description: >-
+      The owner/repository whose workflows may assume the deploy role, matched
+      exactly. Case matters -- GitHub's OIDC subject claim carries the
+      canonical casing of the repository, so "jared-godar/audio-lab" would not
+      match a token issued for "Jared-Godar/audio-lab".
+
+  DeployBranch:
+    Type: String
+    Default: main
+    AllowedPattern: "^[A-Za-z0-9._/-]{1,255}$"
+    Description: >-
+      The single branch whose pushes may deploy. A token issued for any other
+      ref -- a pull request, a tag, a feature branch -- fails the trust policy
+      and the workflow stops before it reaches AWS. This is what makes the
+      standing post-merge authorisation in ADR 0020 safe to grant: unmerged
+      code cannot reach the bucket even if the workflow file says it should.
+
+  SiteDistributionId:
+    Type: String
+    AllowedPattern: "^[A-Z0-9]{6,32}$"
+    Description: >-
+      The CloudFront distribution id from the toldstraight-site stack outputs
+      (Outputs -> DistributionId). Deliberately REQUIRED with no default: the
+      alternative is a "*" resource on cloudfront:CreateInvalidation, which
+      would let this role invalidate every distribution in the account. Fetch
+      it with the describe-stacks command in docs/site-deploy-walkthrough.md § 7.
+
+  SiteStackName:
+    Type: String
+    Default: toldstraight-site
+    AllowedPattern: "^[A-Za-z][A-Za-z0-9-]{0,127}$"
+    Description: >-
+      The hosting stack the workflow reads its bucket and distribution ids
+      from at run time. Scoping cloudformation:DescribeStacks to this one
+      stack is what keeps the read grant from being an account-wide
+      infrastructure enumeration.
+
+Resources:
+
+  # Account-level singleton: there can be exactly one IAM OIDC provider per
+  # URL per account. Confirmed empty before authoring this template
+  # (`aws iam list-open-id-connect-providers` returned an empty list on
+  # 2026-08-01), so this stack creates it. If a future stack also needs GitHub
+  # OIDC it must REFERENCE this provider, never declare its own -- a second
+  # declaration fails with EntityAlreadyExists, and deleting THIS stack would
+  # pull the provider out from under the other one.
+  #
+  # ThumbprintList is deliberately omitted. It is optional on this resource,
+  # and when absent IAM retrieves the top intermediate CA thumbprint itself
+  # (IAM User Guide, "Obtain the thumbprint for an OpenID Connect identity
+  # provider"). Hardcoding GitHub's SHA-1 thumbprint is the documented
+  # maintenance landmine here: GitHub rotates that certificate, and every
+  # template carrying the old literal breaks on rotation with an opaque
+  # authentication failure.
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  # The deploy identity. Separate from AudioLabDeploy (the human/agent role) on
+  # purpose: CI publishes content, it does not register domains, create stacks,
+  # or touch mail records.
+  GitHubDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AudioLabGitHubDeploy
+      Description:
+        Fn::Sub: >-
+          Assumed by GitHub Actions in ${GitHubRepository} on ${DeployBranch}
+          only, to publish site/ and invalidate the CDN cache (#187).
+      # One hour. The deploy takes seconds; a long session only widens the
+      # window in which a leaked token is useful.
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated:
+                Ref: GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              # aud pins the token to AWS STS. Without it, a token GitHub
+              # minted for some other audience could be replayed here.
+              StringEquals:
+                "token.actions.githubusercontent.com:aud": sts.amazonaws.com
+              # sub pins WHO. StringLike is the operator the pattern is
+              # documented with, but note the value contains NO wildcard --
+              # so this behaves as an exact match, which is the stricter
+              # reading and the one wanted. Do not "simplify" this by
+              # replacing the ref suffix with `*`: `repo:owner/repo:*` would
+              # admit pull_request and tag tokens, and a pull request from a
+              # fork could then deploy unreviewed content to production.
+              StringLike:
+                "token.actions.githubusercontent.com:sub":
+                  Fn::Sub: "repo:${GitHubRepository}:ref:refs/heads/${DeployBranch}"
+      Policies:
+        - PolicyName: SitePublish
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # `aws s3 sync --delete` needs exactly three calls: ListObjectsV2
+              # to enumerate the destination (ListBucket, on the BUCKET arn),
+              # PutObject to upload, DeleteObject to remove what is no longer
+              # in site/. It does not read object bodies -- the comparison is
+              # size and mtime from the listing -- so s3:GetObject is
+              # deliberately absent. If a future sync flag needs it (--exact
+              # -timestamps does not; a checksum-comparing mode would), add it
+              # here rather than widening the resource.
+              #
+              # The bucket name is derived, not parameterised, because
+              # infra/site.yaml builds it the same way:
+              # BucketName: toldstraight-site-${AWS::AccountId}. Two templates
+              # computing one name from the same account id cannot drift.
+              - Sid: ListSiteBucket
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource:
+                  Fn::Sub: "arn:aws:s3:::toldstraight-site-${AWS::AccountId}"
+              - Sid: WriteSiteObjects
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  Fn::Sub: "arn:aws:s3:::toldstraight-site-${AWS::AccountId}/*"
+
+              # Scoped to the one distribution. `*` here would be an
+              # account-wide cache-purge grant for a role whose whole job is
+              # one website.
+              - Sid: InvalidateSiteCache
+                Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource:
+                  Fn::Sub: "arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistributionId}"
+
+              # Read-only, one stack. The workflow resolves the bucket name and
+              # distribution id from the live stack outputs rather than
+              # carrying literals, so recreating the hosting stack does not
+              # silently deploy to a bucket that no longer serves the site.
+              - Sid: ReadSiteStackOutputs
+                Effect: Allow
+                Action: cloudformation:DescribeStacks
+                Resource:
+                  Fn::Sub: "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${SiteStackName}/*"
+
+Outputs:
+  DeployRoleArn:
+    Description: >-
+      Set as role-to-assume in .github/workflows/deploy-site.yml. The workflow
+      carries this literally; if the role is ever renamed, that file changes in
+      the same PR.
+    Value:
+      Fn::GetAtt: [GitHubDeployRole, Arn]
+
+  OidcProviderArn:
+    Description: >-
+      The account's GitHub Actions identity provider. Any future stack needing
+      GitHub OIDC must reference this ARN, not declare a second provider.
+    Value:
+      Ref: GitHubOidcProvider
+
+  TrustedSubject:
+    Description: >-
+      The exact OIDC subject the role trusts. Compare it against the `sub`
+      claim in a failing workflow run's token to diagnose an AssumeRole denial
+      -- a mismatch here is nearly always the cause.
+    Value:
+      Fn::Sub: "repo:${GitHubRepository}:ref:refs/heads/${DeployBranch}"
