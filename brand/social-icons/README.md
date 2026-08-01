@@ -1,7 +1,23 @@
 # Social platform marks — official glyph geometry
 
-Five platform marks, retrieved 2026-07-31 for issue #164 and for the Illustrator
+Six platform marks, retrieved 2026-07-31 for issue #164 and for the Illustrator
 builder `tools/brand/20260731-adobe-illustrator-toldstraight-social-icons-builder.jsx`.
+
+## Which marks ship
+
+| Mark | On the site | Note |
+| --- | --- | --- |
+| Instagram, YouTube, Facebook | **Yes** | Brand colour, clears the floor in both themes |
+| TikTok | **Yes** | Inherits `--ts-ink`; brand `#000000` is 1.14:1 on the dark stock |
+| Bluesky | **Yes** | Brand blue adjusted 1% — the one adjusted mark, see below |
+| **X** | **No** | Held back; account suspended, see below |
+
+**X is deliberately not on the site.** `x.com/toldstraight` was suspended within about
+a day of registration (verified logged-out, 2026-07-31), and `toldstraight.com` is
+already public — linking a suspended profile from a live page is worse than one fewer
+mark. The glyph and its measurement stay here so restoring it is a single block in the
+footer list. Appeal and the wider "do we want an X presence at all" question are
+tracked in **#172**.
 
 ## Status — APPROVED for web, 2026-07-31
 
@@ -10,7 +26,7 @@ approval has a boundary, and it matters:
 
 | Surface | Status |
 | --- | --- |
-| The five vector glyphs in this directory | **Approved** |
+| The six vector glyphs in this directory | **Approved** |
 | The inline-SVG marks now live in `site/index.html` | **Approved** — shipped under #164 |
 | The Illustrator PNG row for non-web surfaces | **Not approved** — see the X defect below |
 
@@ -67,10 +83,24 @@ WCAG floor for non-text graphical objects is **3.0:1**.
 | Instagram | `#FF0069` | 3.18 | 4.80 |
 | YouTube | `#FF0000` | 3.30 | 4.62 |
 | Facebook | `#0866FF` | 3.98 | 3.83 |
+| Bluesky | `#1185FE` | **2.98** | 5.11 |
+| Bluesky | `#0085FF` (brand kit) | **2.99** | 5.10 |
+| Bluesky **as shipped** | `#1083FB` | 3.06 | 4.98 |
 
 **X and TikTok are non-perceivable on the dark stock** — not subtle, invisible. So
 they do **not** carry their brand colour: they inherit the ink token, which already
 flips `#111111 → #EDE9E0` with the theme and therefore inverts automatically.
+
+**Bluesky is the one adjusted mark, and it is adjusted by 1%.** Both official
+candidates land *just* under the floor on the light stock — `#1185FE` (Simple Icons)
+at 2.98 and `#0085FF` (Bluesky's own brand kit) at 2.99. Neither is a judgement call
+about taste; they fail a measured threshold. Darkening `#1185FE` by 1% to `#1083FB`
+clears it at 3.06 while remaining visually indistinguishable from the brand blue.
+
+The alternative was dropping Bluesky to the ink token like TikTok, which would have
+discarded the brand identity outright to fix a 0.7% shortfall. A 1% darkening is the
+smaller lie. It is still a deviation from Bluesky's brand guidelines, which prohibit
+recolouring — recorded here rather than buried.
 
 The other three clear the floor in both themes and keep their brand colour. That is
 the honest reading of "official full colour" in a two-theme system: every mark that

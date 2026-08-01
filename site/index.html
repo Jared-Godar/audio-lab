@@ -223,14 +223,22 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
    Official glyph geometry (Simple Icons, CC0), not redrawn.
 
    Colour is measured, not assumed. WCAG floor for non-text graphics is 3.0:1:
-       X          #000000   17.33 on #EDE9E0    1.14 on #14140F  <- invisible
-       TikTok     #000000   17.33               1.14             <- invisible
+       TikTok     #000000   17.33 on #EDE9E0    1.14 on #14140F  <- invisible
        Instagram  #FF0069    3.18               4.80
        YouTube    #FF0000    3.30               4.62
        Facebook   #0866FF    3.98               3.83
-   So X and TikTok inherit --ts-ink, which already flips with the theme and
-   therefore stays perceivable in both. The other three clear the floor in both
-   themes and keep their brand colour. */
+       Bluesky    #1083FB    3.06               4.98  <- see note below
+       (X         #000000   17.33               1.14   — measured, not shipped;
+                                                         see the footer comment)
+   So TikTok inherits --ts-ink, which already flips with the theme and therefore
+   stays perceivable in both. The others clear the floor in both themes and keep
+   their brand colour.
+
+   BLUESKY IS THE ONE ADJUSTED MARK. Its brand blue measures 2.98:1 on the light
+   stock (#1185FE Simple Icons) and 2.99:1 (#0085FF brand kit) — both land just
+   under the floor. Darkening by 1% to #1083FB clears it at 3.06 while staying
+   visually indistinguishable from the brand blue, which is a better trade than
+   dropping it to the ink token and losing the brand identity outright. */
 .social{list-style:none;display:flex;gap:.15rem;margin:0;padding:0;align-items:center}
 .social__link{display:inline-flex;align-items:center;justify-content:center;
   width:44px;height:44px;                      /* 44px hit area, glyph is 22 */
@@ -515,11 +523,12 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
          list, so a changed handle is a one-line edit here. -->
     <nav class="social--footer" aria-label="Told Straight on social media">
       <ul class="social" id="social-source">
-        <li><a class="social__link" href="https://x.com/toldstraight"
-               target="_blank" rel="noopener noreferrer"
-               aria-label="Told Straight on X">
-          <svg class="social__mark--ink" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z"/></svg>
-        </a></li>
+        <!-- X is deliberately absent. x.com/toldstraight was suspended within a day
+             of registration (verified logged-out 2026-07-31) and the site is already
+             public, so the mark is held back rather than linking a suspended profile.
+             The glyph and its contrast measurement stay in brand/social-icons/ so
+             restoring this is one block. Appeal and the wider "do we want an X
+             presence at all" question are tracked in #172. -->
         <li><a class="social__link" href="https://www.instagram.com/toldstraight/"
                target="_blank" rel="noopener noreferrer"
                aria-label="Told Straight on Instagram">
@@ -539,6 +548,11 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
                target="_blank" rel="noopener noreferrer"
                aria-label="Told Straight on Facebook">
           <svg class="social__mark" style="color:#0866FF" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg>
+        </a></li>
+        <li><a class="social__link" href="https://bsky.app/profile/toldstraight.com"
+               target="_blank" rel="noopener noreferrer"
+               aria-label="Told Straight on Bluesky">
+          <svg class="social__mark" style="color:#1083FB" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5.202 2.857C7.954 4.922 10.913 9.11 12 11.358c1.087-2.247 4.046-6.436 6.798-8.501C20.783 1.366 24 .213 24 3.883c0 .732-.42 6.156-.667 7.037-.856 3.061-3.978 3.842-6.755 3.37 4.854.826 6.089 3.562 3.422 6.299-5.065 5.196-7.28-1.304-7.847-2.97-.104-.305-.152-.448-.153-.327 0-.121-.05.022-.153.327-.568 1.666-2.782 8.166-7.847 2.97-2.667-2.737-1.432-5.473 3.422-6.3-2.777.473-5.899-.308-6.755-3.369C.42 10.04 0 4.615 0 3.883c0-3.67 3.217-2.517 5.202-1.026"/></svg>
         </a></li>
       </ul>
     </nav>

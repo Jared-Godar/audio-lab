@@ -11,9 +11,14 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
-- **Social links on the Coming Soon page, header and footer (#164).** All five accounts registered
-  under #154 — X, Instagram, YouTube, TikTok, Facebook — as inline SVG, no external requests, so the
-  page stays self-contained and CSP-tight. **The footer list is the canonical copy and the header is
+- **Social links on the Coming Soon page, header and footer (#164).** Five marks — Instagram,
+  YouTube, TikTok, Facebook and Bluesky — as inline SVG, no external requests, so the
+  page stays self-contained and CSP-tight. **X is deliberately absent**: `x.com/toldstraight` was
+  suspended within about a day of registration (#172) and the site is already public, so the mark is
+  held back rather than linking a suspended profile from a live page. **Bluesky replaces it as the
+  fifth surface**, linking the self-hosted `@toldstraight.com` handle (#173) rather than a
+  platform-issued one — a distinction that stopped being academic the day X was suspended.
+  **The footer list is the canonical copy and the header is
   cloned from it at runtime**, the same one-source-of-truth shape as `GO_LIVE` already in the file,
   and for a concrete reason: two handles are already scheduled to change (TikTok is `@told.straight`
   until 2026-08-30, Facebook is still a numeric profile URL), so two hand-maintained copies would
@@ -320,12 +325,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
-- **X and TikTok no longer carry their brand colour on the site, because they could not be seen
-  (#164).** Both marks are `#000000`, which measures **1.14:1** against the dark stock `#14140F` —
-  against a WCAG floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible.
-  They inherit `--ts-ink`, which already flips with the theme, so they invert automatically. The
-  other three clear the floor in both themes (Instagram 3.18/4.80, YouTube 3.30/4.62, Facebook
-  3.98/3.83) and keep their brand colour.
+- **TikTok no longer carries its brand colour on the site, because it could not be seen (#164).**
+  The mark is `#000000`, which measures **1.14:1** against the dark stock `#14140F` — against a WCAG
+  floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible. It inherits
+  `--ts-ink`, which already flips with the theme, so it inverts automatically. Instagram, YouTube
+  and Facebook clear the floor in both themes (3.18/4.80, 3.30/4.62, 3.98/3.83) and keep brand
+  colour. X measured identically to TikTok and would have inherited the ink token too, had it
+  shipped.
+
+- **Bluesky's brand blue is darkened 1% so it clears the contrast floor (#164).** Both official
+  candidates land *just* under it on the light stock — `#1185FE` (Simple Icons) at **2.98:1** and
+  `#0085FF` (Bluesky's own brand kit) at **2.99:1**, against a floor of 3.0. Darkening to `#1083FB`
+  clears it at 3.06 while staying visually indistinguishable from the brand blue. The alternative
+  was dropping it to the ink token like TikTok, discarding the brand identity outright to fix a 0.7%
+  shortfall. It remains a deviation from Bluesky's brand guidelines, which prohibit recolouring, and
+  is recorded in `brand/social-icons/README.md` rather than buried.
 
 - **Fixed the signup form staying on screen after a successful signup (#128).** On success the
   handler sets `form.hidden = true`, but the form remained visible — a disabled input beside a
