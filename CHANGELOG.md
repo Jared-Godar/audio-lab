@@ -11,6 +11,23 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Social links on the Coming Soon page, header and footer (#164).** All five accounts registered
+  under #154 — X, Instagram, YouTube, TikTok, Facebook — as inline SVG, no external requests, so the
+  page stays self-contained and CSP-tight. **The footer list is the canonical copy and the header is
+  cloned from it at runtime**, the same one-source-of-truth shape as `GO_LIVE` already in the file,
+  and for a concrete reason: two handles are already scheduled to change (TikTok is `@told.straight`
+  until 2026-08-30, Facebook is still a numeric profile URL), so two hand-maintained copies would
+  drift on the first edit. Each link carries an `aria-label`, `rel="noopener noreferrer"`, a 44px hit
+  area, and a `--ts-red` focus ring. The footer nav takes its own row (`flex-basis:100%`) so the two
+  existing `.record` lines keep the left/right relationship they already had. Without JS the header
+  slot stays empty and the footer marks still work.
+
+- **The five platform marks and the Illustrator builder that places them, as `brand/social-icons/`
+  (#164).** Official glyph geometry from Simple Icons (CC0), committed with the builder that consumes
+  them rather than as orphan assets. Approved for web by the maintainer on 2026-07-31 after reviewing
+  the rendered light and dark rows; the approval and its boundary are recorded in the directory's
+  README.
+
 - **Corrected the cast roster's composition and gave the Works Cited its receipts (#167).** The
   roster read as four white men and one white woman, which was the first impression the Coming Soon
   page made on the first person outside the project to see it. Four new synthetic cast members —
@@ -303,6 +320,13 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **X and TikTok no longer carry their brand colour on the site, because they could not be seen
+  (#164).** Both marks are `#000000`, which measures **1.14:1** against the dark stock `#14140F` —
+  against a WCAG floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible.
+  They inherit `--ts-ink`, which already flips with the theme, so they invert automatically. The
+  other three clear the floor in both themes (Instagram 3.18/4.80, YouTube 3.30/4.62, Facebook
+  3.98/3.83) and keep their brand colour.
+
 - **Fixed the signup form staying on screen after a successful signup (#128).** On success the
   handler sets `form.hidden = true`, but the form remained visible — a disabled input beside a
   permanently "Sending…" button, next to the success message, reading as stuck. The `hidden`
@@ -385,6 +409,22 @@ visible in the diff and would otherwise evaporate.
   in the working tree.
 
 ### Findings
+
+- **The X mark renders hollow out of Illustrator, and only out of Illustrator (#164).** The
+  2026-07-31 PNG row exported the X as an outline rather than a solid glyph, in both themes, while
+  TikTok — same `useInk` code path — came out solid and inverted correctly. **The website is
+  unaffected**: the X glyph is a path with two subpaths, and browsers apply the SVG default
+  `fill-rule: nonzero`, which fills the interior solid. Illustrator resolves the same compound path
+  differently on import. Two candidate causes, neither tested: an `evenodd` property on the compound
+  path, or the builder's recolour setting `filled = true` on each subpath individually. Left
+  unpatched on purpose — the fix needs an Illustrator run to verify, and an untested edit shipped
+  beside approved art is worse than a documented defect. Non-web surfaces need a re-export first.
+
+- **Issue #164's icon criteria were knowingly not met, and the maintainer accepted the deviation.**
+  The issue asked for marks pulled from each platform's own brand-resources page, in full colour.
+  This set is third-party (Simple Icons — official geometry, CC0) and two of five marks do not carry
+  brand colour, for the contrast reason above. Recorded so a later reader does not mistake a decision
+  for an oversight.
 
 - **The standard "add a custom MAIL FROM domain" SES advice does not apply under strict DMARC
   alignment (#144).** Every SES deliverability guide recommends a custom MAIL FROM so that SPF
