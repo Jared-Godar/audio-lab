@@ -319,8 +319,8 @@ for. "Marketing" invites more scrutiny.
 >
 > Addresses are collected only via a form on our own site and stored in an SES v2 contact list we
 > own in this account. Every send uses the list's subscription management so unsubscribe is one
-> click, and unsubscribe requests are also honored at hello@toldstraight.com. Our privacy policy
-> at https://toldstraight.com/privacy.html describes exactly this collection.
+> click, and unsubscribe requests are also honored at <hello@toldstraight.com>. Our privacy policy
+> at <https://toldstraight.com/privacy.html> describes exactly this collection.
 >
 > The domain is authenticated with EasyDKIM and publishes DMARC p=reject with strict alignment.
 > Expected volume is low — dozens to low hundreds of recipients.
