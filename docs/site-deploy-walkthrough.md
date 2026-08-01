@@ -3,6 +3,13 @@
 > **Revision history** — newest first. This doc is **rewritten in place** as blockers
 > surface during real deploys, so the top entry tells you at a glance how current it is.
 >
+> **2026-08-01 (later) — §7 corrected after the first real deploy failed (#196).** The trust
+> policy trusted the classic OIDC subject; GitHub issues this repository the **immutable** form
+> with numeric ids, so `AssumeRole` was denied 12 of 12 times. §7 now takes the two ids as
+> parameters, expects a `Modify` rather than an `Add` on the second run, and documents the
+> CloudTrail lookup that reads the claim actually presented — the workflow log does **not**
+> contain it, which the previous revision wrongly implied.
+>
 > **2026-08-01 — content deploys move to CI; §3 reversed itself.** #187 replaced the manual
 > upload-after-every-merge loop with `.github/workflows/deploy-site.yml`, which publishes on push
 > to `main` via OIDC. §3's standing warning ("merging a PR that changes `site/` does not change
@@ -325,22 +332,43 @@ stop: the template must be changed to reference the existing provider instead of
 an explicit `RoleName`. The workflow references that name literally, which is why it is fixed
 rather than generated.
 
+**The stack already exists** (created 2026-08-01), so this is an **UPDATE** change-set — omit
+`--change-set-type`, which defaults to `UPDATE`. Pass `--change-set-type CREATE` only if the
+stack has been deleted and you are rebuilding it from nothing.
+
+The two numeric ids are GitHub's immutable owner and repository ids. Read them live rather than
+copying them — they are the whole subject of #196, and a wrong digit produces exactly the
+`AssumeRole` denial this section exists to prevent:
+
 ```fish
 cd ~/Code/audio-lab; and git checkout main; and git pull
+
+set OWNERID (gh api repos/Jared-Godar/audio-lab --jq '.owner.id')
+set REPOID (gh api repos/Jared-Godar/audio-lab --jq '.id')
+echo "owner: $OWNERID  repo: $REPOID"
+
+# Control: GitHub reports the same two ids as the prefix it will actually send.
+gh api repos/Jared-Godar/audio-lab/actions/oidc/customization/sub --jq '.sub_claim_prefix'
+# expect: repo:Jared-Godar@<OWNERID>/audio-lab@<REPOID>
 
 aws cloudformation create-change-set \
     --stack-name toldstraight-github-oidc \
     --change-set-name ci-deploy-identity \
-    --change-set-type CREATE \
     --template-body file://infra/github-oidc.yaml \
     --capabilities CAPABILITY_NAMED_IAM \
     --parameters \
-        ParameterKey=GitHubRepository,ParameterValue=Jared-Godar/audio-lab \
+        ParameterKey=GitHubOwner,ParameterValue=Jared-Godar \
+        ParameterKey=GitHubRepositoryName,ParameterValue=audio-lab \
+        ParameterKey=GitHubOwnerId,ParameterValue=$OWNERID \
+        ParameterKey=GitHubRepositoryId,ParameterValue=$REPOID \
         ParameterKey=DeployBranch,ParameterValue=main \
         ParameterKey=SiteDistributionId,ParameterValue=$DIST \
         ParameterKey=SiteStackName,ParameterValue=toldstraight-site \
     --region us-east-1 --profile audio-lab-admin
 ```
+
+A change-set name can only be used once per stack. If `ci-deploy-identity` already exists from a
+previous run, either delete it (`delete-change-set`) or pick a new name.
 
 ### 7c. Read it before executing
 
@@ -352,18 +380,29 @@ aws cloudformation describe-change-set \
     --output table
 ```
 
-**Expect exactly two rows, both `Add`:** `GitHubOidcProvider` and `GitHubDeployRole`.
+**On a first CREATE, expect exactly two rows, both `Add`:** `GitHubOidcProvider` and
+`GitHubDeployRole`.
+
+**On the #196 UPDATE, expect exactly one row: `Modify` on `GitHubDeployRole`.** `Replacement`
+should read `False` — the trust policy changes in place and the role ARN is unchanged, which
+matters because the workflow carries that ARN literally. **`GitHubOidcProvider` must not appear
+at all**; if it does, stop and read why, because replacing the account's OIDC provider would
+break the trust relationship rather than fix it.
 
 The single thing worth reading character by character is the trust condition — a wrong or
-over-broad `sub` lets any GitHub repository assume this role:
+over-broad `sub` lets any GitHub repository assume this role. Read it from the change-set's
+resolved template rather than from the parameters, so what you inspect is the string that will
+actually be written:
 
 ```fish
-aws cloudformation get-template-summary \
-    --stack-name toldstraight-github-oidc \
+aws cloudformation describe-change-set \
+    --stack-name toldstraight-github-oidc --change-set-name ci-deploy-identity \
     --region us-east-1 --profile audio-lab-admin \
-    --query 'Parameters[?ParameterKey==`GitHubRepository`||ParameterKey==`DeployBranch`]' \
-    --output table
+    --query 'Parameters' --output table
 ```
+
+Confirm `GitHubOwnerId` and `GitHubRepositoryId` match the values §7a printed, and that
+`DeployBranch` is `main`.
 
 ### 7d. Execute
 
@@ -385,9 +424,30 @@ aws iam get-role --role-name AudioLabGitHubDeploy --profile audio-lab-admin \
     --query 'Role.AssumeRolePolicyDocument.Statement[0].Condition' --output json
 ```
 
-- [ ] `sub` reads exactly `repo:Jared-Godar/audio-lab:ref:refs/heads/main` — one repo, one ref,
-      **no `*`**
+- [ ] `sub` is a **list of two** fully-qualified subjects — the classic
+      `repo:Jared-Godar/audio-lab:ref:refs/heads/main` and the immutable
+      `repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`. Both name the same
+      repository and the same ref; **neither contains a `*`** (#196)
 - [ ] `aud` reads `sts.amazonaws.com`
+
+**Why two.** GitHub issues this repository an *immutable* subject carrying numeric ids, while
+almost all documentation — AWS's included — shows the classic name-based form. Trusting only the
+classic form is what made the first deploy after #187 fail 12 of 12 attempts. Trusting both is not
+a widening: it names one identity twice, so the deploy works whichever form GitHub sends.
+
+**GitHub's API is not the authority on which form is sent.**
+`/actions/oidc/customization/sub` reports `"use_immutable_subject": false` *and* an immutable
+`sub_claim_prefix` at the same time. The only reliable read of what was actually presented is
+CloudTrail — the claim appears in the event's `userName`:
+
+```fish
+aws cloudtrail lookup-events \
+    --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity \
+    --region us-east-1 --profile audio-lab-admin --max-results 3 \
+    --query 'Events[].{When:EventTime,Subject:Username}' --output table
+```
+
+Use that first on any future `AssumeRole` denial. It turns a guess into a one-command diagnosis.
 
 Confirm the permissions are the narrow set and nothing more:
 
@@ -415,8 +475,14 @@ gh run list --workflow=deploy-site.yml --branch main --limit 1
       a failing verify means the bucket took the content but the CDN is not serving it
 
 A failure at the **Assume the deploy role via OIDC** step is nearly always the `sub` claim. The
-stack's `TrustedSubject` output prints the exact string the role expects; compare it against the
-claim in the failing run's log.
+stack's `TrustedSubjectClassic` and `TrustedSubjectImmutable` outputs print the exact strings the
+role expects; compare the CloudTrail `userName` above against both. A claim matching neither is a
+new form; a claim matching one while the role trusts only the other is #196 recurring.
+
+**Do not look for the claim in the workflow log — it is not there.** The failing run prints only
+`Not authorized to perform sts:AssumeRoleWithWebIdentity`, repeated across its retries, with no
+indication of what subject was presented. That is what makes the CloudTrail lookup above the
+diagnosis rather than a supplement to it.
 
 ### 7f. What changes for you afterwards
 
