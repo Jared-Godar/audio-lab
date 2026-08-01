@@ -112,6 +112,56 @@ visible in the diff and would otherwise evaporate.
 - **A local checkout 5 commits behind `origin/main` reports 301 tracked files against the real 327.**
   Structural counts must be taken from an `origin/main` worktree, not the working checkout.
 
+### Changed — #190 triage, case A (Ep02/Ep03 covers builder)
+
+- **`tools/brand/20260731-…-ep02-ep03-covers-rebuild-builder.jsx` rescued from the
+  `signup-funcurl-permission` worktree in two layers, 725 → 815 lines.** The worktree held the only
+  copy anywhere of commit `73ae519` (unpushed — `origin/cast-expansion-167` carries `main`'s
+  725-line version) *and* a further uncommitted 101/49 delta on top of it. The commit is
+  cherry-picked verbatim so its reasoning survives; the uncommitted layer is a second commit. **The
+  second layer partly reverses the first, and that disagreement is the point of the PR** — see the
+  Findings below before merging.
+
+### Findings — #190 triage, case A
+
+- **The rescued content is not commentary; #190's own write-up is wrong about this.** The issue
+  describes "90 lines of design-decision rationale." 90 is the *net* line count. Measured against
+  `main` the change is **201 added / 111 removed** and it rewrites executable code: `fitTitle` is
+  replaced with a two-size MAJOR/minor implementation, `RED_RULE_Y = 820` is deleted and the rule
+  anchored to the fitted title block, bold mono becomes its own resolved role with its own fallback
+  chain, six paragraph styles move from `fMono` to `fMonoB`, title tracking goes -16 → -12, and the
+  subtitle moves off a constant onto the rule. The rationale cannot be split from the behaviour it
+  explains without leaving comments on `main` that describe code `main` does not have.
+
+- **Checked against the artwork, the rescued rationale is half right — and the wrong half reverses
+  a live maintainer instruction.** `episodes/ToldStraight-Ep01/cover.png` at 1600×1600, cropped and
+  enlarged rather than judged at thumbnail scale:
+  - **Mono: confirmed.** "ESTABLISHED:" and "1775 (older than the U.S.)" show slab serifs on every
+    stem. Letter Gothic Std is a *sans* mono and cannot produce those, so E1's mono is a typewriter
+    face and `MONO_FACE_MODE = "ep01-courier"` matches the card. The tight red rule and the two
+    title sizes are visible in the same file and also match.
+  - **Title: contradicted.** The layer removes the wide-face mode and forces Trade Gothic Next Bold
+    Condensed, on the argument that the "wide grotesque" reading was Arial-by-fallback measurement
+    error. E1's title is plainly **wide** — square proportions, horizontal `S` terminals, a `Q` with
+    a short tail crossing the bowl — and is not condensed at any weight. The argument conflates a
+    *builder* defect (its wide mode fell back to Arial) with a claim about the *artwork* (that E1
+    is not wide). Fixing the first does not make the second false. `73ae519` had shipped
+    `TITLE_FACE_MODE = "ep01-wide"` explicitly "per the live instruction to match E1"; the second
+    layer overrides that on its own authority.
+
+- **The builder has never produced any committed artwork — the #177 case in miniature.** `545c0c8`,
+  titled *"…and rebuild the Ep02/Ep03 covers"*, shipped **zero** episode covers; the only PNGs in it
+  are four site cast portraits. The committed covers are older and came from elsewhere: Ep02 from
+  `7ad83c7` (2026-07-27, #66), Ep03 from `1cbef30` (2026-07-30, #96). `output/artwork/ep01/` and
+  `output/artwork/ep02/` do not exist. A builder whose filename claims art it did not make is a
+  false lead, and no amount of rationale inside it changes that.
+
+- **ExtendScript cannot be syntax-checked by `node --check` as-is.** The `#target illustrator`
+  directive on line 39 is a preprocessor instruction, not JavaScript, and node fails on it with a
+  misleading `Private field '#target'` error. Stripping `^#` lines makes the check work; `main`'s
+  725-line version run through the identical path as a control also passes. Parse validity is all
+  this proves — no version of this builder has been run in Illustrator.
+
 ## 2026-07-31
 
 ### Added
