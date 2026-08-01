@@ -31,6 +31,11 @@ visible in the diff and would otherwise evaporate.
   uses an inline role policy. Recorded alongside: `AudioLabSiteInfra` v4 grants that pair on
   `audiolab-*` already, which is pre-existing and should not be replicated.
 
+- **D1 file-structure audit (#178) — `docs/20260801-repo-file-structure-audit-d1-inventory.md`.**
+  Inventories all 327 tracked files **and** the gitignored working zones, which turn out to be
+  **222 MB of 483 MB — 46% of the tree**. Nine numbered disconnects, each with the command that
+  measured it. Analysis only; nothing moved.
+
 ### Findings
 
 - **Raw `create-change-set` resets omitted parameters to template defaults, not to their current
@@ -49,6 +54,39 @@ visible in the diff and would otherwise evaporate.
   v3.** Either the v4 JSON was authored and never applied, or applied and rolled back. The file is
   meant to be the verbatim record of what is live, so one of the two is wrong. Also unrecorded
   anywhere in `infra/policies/`: `AudioLabDnsDomains`, which exists only inline in `infra/README.md`.
+
+- **`artifacts/` is documented as gitignored and has 42 tracked files.** `CLAUDE.md` says
+  *"nothing here reaches a fresh clone"*, while `.gitignore:113-118` carves out
+  `!artifacts/specs/` and `!artifacts/issues/`. The directory is simultaneously scratch and a
+  tracked home with no rule distinguishing them, which is why it reads as a catch-all.
+
+- **85% of `prompts/` is a byte-identical copy of `artifacts/specs/`** — 23 of 27 files, verified
+  with `filecmp.cmp(shallow=False)`: 23 common basenames, 23 identical, **0 diverged**. Nothing
+  keeps them in sync; the first hand-edit to either copy creates a silent divergence.
+
+- **The two largest brand surfaces are invisible to git.** `artifacts/brand-wip/` (43 MB) and
+  `output/artwork/` (82 files) are untracked, alongside four tracked brand surfaces. Brand
+  *builders* live in `tools/brand/` while brand *output* lives in `brand/`, `site/assets/` and
+  `episodes/` — source and artifact are never co-located, which is the same seam `AGENTS.md`
+  requires be kept together.
+
+- **Four untracked Illustrator sources are sitting on disk right now** — `episodes/cast/Untitled-1.ai`
+  (3.2 MB), `episodes/ToldStraight-Ep03/build/Untitled-1.ai` (2.1 MB),
+  `episodes/ToldStraight-Ep03/build/ep03-exhibit-cards.ai`, `artifacts/brand-wip/readme.ai`. This is
+  the live instance of the problem #177 was opened for, recoverable with no archaeology. Two are
+  named `Untitled-1.ai`, so their correspondence to specific artwork is already ambiguous.
+
+- **The Git LFS premise in #185 is probably wrong.** Measured: 141 `.mp3` totalling 163 MB, zero
+  `.mp4`. A finished episode master is **13-14 MB**, not the ~86 MB estimated when #185 was written
+  — these episodes run ~10 minutes, not 60. That sits under every GitHub threshold, so plain git may
+  track final mp3 with **no LFS at all**. Video remains unmeasured because none exists yet.
+
+- **`find` silently descends into `.claude/worktrees/`**, which holds complete repo copies and
+  inflated every repeated-directory-name count by ~2× on the first pass (`brand` appeared at 12
+  levels; the real figure is 2). Any structural measurement in this repo must exclude worktrees.
+
+- **A local checkout 5 commits behind `origin/main` reports 301 tracked files against the real 327.**
+  Structural counts must be taken from an `origin/main` worktree, not the working checkout.
 
 ## 2026-07-31
 
