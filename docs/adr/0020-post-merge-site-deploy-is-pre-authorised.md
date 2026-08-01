@@ -6,6 +6,16 @@
 - **Date:** 2026-08-01
 - **Source:** Issue #187, maintainer decision comment "Maintainer decision — 2026-08-01".
 
+> **Correction, 2026-08-01 (#196) — the decision stands; one mechanism detail below was wrong.**
+> This record states that the trust policy pins the subject to
+> `repo:Jared-Godar/audio-lab:ref:refs/heads/main`. GitHub actually issues this repository an
+> **immutable** subject carrying numeric owner and repository ids
+> (`repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`), so the first deploy
+> failed at `AssumeRole`. The role now trusts **both** fully-qualified forms — same repository,
+> same ref, no wildcard in either. **Nothing about the reasoning changes:** the boundary is still
+> enforced in AWS rather than in the workflow file, and it is still one ref. The reversal
+> conditions below are unaffected, and condition 1 in particular remains exactly as written.
+
 ## Context
 
 Conduct rule 6 in [`AGENTS.md`](../../AGENTS.md) reads, in part: *"Destructive, irreversible,

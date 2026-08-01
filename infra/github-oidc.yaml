@@ -32,15 +32,40 @@ Description: >-
   own; it grants access to what infra/site.yaml already built.
 
 Parameters:
-  GitHubRepository:
+  GitHubOwner:
     Type: String
-    Default: Jared-Godar/audio-lab
-    AllowedPattern: "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}$"
+    Default: Jared-Godar
+    AllowedPattern: "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$"
     Description: >-
-      The owner/repository whose workflows may assume the deploy role, matched
-      exactly. Case matters -- GitHub's OIDC subject claim carries the
-      canonical casing of the repository, so "jared-godar/audio-lab" would not
-      match a token issued for "Jared-Godar/audio-lab".
+      The account that owns the repository. Case matters -- GitHub's OIDC
+      subject claim carries the canonical casing, so "jared-godar" would not
+      match a token issued for "Jared-Godar".
+
+  GitHubRepositoryName:
+    Type: String
+    Default: audio-lab
+    AllowedPattern: "^[A-Za-z0-9._-]{1,100}$"
+    Description: The repository name alone, without the owner prefix.
+
+  GitHubOwnerId:
+    Type: String
+    Default: "16855088"
+    AllowedPattern: "^[0-9]{1,20}$"
+    Description: >-
+      The owner's numeric id, used by GitHub's IMMUTABLE subject claim (#196).
+      Verify with `gh api repos/<owner>/<repo> --jq .owner.id`; cross-check
+      against `gh api repos/<owner>/<repo>/actions/oidc/customization/sub --jq
+      .sub_claim_prefix`. Opaque on sight, which is why it is a named parameter
+      rather than a literal buried in the trust policy.
+
+  GitHubRepositoryId:
+    Type: String
+    Default: "1309379475"
+    AllowedPattern: "^[0-9]{1,20}$"
+    Description: >-
+      The repository's numeric id, used by GitHub's IMMUTABLE subject claim
+      (#196). Verify with `gh api repos/<owner>/<repo> --jq .id`. Unlike the
+      name, this survives a rename -- which is the point of the immutable form.
 
   DeployBranch:
     Type: String
@@ -106,7 +131,7 @@ Resources:
       RoleName: AudioLabGitHubDeploy
       Description:
         Fn::Sub: >-
-          Assumed by GitHub Actions in ${GitHubRepository} on ${DeployBranch}
+          Assumed by GitHub Actions in ${GitHubOwner}/${GitHubRepositoryName} on ${DeployBranch}
           only, to publish site/ and invalidate the CDN cache (#187).
       # One hour. The deploy takes seconds; a long session only widens the
       # window in which a leaked token is useful.
@@ -124,16 +149,34 @@ Resources:
               # minted for some other audience could be replayed here.
               StringEquals:
                 "token.actions.githubusercontent.com:aud": sts.amazonaws.com
-              # sub pins WHO. StringLike is the operator the pattern is
-              # documented with, but note the value contains NO wildcard --
-              # so this behaves as an exact match, which is the stricter
-              # reading and the one wanted. Do not "simplify" this by
-              # replacing the ref suffix with `*`: `repo:owner/repo:*` would
-              # admit pull_request and tag tokens, and a pull request from a
-              # fork could then deploy unreviewed content to production.
+              # sub pins WHO. TWO forms are trusted, and the reason is
+              # measured, not defensive (#196): GitHub issues an IMMUTABLE
+              # subject for this repository, carrying numeric owner and repo
+              # ids, while nearly all documentation -- including AWS's own --
+              # shows the classic name-based form. The first deploy after
+              # #187 merged failed 12 of 12 AssumeRole attempts because only
+              # the classic form was trusted. CloudTrail recorded what was
+              # actually presented:
+              #
+              #   repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main
+              #
+              # GitHub's own API is NOT the authority here and contradicts
+              # itself: /actions/oidc/customization/sub reports
+              # "use_immutable_subject": false while reporting an immutable
+              # sub_claim_prefix. Trusting both forms means the deploy works
+              # whichever GitHub sends, now or after a default flips.
+              #
+              # A list here is an OR, and every entry is FULLY QUALIFIED --
+              # same repository, same ref, NO WILDCARD in either. This is not
+              # a widening: it names one identity twice. Do not "simplify" it
+              # by replacing the ref suffix with `*`: `repo:owner/repo:*`
+              # would admit pull_request and tag tokens, and a pull request
+              # from a fork could then deploy unreviewed content to
+              # production.
               StringLike:
                 "token.actions.githubusercontent.com:sub":
-                  Fn::Sub: "repo:${GitHubRepository}:ref:refs/heads/${DeployBranch}"
+                  - Fn::Sub: "repo:${GitHubOwner}/${GitHubRepositoryName}:ref:refs/heads/${DeployBranch}"
+                  - Fn::Sub: "repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepositoryName}@${GitHubRepositoryId}:ref:refs/heads/${DeployBranch}"
       Policies:
         - PolicyName: SitePublish
           PolicyDocument:
@@ -200,10 +243,23 @@ Outputs:
     Value:
       Ref: GitHubOidcProvider
 
-  TrustedSubject:
+  TrustedSubjectClassic:
     Description: >-
-      The exact OIDC subject the role trusts. Compare it against the `sub`
-      claim in a failing workflow run's token to diagnose an AssumeRole denial
-      -- a mismatch here is nearly always the cause.
+      The name-based OIDC subject the role trusts. Compare it against the `sub`
+      claim in a failing run to diagnose an AssumeRole denial -- a mismatch is
+      nearly always the cause. Note this repository is currently issued the
+      IMMUTABLE form below instead, so a denial that matches this string but not
+      that one is the #196 failure recurring.
     Value:
-      Fn::Sub: "repo:${GitHubRepository}:ref:refs/heads/${DeployBranch}"
+      Fn::Sub: "repo:${GitHubOwner}/${GitHubRepositoryName}:ref:refs/heads/${DeployBranch}"
+
+  TrustedSubjectImmutable:
+    Description: >-
+      The id-based OIDC subject the role trusts, and the one GitHub actually
+      presents for this repository as of 2026-08-01 (#196). The authoritative
+      way to read what was really sent is CloudTrail, not GitHub's API:
+      `aws cloudtrail lookup-events --lookup-attributes
+      AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity` shows the
+      claim in the event's userName field.
+    Value:
+      Fn::Sub: "repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepositoryName}@${GitHubRepositoryId}:ref:refs/heads/${DeployBranch}"
