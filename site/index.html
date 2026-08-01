@@ -62,7 +62,7 @@ body{background:var(--ts-paper);color:var(--ts-ink);font-family:var(--ts-font-sa
 
 /* ---- Header (field-manual) ---- */
 header{padding:2.4rem 0 1.6rem}
-.dochead{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem 1.5rem;margin-bottom:.7rem}
+.dochead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem 1.5rem;margin-bottom:.7rem}
 .double{display:flex;flex-direction:column;gap:3px;margin:.4rem 0 1.6rem}
 .double hr{border:0;height:2px;background:var(--ts-ink)}
 .double hr+hr{height:1px}
@@ -217,7 +217,7 @@ section{padding:3.4rem 0}
 @media(max-width:520px){.wc-list li{padding-left:1.9rem;text-indent:-1.9rem}
   .wc-list li::before{width:1.9rem}.wc-links{white-space:normal}}
 
-footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem}
 
 /* ── Social marks ─────────────────────────────────────────────
    Official glyph geometry (Simple Icons, CC0), not redrawn.
@@ -248,10 +248,21 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
 .social__link:focus-visible{outline:2px solid var(--ts-red);outline-offset:2px}
 .social__mark{width:22px;height:22px;fill:currentColor}
 .social__mark--ink{width:22px;height:22px;fill:var(--ts-ink)}
-/* Own row in the footer, so the two existing .record lines keep the
-   left/right relationship they already have. */
-.social--footer{flex-basis:100%}
-.social--header{margin-top:1.1rem}
+/* Both rows sit BETWEEN two .record lines, so the marks are scaled to the
+   type they sit beside rather than to a standalone 44px block. 34px still
+   clears WCAG 2.5.8's 24px target-size minimum with room. */
+.social--header .social__link,
+.social--footer .social__link{width:34px;height:34px}
+.social--header .social__mark,.social--header .social__mark--ink,
+.social--footer .social__mark,.social--footer .social__mark--ink{width:19px;height:19px}
+.social--header{margin:0}
+/* Optical centring, measured not guessed. `align-items:center` centres the
+   BOXES, but .record is all-caps: its line box reserves descender space no
+   glyph uses, so the caps' visual centre sits BELOW the box centre. Measured
+   against the rendered cap height (canvas actualBoundingBoxAscent): the marks
+   land 1.85px high at 16.32px type. Expressed in em so it holds as the type
+   scales rather than breaking at another size. */
+.social--header,.social--footer{position:relative;top:.113em}
 @media(max-width:640px){.social{gap:0}.social__link{width:40px;height:40px}
   .social__mark,.social__mark--ink{width:20px;height:20px}}
 @media(max-width:640px){.intro{grid-template-columns:1fr}.notify{grid-template-columns:1fr}}
@@ -263,6 +274,14 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
   <header>
     <div class="dochead">
       <span class="record">Doc. TS&#8209;SITE&#8209;001 &nbsp;·&nbsp; Status: In Production</span>
+      <!-- Filled by cloning the footer list at the bottom of this file, so there is
+           exactly ONE place to edit a URL. Two handles are already scheduled to
+           change (TikTok 2026-08-30, Facebook when a Page username is granted), so
+           two hand-maintained copies would drift on the first edit. Without JS this
+           slot stays empty and the footer marks still work — and because it sits
+           between two flex children, an empty slot collapses to nothing rather than
+           leaving a gap. -->
+      <nav aria-label="Told Straight on social media, page header" id="social-header-slot"></nav>
       <span class="record">Distribution: Public</span>
     </div>
     <div class="double"><hr><hr></div>
@@ -278,12 +297,6 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
       </div>
     </div>
     <div class="authority">Dept. of Neurodevelopmental Affairs</div>
-    <!-- Filled by cloning the footer list at the bottom of this file, so there is
-         exactly ONE place to edit a URL. Two handles are already scheduled to
-         change (TikTok 2026-08-30, Facebook when a Page username is granted), so
-         two hand-maintained copies would drift on the first edit. Without JS this
-         slot stays empty and the footer marks still work. -->
-    <nav aria-label="Told Straight on social media, page header" id="social-header-slot"></nav>
   </header>
 
   <div class="intro">
@@ -519,6 +532,7 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
 
 
   <footer>
+    <span class="record">Told Straight &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></span>
     <!-- CANONICAL copy of the social marks. The header slot is cloned from this
          list, so a changed handle is a one-line edit here. -->
     <nav class="social--footer" aria-label="Told Straight on social media">
@@ -556,7 +570,6 @@ footer{padding:2.4rem 0 3.4rem;border-top:2px solid var(--ts-ink);margin-top:1re
         </a></li>
       </ul>
     </nav>
-    <span class="record">Told Straight &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></span>
     <span class="record">Doc. TS&#8209;SITE&#8209;001 &nbsp;·&nbsp; Rev. 2026&#8209;07&#8209;31</span>
   </footer>
 

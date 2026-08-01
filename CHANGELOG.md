@@ -11,6 +11,22 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Recorded the live account status for all six social surfaces, and corrected the rule that got X
+  suspended (#164, #172, #173).** `docs/social-handle-availability-and-registration.md` gains a § 0
+  that states what **exists** rather than what was planned — the two had diverged within a day. It
+  records the **Bluesky account** (registered 2026-07-31, now on the self-hosted `@toldstraight.com`
+  handle, verified through both `dig` and `resolveHandle`) and **X's suspension and 2026-08-01
+  reinstatement** after the maintainer's appeal. It also notes that
+  `@toldstraight.bsky.social` **stops resolving** once the custom handle takes over — Bluesky's
+  "remains reserved" means switch-back-able, not aliased, so any recorded old URL is now dead.
+
+  **§ 5.2.1 is corrected rather than quietly rewritten**, with the failed rule preserved beside its
+  replacement. It permitted the agent to *navigate* a logged-in social session so long as it entered
+  no credentials. That protected credentials and missed the actual hazard: on X the **navigation
+  itself** is the prohibited act, and a day-old account with no history is precisely what that
+  enforcement targets. The rule is now that the agent does not touch an authenticated social session
+  at all — logged-out public checks only, which is all any verification here needs.
+
 - **Social links on the Coming Soon page, header and footer (#164).** Five marks — Instagram,
   YouTube, TikTok, Facebook and Bluesky — as inline SVG, no external requests, so the
   page stays self-contained and CSP-tight. **X is deliberately absent**: `x.com/toldstraight` was
