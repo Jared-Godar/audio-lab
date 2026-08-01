@@ -8,6 +8,60 @@ covers outward-facing actions regardless.
 
 ---
 
+## 0. Current account status — as of 2026-08-01
+
+The sections below record what was *researched and planned*. This section records what
+**exists**. When they disagree, this one is right.
+
+| Platform | Handle | Status |
+| --- | --- | --- |
+| X | `@toldstraight` | **Live** — suspended 2026-07-31, **reinstated 2026-08-01** |
+| Instagram | `@toldstraight` | Live |
+| YouTube | `@toldstraight` | Live |
+| TikTok | `@told.straight` | Live — **temporary**, handle unlocks 2026-08-30 |
+| Facebook | numeric profile URL | Live — **temporary**, awaiting Page username eligibility |
+| Bluesky | `@toldstraight.com` | Live — self-hosted handle, registered 2026-07-31 |
+
+### Bluesky — registered 2026-07-31, self-hosted handle live
+
+Created as `@toldstraight.bsky.social` with `social@toldstraight.com`, then moved to the
+**self-hosted `@toldstraight.com`** handle once the `_atproto` TXT record deployed
+(#173, PR #174). Verified end to end:
+
+```bash
+dig +short TXT _atproto.toldstraight.com
+# "did=did:plc:ujnu6a4eqgnhmfr3aa5fmzot"
+
+curl -s "https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=toldstraight.com"
+# {"did":"did:plc:ujnu6a4eqgnhmfr3aa5fmzot"}
+```
+
+Signup asked for **email, password and birth date only** — no invite code and **no phone
+number**, which is the one platform in this set that never forced the § 5.2.2 question.
+
+**`@toldstraight.bsky.social` no longer resolves.** Bluesky's dialog says the old handle
+"remains reserved," which means it can be switched back to — *not* that it keeps working
+as an alias. Any recorded `.bsky.social` URL is now a dead link.
+
+### X — suspended, then reinstated
+
+`x.com/toldstraight` was suspended within about a day of registration and confirmed
+suspended from a logged-out session on 2026-07-31. It was **reinstated on 2026-08-01**
+after the maintainer submitted an appeal / information request.
+
+**The most plausible cause was agent browser automation on the logged-in account**, which
+is what § 5.2.1 below authorised at the time. X's Rules prohibit accessing the platform
+through automation outside the API, and enforcement falls hardest on new accounts with no
+history. **§ 5.2.1 is corrected below**: the rule is no longer "the agent may navigate but
+not enter credentials" — it is that the agent does not touch an authenticated social
+session at all.
+
+The suspension is why the site currently ships **without** an X mark (#164): the page went
+public while the account was down. Whether X returns to the site is a separate decision
+the maintainer has flagged as open.
+
+---
+
 ## 1. What these checks prove, and what they do not
 
 This is the load-bearing caveat. Read it before the results table.
@@ -317,12 +371,37 @@ on **2026-07-31**; they are recorded here rather than left as prompts.
 
 ### 5.2.1 What the agent cannot do here
 
-Stated plainly so the division of labour in a live walkthrough is not ambiguous:
-**creating accounts and entering passwords or 2FA codes into a site are actions the
-agent does not perform**, under any authorization. In a live session the agent
-navigates, reads page state back, re-runs the § 2 checkers, and confirms what the
-platform actually accepted; the maintainer performs every signup, password entry, and
-TOTP capture. That split is not a limitation of this runbook — it is the runbook.
+> **CORRECTED 2026-08-01. The original rule is preserved below because it caused a
+> suspension, and a rule that failed is worth reading alongside its replacement.**
+
+**The agent does not touch an authenticated social session at all.** Not signing up, not
+entering credentials — and **not navigating, not reading page state back, not "just
+checking what the platform accepted."** If the browser is logged in as a Told Straight
+account, the maintainer drives and the agent stays off it entirely.
+
+What the agent *may* do: **logged-out, public-view checks** — `curl`, the § 2 checkers,
+a public API such as Bluesky's `resolveHandle`, a profile page loaded in a clean
+session. That is how the X suspension was independently confirmed, and it is enough for
+every verification this runbook needs.
+
+**The original rule, which was wrong:**
+
+> Stated plainly so the division of labour in a live walkthrough is not ambiguous:
+> **creating accounts and entering passwords or 2FA codes into a site are actions the
+> agent does not perform**, under any authorization. In a live session the agent
+> navigates, reads page state back, re-runs the § 2 checkers, and confirms what the
+> platform actually accepted; the maintainer performs every signup, password entry, and
+> TOTP capture. That split is not a limitation of this runbook — it is the runbook.
+
+It was written to protect **credentials**, and on that narrow point it held — no password
+or TOTP code was ever entered by an agent. What it missed is that on X, **the navigation
+itself is the prohibited act**: X's Rules bar accessing the platform through automation
+outside the API, and a day-old account with no posting history is exactly what that
+enforcement targets. The account was suspended within about a day and reinstated on
+2026-08-01 only after an appeal. See § 0.
+
+The correction generalises: **a brand-new account has no history to absorb a bot-detection
+hit.** Applies to every platform, not only X.
 
 ### 5.2.2 Phone numbers — the two jobs are not the same job
 

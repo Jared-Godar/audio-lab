@@ -11,6 +11,44 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Recorded the live account status for all six social surfaces, and corrected the agent
+  browser-automation rule (#164, #172, #173).** `docs/social-handle-availability-and-registration.md` gains a § 0
+  that states what **exists** rather than what was planned — the two had diverged within a day. It
+  records the **Bluesky account** (registered 2026-07-31, now on the self-hosted `@toldstraight.com`
+  handle, verified through both `dig` and `resolveHandle`) and confirms **X live at
+  `@toldstraight`**. It also notes that
+  `@toldstraight.bsky.social` **stops resolving** once the custom handle takes over — Bluesky's
+  "remains reserved" means switch-back-able, not aliased, so any recorded old URL is now dead.
+
+  **§ 5.2.1 is corrected rather than quietly rewritten**, with the failed rule preserved beside its
+  replacement. It permitted the agent to *navigate* a logged-in social session so long as it entered
+  no credentials. That protected credentials and missed the actual hazard: on X the **navigation
+  itself** is the prohibited act, and a day-old account with no history is precisely what that
+  enforcement targets. The rule is now that the agent does not touch an authenticated social session
+  at all — logged-out public checks only, which is all any verification here needs.
+
+- **Social links on the Coming Soon page, header and footer (#164).** All six accounts — X,
+  Instagram, YouTube, TikTok, Facebook and Bluesky — as inline SVG, no external requests, so the
+  page stays self-contained and CSP-tight. Bluesky links the **self-hosted `@toldstraight.com`
+  handle** (#173) rather than a platform-issued one, so the identity is anchored to a domain we own.
+  **The footer list is the canonical copy and the header is
+  cloned from it at runtime**, the same one-source-of-truth shape as `GO_LIVE` already in the file,
+  and for a concrete reason: two handles are already scheduled to change (TikTok is `@told.straight`
+  until 2026-08-30, Facebook is still a numeric profile URL), so two hand-maintained copies would
+  drift on the first edit. Each link carries an `aria-label`, `rel="noopener noreferrer"` and a
+  `--ts-red` focus ring. **Both rows sit inside the existing document rules** — the header between
+  "Status: In Production" and "Distribution: Public", the footer between the Privacy Policy line and
+  the Doc/Rev line — as a middle flex child, so the `.record` spans keep their left/right
+  relationship. Marks are 34px there to sit with the type beside them, still clear of WCAG 2.5.8's
+  24px target minimum. Without JS the header
+  slot stays empty and the footer marks still work.
+
+- **The five platform marks and the Illustrator builder that places them, as `brand/social-icons/`
+  (#164).** Official glyph geometry from Simple Icons (CC0), committed with the builder that consumes
+  them rather than as orphan assets. Approved for web by the maintainer on 2026-07-31 after reviewing
+  the rendered light and dark rows; the approval and its boundary are recorded in the directory's
+  README.
+
 - **`_atproto` TXT record so Bluesky can carry the `@toldstraight.com` handle (#173).** Proves
   domain control to the AT Protocol, which lets the account drop `@toldstraight.bsky.social` for a
   **self-hosted handle** — the identity anchored to a domain we own rather than rented from the
@@ -314,6 +352,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **X and TikTok do not carry their brand colour on the site, because they could not be seen
+  (#164).** Both marks are `#000000`, which measures **1.14:1** against the dark stock `#14140F` — against a WCAG
+  floor of 3.0:1 for non-text graphics, that is not low contrast, it is invisible. They inherit
+  `--ts-ink`, which already flips with the theme, so they invert automatically. Instagram, YouTube
+  and Facebook clear the floor in both themes (3.18/4.80, 3.30/4.62, 3.98/3.83) and keep brand
+  colour. X measures identically to TikTok and inherits the ink token for the same reason.
+
+- **Bluesky's brand blue is darkened 1% so it clears the contrast floor (#164).** Both official
+  candidates land *just* under it on the light stock — `#1185FE` (Simple Icons) at **2.98:1** and
+  `#0085FF` (Bluesky's own brand kit) at **2.99:1**, against a floor of 3.0. Darkening to `#1083FB`
+  clears it at 3.06 while staying visually indistinguishable from the brand blue. The alternative
+  was dropping it to the ink token like TikTok, discarding the brand identity outright to fix a 0.7%
+  shortfall. It remains a deviation from Bluesky's brand guidelines, which prohibit recolouring, and
+  is recorded in `brand/social-icons/README.md` rather than buried.
+
 - **Fixed the signup form staying on screen after a successful signup (#128).** On success the
   handler sets `form.hidden = true`, but the form remained visible — a disabled input beside a
   permanently "Sending…" button, next to the success message, reading as stuck. The `hidden`
@@ -396,6 +449,22 @@ visible in the diff and would otherwise evaporate.
   in the working tree.
 
 ### Findings
+
+- **The X mark renders hollow out of Illustrator, and only out of Illustrator (#164).** The
+  2026-07-31 PNG row exported the X as an outline rather than a solid glyph, in both themes, while
+  TikTok — same `useInk` code path — came out solid and inverted correctly. **The website is
+  unaffected**: the X glyph is a path with two subpaths, and browsers apply the SVG default
+  `fill-rule: nonzero`, which fills the interior solid. Illustrator resolves the same compound path
+  differently on import. Two candidate causes, neither tested: an `evenodd` property on the compound
+  path, or the builder's recolour setting `filled = true` on each subpath individually. Left
+  unpatched on purpose — the fix needs an Illustrator run to verify, and an untested edit shipped
+  beside approved art is worse than a documented defect. Non-web surfaces need a re-export first.
+
+- **Issue #164's icon criteria were knowingly not met, and the maintainer accepted the deviation.**
+  The issue asked for marks pulled from each platform's own brand-resources page, in full colour.
+  This set is third-party (Simple Icons — official geometry, CC0) and two of five marks do not carry
+  brand colour, for the contrast reason above. Recorded so a later reader does not mistake a decision
+  for an oversight.
 
 - **The standard "add a custom MAIL FROM domain" SES advice does not apply under strict DMARC
   alignment (#144).** Every SES deliverability guide recommends a custom MAIL FROM so that SPF
