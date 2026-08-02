@@ -11,7 +11,45 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
-- **The finished episode masters are in the repository — audio and video, for the first
+- **Two conduct rules promoted from machine-local memory into `AGENTS.md`** § "Reporting to
+  the maintainer". Both were written to memory earlier the same day and **both were broken
+  within the hour** — the jargon rule was violated in the very next message, using the exact
+  acronym the maintainer had named as his example. Memory is untracked: it reaches this
+  machine and nothing else. `AGENTS.md` § "Website changes" already records this precise
+  failure for the site-preview rule — *"lived only in machine-local agent memory, which does
+  not reach cloud, cold-start, or fresh-clone sessions — which is exactly why it was applied
+  inconsistently."* The same reasoning was used to place the scoping standard above and was
+  not applied to these two when they were written. The memory files are marked superseded
+  rather than deleted, kept as the record of how each was learned.
+
+  - **No internal shorthand** — deliverable codes, rule ids, acronyms, bare issue numbers
+    and tool names all get expanded, or are not reached for at all. Concrete trigger list,
+    because the abstract version of this rule already existed in conduct rule 4 and did not
+    catch it.
+  - **Persist before reporting** — a finding that exists only in the chat window is not
+    delivered. Write the file first, describe it second, name the path. "Not persisted yet"
+    is a legitimate status; silence about it is not.
+
+- **`AGENTS.md` gains a scoping standard: decompose before filing, adapt out loud after.**
+  Maintainer decision 2026-08-02, formulated interactively. The asymmetry it rests on: a
+  remediation issue is strictly worse than an up-front one — it arrives after something
+  broke, costs a round of attention to discover, and files the fix away from the thing it
+  fixes. *"If something takes 5 issues write 5 issues, instead of starting with 1 and
+  taking additional issues to fix what you already knew was likely to break."*
+
+  Four clauses are new rather than restatements. **Split along failure boundaries, not by
+  size** — the trigger is that the parts fail differently, or one is a decision and the
+  rest execution, or they carry different reversal costs. **Do not split where partial
+  completion would look like success**, which cuts against a literal reading of the rule
+  and is the reason #211 stays whole: a guard verifying half its assertions and exiting
+  zero manufactures the exact false confidence it exists to catch. **An issue is a plan,
+  not a contract** — authority runs live instruction, then `AGENTS.md`, then the issue, and
+  *"but the issue says"* is never a reason to decline what was asked or to finish a plan the
+  work has disproved. **Adapting a plan to new information is a success, not an admission
+  of failure** — naming it that way removes the incentive to conceal a gap, which is the
+  actual mechanism behind trudging down a known dead end.
+
+- - **The finished episode masters are in the repository — audio and video, for the first
   time.** `told-straight-ep01.mp4` (12.5 MB, 9m34s) and `told-straight-ep02.mp4` (15.7 MB,
   12m23s), both H.264 1920×1080 at 2 fps with AAC mono audio — the chapter-card slideshows
   uploaded to YouTube — plus the two audio masters they were built from,
