@@ -11,6 +11,20 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The maintainer's definition of success on mid-course correction, recorded verbatim in
+  `AGENTS.md`.** The scoping standard already stated the principle in paraphrase; his own
+  words were not there. That matters because the house pattern is that rules carry their
+  origins as quotes — a paraphrase authored by an agent reads as aspiration, while the
+  maintainer's own words read as the standard. Three quotes: *"Catching these in advance
+  and adjusting course is a SUCCESS and a WIN - not an admission of failure"*; *"Stubbornly
+  trudging down a known dead end to avoid ackowedging a gap in the original plan is the
+  worst thing you can do"*; and *"know I will be more pleased with that than the
+  alternative"*.
+
+  This is the clause that does the work. A rule tells an agent what to do; this says how
+  the outcome will be judged, and that is what removes the incentive to conceal a gap in
+  the first place.
+
 - **Two conduct rules promoted from machine-local memory into `AGENTS.md`** § "Reporting to
   the maintainer". Both were written to memory earlier the same day and **both were broken
   within the hour** — the jargon rule was violated in the very next message, using the exact
