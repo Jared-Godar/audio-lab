@@ -161,6 +161,20 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **The 2,500-byte ceiling on commit bodies is retired; the 500-byte floor stays.**
+  Maintainer decision 2026-08-02. The rule was five days old (#60/#78) and its stated
+  rationale — *"the branch's single commit body IS the permanent record on `main`"* —
+  justifies a floor and never mentions a cap. Measured before deciding: **20 of the last 30
+  commits on `main` exceeded 2,500 bytes**, the largest at 16,887, with nobody ever flagging
+  one. A rule broken two times in three does not constrain behaviour, it teaches readers to
+  skip the section it lives in.
+
+  Replaced with a purpose test rather than a bigger number, because the real risk is padding
+  and a byte count is a poor proxy for it: every line must carry something a reader of `main`
+  needs and cannot get from the diff. **A body that is long because it was never edited is
+  the defect; a body that is long because the change was is not.** Reversal condition
+  recorded: if bodies start reading as padded rather than dense, a hard number returns.
+
 - **Ignore rules and standing prose no longer treat published deliverables as secrets.**
   The distinction is now **finished versus working**, not audio versus text. `output/`
   stays ignored wholesale — 141 working audio files, the volume those rules were written
