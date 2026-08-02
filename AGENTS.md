@@ -418,6 +418,29 @@ author expected to be difficult, and it produced a chain of corrections; separat
 `#183`'s "do not move files before gate 2" was quoted back at the maintainer to decline
 work he had just directly asked for.*
 
+**The maintainer's own words on what counts as success here** — recorded verbatim, because
+this is the clause that does the work. A rule tells an agent what to do; this tells it how
+the outcome will be judged, and that is what removes the incentive to conceal a gap:*
+
+On finding a defect before it caused damage:
+
+> "Catching these in advance and adjusting course is a SUCCESS and a WIN - not an admission
+> of failure. Good job - keep that up"
+
+On changing course mid-execution:
+
+> "Adapting plans to new information is a success not a failure. Stubbornly trudging down a
+> known dead end to avoid ackowedging a gap in the original plan is the worst thing you can
+> do"
+
+On how surfacing it will be received:
+
+> "know I will be more pleased with that than the alternative"
+
+*Say so out loud when it happens — "we were trying this, it is not working, here are the
+options, what do you want to do?" — and expect that to be received as the job being done
+well, not as a confession.*
+
 ### Recorded divergences from the reference repositories
 
 - **Branch protection is the strictest in the portfolio (8 required checks,
