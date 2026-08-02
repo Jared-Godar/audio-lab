@@ -7,6 +7,72 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-08-02
+
+### Added
+
+- **Two enforcement gates for rules that already existed and were broken anyway (#204).**
+  Every rule broken on 2026-08-01 was already binding; each failed because enforcement
+  depended on an agent choosing to run a check. These do not. Neither is a new rule and
+  no existing rule was reworded.
+
+  - **`brand/fonts-manifest.json` + `scripts/generate_fonts_manifest.py` +
+    `scripts/check_brand_fonts.py`, wired as a local pre-commit hook.** The manifest is
+    **generated**, not hand-listed: the script parses OpenType `name` tables straight out
+    of the Adobe CoreSync livetype store with **zero dependencies** — no `fontTools`,
+    because a gate whose regeneration needs a network install is a gate that gets
+    skipped. Measured **34 families / 215 faces**. The hook reads only the committed JSON,
+    so it behaves identically in CI, a cloud session and a fresh clone. Verified against
+    the issue's own criterion: `ArialNarrow-Bold` spliced into a builder fails the commit.
+  - **`scripts/closure-pass.fish`** — executes workflow step 8 and exits non-zero while
+    anything is outstanding: local `main` behind origin, merged branches surviving
+    locally or on the remote, worktrees on merged branches, strays under `artifacts/specs`
+    or `artifacts/issues`, a dirty tree, a merged PR whose closing keyword did not close,
+    and the `site/` deploy. Its output is the receipt; `AGENTS.md` step 8 now requires it.
+
+### Changed
+
+- **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
+  "do automatically" list admits manifest regeneration while explicitly withholding
+  `exempt` additions — an exemption admits a face the library does not have and is the
+  maintainer's to review.
+
+### Findings
+
+- **`git branch --merged` cannot see this repo's merged branches.** Squash-merging
+  rewrites the work into a new commit with a different parent, so ancestry is never
+  joined — which is why step 8 already said `git branch -D`, not `-d`. `git cherry`
+  compares **patch IDs** instead and detects them correctly. Measured: `dns-site-cutover`
+  is 1 commit ahead of `main` and fully upstream by patch. The closure pass uses
+  `git cherry` throughout, and treats a *failed* cherry as unknown rather than merged —
+  an empty result must never read as a clean bill of health.
+
+- **In fish, a function's `(cat)` command substitution does not receive the caller's
+  pipe.** The natural `something | report fail "x"` shape silently drops every detail
+  line and prints a bare failure with no evidence under it. Body lines are passed as
+  arguments instead. Related: `status` is a **read-only** fish variable, so a function
+  parameter named `status` fails to define the function at all — in the first draft that
+  made every check silently not run while the script printed "CLEAN" and exited 0. The
+  script now counts executed checks and refuses to report a clean verdict below the
+  expected floor.
+
+- **A closing-keyword scan of PR bodies produces false positives on careful authors.**
+  PRs #193 and #194 both say *"Deliberately **not** `Closes #190`: triage only"* — a
+  plain scan flags them for the closure defect precisely *because* they were explicit.
+  The check strips inline code spans and skips lines carrying a negation cue.
+
+- **Flagging every `Refs #N` whose issue is open is not viable here.** Measured over the
+  last 15 merged PRs: **20 hits, essentially all correct** — #176, #177, #181, #184, #189
+  and #190 are long-running tracking issues many PRs legitimately reference. Whether a
+  Refs-only PR *completed* its issue is a judgement about deliverables, not a fact in the
+  metadata, so no gate can decide it. `--refs-report` lists them for the maintainer to
+  eyeball and never affects the exit code.
+
+- **The library measured 215 faces / 34 families against the issue's 211 / 31, and the
+  gap reconciles exactly.** Four faces synced at 17:41 on 2026-08-01, after the issue was
+  written: `Lora-Regular`, `Merriweather-Bold`, `RobotoSlab-Bold`, `RobotoSlab-Light` —
+  three new families. The issue's count was right when taken.
+
 ## 2026-08-01
 
 ### Added
