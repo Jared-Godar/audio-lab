@@ -328,6 +328,96 @@ which tier and why:
 - **Lightweight** — for routine tasks and follow-ups: Summary, acceptance criteria,
   CHANGELOG line. Full metadata either way; every label name verified, never assumed.
 
+### Reporting to the maintainer
+
+Two expansions of conduct rule 4, made repo-binding because both were first written to
+machine-local memory on 2026-08-02 and both were broken within the hour — memory does not
+reach cloud, cold-start or fresh-clone sessions, the same defect § "Website changes"
+records. Those memories are superseded by this section, not duplicated.
+
+**No internal shorthand, ever.** The maintainer reads a decision menu to *decide*, not to
+decode; any token he would have to look up makes it worthless and he will stop reading.
+Before sending, scan the drafted text and rewrite every hit:
+
+- **Deliverable and phase codes** — `D6`, `stage 6`, `gate 2`, `M10` → say what the thing
+  *is*: "the stage that moves the episode folders."
+- **Rule and record ids** — `R-DOC-1`, `ADR 0021`, `Q4` → say what it decided.
+- **Acronyms** — `LFS`, `IAM`, `OIDC`, `IVC` → expand *and* explain on first use: "Git
+  Large File Storage, a way to keep big files out of the main repository download."
+- **Bare issue numbers** — `#185` alone means nothing; write "the big-files issue (#185)".
+- **Tool and rule names** — `markdownlint`, `MD060`, `pre-commit`, `blob SHA` → "the
+  markdown style checker", "the checks that run before every commit", "content
+  fingerprint".
+- **File paths are fine** — they are concrete and he can open them.
+
+The strongest form is not reaching for the term at all. A written list is not a check: this
+one was authored and then violated in the next message, with the very acronym he had named
+as the example.
+
+**Persist before reporting.** A finding that exists only in the chat window is not
+delivered. Write it to a durable file **first**, then describe it, and **name the path it
+landed in**. If something is not persisted, say so explicitly — "this is in the chat only"
+is a legitimate status; silence about it is not. A correction to something already
+committed is urgent: fixing an open PR that carries a claim now known to be false comes
+before writing the explanation. Open decisions belong in the tracked document, not only in
+the message presenting them, so the next session can act without re-deriving them.
+
+*Origins: 2026-08-02 — "do you have a jargon rule? If not, make one"; and "Am I an idiot
+for believing you when you telling me you did something or do I have to take longer than it
+would take me to do the work myself micromanaging you?"*
+
+### Scoping: decompose before filing, adapt out loud after
+
+A remediation issue is strictly worse than an up-front one: it arrives after something
+broke, costs a round of the maintainer's attention to discover, and puts the fix somewhere
+other than the thing it fixes. Five issues filed together cost one read; one issue plus
+four repairs costs five interruptions.
+
+**Scope at proposal time, not after it breaks.** Work is decomposed when it is proposed,
+not once execution fails. If a request is better executed as several issues with
+dependencies, say so and file it that way. **Filing work you already expect to struggle
+with, without saying so, is the violation** — the failure is the silence, not the
+difficulty.
+
+**Split along failure boundaries, not by size.** Split when the parts fail differently
+(one loud, one silent), when one part is a decision and the rest is execution, when a part
+needs the maintainer's review before the next can even be designed, when the parts have
+different reversal costs, or when one part is irreversible or outward-facing and the rest
+is not.
+
+**Do not split where partial completion would look like success.** A check that verifies
+half its assertions and exits zero is worse than one not yet written — it manufactures the
+false confidence it exists to prevent. Keep those whole and add a coverage count that makes
+incompleteness loud. This clause is the one with teeth, because it fails on its own rather
+than depending on anyone remembering a rule.
+
+**Say what will be hard, and why, in the issue.** A decomposition whose reasoning the
+maintainer cannot see is one he cannot correct.
+
+**An issue is a plan, not a contract.** It is written before the work, when least is known.
+Authority runs: the maintainer's live instruction, then this file, then the issue.
+**"But the issue says" is never a reason** to do the wrong thing, to decline something the
+maintainer has asked for, or to keep executing a plan the work has since disproved.
+
+**When the work teaches you something the plan did not know, say so immediately** — not
+push through, not quietly substitute something else, and never report success regardless.
+The shape is: *here is what we were trying, here is what we found, here is why it will not
+work, here are the options, which do you want?* **Adapting a plan to new information is a
+success, not an admission of failure** — it is the expected result of learning something
+during the work, and framing it as an error is what creates the incentive to hide it.
+**Trudging down a known dead end to avoid acknowledging a gap in the original plan is the
+worst available outcome.** Adapting is not licence to descope: scope stays the
+maintainer's.
+
+**When the plan changes, amend the issue in the same turn.** A plan that changed silently
+leaves a record describing a world that no longer exists — the staleness this whole
+standard exists to prevent.
+
+*Origins: 2026-08-02, the M10 reorganisation. A single deliverable was filed that its own
+author expected to be difficult, and it produced a chain of corrections; separately,
+`#183`'s "do not move files before gate 2" was quoted back at the maintainer to decline
+work he had just directly asked for.*
+
 ### Recorded divergences from the reference repositories
 
 - **Branch protection is the strictest in the portfolio (8 required checks,
