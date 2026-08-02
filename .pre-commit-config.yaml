@@ -107,3 +107,19 @@ repos:
         # brand/working-builders/. A pattern naming one directory silently stops matching
         # the day anything moves -- and a `files:` pattern that matches nothing PASSES.
         files: ^(.*/(builders|working-builders)/.*\.jsx|brand/.*\.md)$
+
+      # Asserts that load-bearing path references still RESOLVE. A reference that stops
+      # matching does not fail -- it passes, which is how the gate above once exited 0
+      # while checking 0 of 13 builders. Derives its patterns from the real config files
+      # rather than a hand-kept list, so it cannot itself go stale; the only declared thing
+      # is the count each reference must reach. Standard library only (#211).
+      #
+      # always_run with no file filter ON PURPOSE: a `files:` pattern here would be one
+      # more path reference able to stop matching silently, which is the exact defect this
+      # hook exists to catch.
+      - id: path-references-resolve
+        name: load-bearing path references still resolve
+        entry: python3 scripts/check_path_references.py
+        language: system
+        pass_filenames: false
+        always_run: true

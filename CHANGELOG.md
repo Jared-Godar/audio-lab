@@ -11,6 +11,27 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **A guard that makes silent path breakage loud — `scripts/check_path_references.py` (#211).**
+  The reorganisation's dangerous failure class is not a broken link, which announces itself,
+  but a reference that stops matching and whose surrounding check then reports success. The
+  dependency map found **13** of these, and one had already fired: when `tools/brand/` moved,
+  the brand-font gate kept exiting 0 while resolving **0 of 13** builders.
+
+  **23 load-bearing references asserted**, derived from the real config files at run time
+  rather than from a hand-kept list — a declared list of path references would itself be a
+  set of path references able to go stale, so the guard would need its own guard. The only
+  declared thing is the count each reference must reach. Zero dependencies: PyYAML is not
+  installed, and adding it would make this a gate that gets skipped.
+
+  **Six negative tests were run, because a check that has never failed is not known to
+  work.** Replaying the historical failure — pointing the font globs back at `tools/brand`
+  — yields `resolves to 0, expected at least 13`. Renaming `site/` in the deploy trigger is
+  caught as an undeclared reference. Breaking a path constant assembled from segments, which
+  no text search for the path can see, is caught. Deleting a reference, adding an undeclared
+  one, and disabling a whole collector are each caught with their own diagnosis. Wired as a
+  pre-commit hook with `always_run` and no file filter, deliberately: a `files:` pattern
+  would be one more reference able to stop matching silently.
+
 - **The maintainer's definition of success on mid-course correction, recorded verbatim in
   `AGENTS.md`.** The scoping standard already stated the principle in paraphrase; his own
   words were not there. That matters because the house pattern is that rules carry their
@@ -182,6 +203,24 @@ visible in the diff and would otherwise evaporate.
   count 13 → 12. Also invisible in this diff.
 
 ### Fixed
+
+- **The path guard's own first version misdiagnosed a defect in itself as a defect in the
+  repository.** Found by its own negative test 5: disabling one collector made every
+  reference on that surface report *"declared references that no longer exist in the repo"*
+  — blaming the tree for a bug in the checker, and inviting whoever read it to delete valid
+  expectations. The coverage floor now runs **before** the missing-reference check, so low
+  coverage reports as *"this check stopped looking at something it used to — suspect a
+  collector in this file before suspecting the repository."*
+
+- **Two YAML-reading traps, both hit during scoping and both fixed rather than worked
+  around.** A naive `(?:\s{2,}.*\n)+` capture of a block scalar **over-captures**: it
+  swallows every later indented line in the file, so the compiled pattern contains the rest
+  of the config and matches nothing. That produced a false zero for the large-file
+  exclusion — the guard would have asserted that a live exclusion matches nothing, the exact
+  opposite of the truth. Capturing by indentation gives the correct **10** matches. And a
+  blanket *"every ignore matches at least one file"* assertion is wrong: three markdownlint
+  ignores guard directories that are never tracked, so each entry now carries its own
+  expected minimum, with an expected zero recorded alongside its reason.
 
 - **`scripts/closure-pass.fish` reported a merged branch as unmerged whenever it carried
   more than one commit.** `git cherry` compares per-commit patch IDs, but a squash merge
