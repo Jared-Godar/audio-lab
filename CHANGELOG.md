@@ -11,6 +11,25 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **Two enforcement gates for rules that already existed and were broken anyway (#204).**
+  Every rule broken on 2026-08-01 was already binding; each failed because enforcement
+  depended on an agent choosing to run a check. These do not. Neither is a new rule and
+  no existing rule was reworded.
+
+  - **`brand/fonts-manifest.json` + `scripts/generate_fonts_manifest.py` +
+    `scripts/check_brand_fonts.py`, wired as a local pre-commit hook.** The manifest is
+    **generated**, not hand-listed: the script parses OpenType `name` tables straight out
+    of the Adobe CoreSync livetype store with **zero dependencies** — no `fontTools`,
+    because a gate whose regeneration needs a network install is a gate that gets
+    skipped. Measured **34 families / 215 faces**. The hook reads only the committed JSON,
+    so it behaves identically in CI, a cloud session and a fresh clone. Verified against
+    the issue's own criterion: `ArialNarrow-Bold` spliced into a builder fails the commit.
+  - **`scripts/closure-pass.fish`** — executes workflow step 8 and exits non-zero while
+    anything is outstanding: local `main` behind origin, merged branches surviving
+    locally or on the remote, worktrees on merged branches, strays under `artifacts/specs`
+    or `artifacts/issues`, a dirty tree, a merged PR whose closing keyword did not close,
+    and the `site/` deploy. Its output is the receipt; `AGENTS.md` step 8 now requires it.
+
 - **D4 gate-1 decisions recorded (#181) — `docs/20260802001735-repo-file-structure-d4-decision-record.md`.**
   All eleven open questions from the D3 report settled in one instruction, by accepting the D3
   recommendation as written for each. The maintainer's deciding text is quoted verbatim rather than
@@ -20,7 +39,7 @@ visible in the diff and would otherwise evaporate.
 
 - **D5 revised structure (#182) — `docs/20260802001736-repo-file-structure-d5-revised-structure.md`.**
   Supersedes D2 as the structure of record: nine tracked top-level directories, every one named, no
-  `TBD` and no `or`. Carries a **34-rule mapping table** that D7 applies at execution time instead
+  `TBD` and no `or`. Carries a **35-rule mapping table** that D7 applies at execution time instead
   of replaying D2's rows, and a hard requirement that D7 **fail loudly on any tracked path matching
   no rule** — D2's table was already eight files stale one day after it was written, and `main` has
   since reached 338 tracked files.
@@ -30,6 +49,11 @@ visible in the diff and would otherwise evaporate.
   live deploy and ships last, alone).
 
 ### Changed
+
+- **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
+  "do automatically" list admits manifest regeneration while explicitly withholding
+  `exempt` additions — an exemption admits a face the library does not have and is the
+  maintainer's to review.
 
 - **`output/` pruned from 132 MB to 42 MB** — `output/episodes/ToldStraight-Ep01-v2/_post-experiments/`
   deleted under the Q7 decision. Seven `.mp3` variants of the Ep01 tempo question settled on
@@ -56,43 +80,6 @@ visible in the diff and would otherwise evaporate.
   ever being derived from the tree beneath it. The honest number is **14 → 9 tracked (16 → 10 on
   disk)**. Same failure shape as the D1 finding D3 caught — asserted once, carried forward, never
   re-derived.
-
-### Findings
-
-- **Consolidating the cast portraits is a merge, not a de-duplication — and D7 cannot do it
-  unaided.** Q4 sends both cast surfaces to one home. Measured by git blob SHA, the per-episode
-  `cast/` files and the shared `episodes/cast/portraits/` files are **different images of the same
-  three people**: six files, six distinct hashes, no pair identical. Moving both sets into
-  `podcast/portraits/` would reproduce the problem under a new path with two files per person.
-  Which rendition is authoritative needs the maintainer's eye — the naming conventions differ and
-  neither marks one as superseded. A fourth file in those directories,
-  `studio_disclaimer.png`, is not a portrait at all.
-
-- **Two enforcement gates for rules that already existed and were broken anyway (#204).**
-  Every rule broken on 2026-08-01 was already binding; each failed because enforcement
-  depended on an agent choosing to run a check. These do not. Neither is a new rule and
-  no existing rule was reworded.
-
-  - **`brand/fonts-manifest.json` + `scripts/generate_fonts_manifest.py` +
-    `scripts/check_brand_fonts.py`, wired as a local pre-commit hook.** The manifest is
-    **generated**, not hand-listed: the script parses OpenType `name` tables straight out
-    of the Adobe CoreSync livetype store with **zero dependencies** — no `fontTools`,
-    because a gate whose regeneration needs a network install is a gate that gets
-    skipped. Measured **34 families / 215 faces**. The hook reads only the committed JSON,
-    so it behaves identically in CI, a cloud session and a fresh clone. Verified against
-    the issue's own criterion: `ArialNarrow-Bold` spliced into a builder fails the commit.
-  - **`scripts/closure-pass.fish`** — executes workflow step 8 and exits non-zero while
-    anything is outstanding: local `main` behind origin, merged branches surviving
-    locally or on the remote, worktrees on merged branches, strays under `artifacts/specs`
-    or `artifacts/issues`, a dirty tree, a merged PR whose closing keyword did not close,
-    and the `site/` deploy. Its output is the receipt; `AGENTS.md` step 8 now requires it.
-
-### Changed
-
-- **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
-  "do automatically" list admits manifest regeneration while explicitly withholding
-  `exempt` additions — an exemption admits a face the library does not have and is the
-  maintainer's to review.
 
 ### Findings
 
@@ -129,6 +116,15 @@ visible in the diff and would otherwise evaporate.
   gap reconciles exactly.** Four faces synced at 17:41 on 2026-08-01, after the issue was
   written: `Lora-Regular`, `Merriweather-Bold`, `RobotoSlab-Bold`, `RobotoSlab-Light` —
   three new families. The issue's count was right when taken.
+
+- **Consolidating the cast portraits is a merge, not a de-duplication — and D7 cannot do it
+  unaided.** Q4 sends both cast surfaces to one home. Measured by git blob SHA, the per-episode
+  `cast/` files and the shared `episodes/cast/portraits/` files are **different images of the same
+  three people**: six files, six distinct hashes, no pair identical. Moving both sets into
+  `podcast/portraits/` would reproduce the problem under a new path with two files per person.
+  Which rendition is authoritative needs the maintainer's eye — the naming conventions differ and
+  neither marks one as superseded. A fourth file in those directories,
+  `studio_disclaimer.png`, is not a portrait at all.
 
 ## 2026-08-01
 

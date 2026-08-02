@@ -49,6 +49,22 @@ This is the same failure D3 caught in D1's F3, in the same shape: a figure asser
 carried forward twice, and never re-derived. It is caught here by counting the tree D2
 itself printed.
 
+**0.3 — This document went stale during its own review, and the rules absorbed it.**
+PR #207 merged on 2026-08-02, after the measurements above were taken, adding seven files.
+**Three of the four new files in moving directories were absorbed by an existing rule with
+no edit** — `scripts/check_brand_fonts.py`, `scripts/generate_fonts_manifest.py` and
+`scripts/closure-pass.fish` all match `R-TOOL-1  scripts/** → tooling/`. The fourth,
+`brand/fonts-manifest.json`, matched **no rule**: `R-BRAND-2` covered `brand/*.css` and
+`brand/*.png` only. `R-BRAND-5` is added for it.
+
+That is one rule added, versus the four table rows D2's row-per-file mapping would have
+needed — and D7 would have **halted loudly** on the unmatched file rather than silently
+leaving it behind, which is the behaviour § 5 requires. The staleness in § 0.2 above is
+not hypothetical; it recurred inside a single day, and the design held.
+
+`#207` also carries three new hard-coded references to paths that move (§ 6.4) and one to
+`artifacts/specs`/`artifacts/issues` inside an executable script — D6 must enumerate them.
+
 **0.2 — Consolidating the cast portraits is not a de-duplication.** Q4's decision merges
 two surfaces that hold **different bytes for the same four people**, not duplicate copies.
 This changes what D7 has to do: it is a choose-the-authoritative-rendition task requiring
@@ -345,6 +361,7 @@ lives only in a report decays exactly as the current split did.
 | R-BRAND-2 | `brand/*.css`, `brand/*.png` | `brand/tokens/` |
 | R-BRAND-3 | `brand/*.md` specifying a brand artifact (§ 5.2) | `brand/tokens/` |
 | R-BRAND-4 | `artifacts/brand-wip/**` *(ignored)* | `brand/wip/` *(ignored)* |
+| R-BRAND-5 | `brand/*.json` — the generated fonts manifest (#207, § 0.3) | `brand/tokens/` |
 | R-DOC-1 | `docs/*.md` — how to do something | `docs/guides/` |
 | R-DOC-2 | `docs/*.md` — what was found | `docs/reports/` |
 | R-DOC-3 | `docs/*.md` — what is true | `docs/reference/` |
@@ -409,10 +426,21 @@ the CloudFormation and the docs in one PR, and confirm the deploy green afterwar
 
 ### 6.4 — The governance files are part of the move, not follow-up
 
-Measured: **19 lines across `AGENTS.md` and `CLAUDE.md` name a path that moves**, several
+Measured: **22 lines across `AGENTS.md` and `CLAUDE.md` name a path that moves** (19 at
+`a15f075`; #207 added three more while this document was in review — § 0.3), several
 inside literal commands. The full table is in the D4 record § 4. The worst is
 `AGENTS.md` line 228 — a closure-pass command naming `artifacts/specs artifacts/issues`,
-which after the move matches nothing and **reports success**.
+which after the move matches nothing and **reports success**. #207 shipped a second,
+executable copy of that same command in `scripts/closure-pass.fish`, so D7 now has two to
+fix.
+
+Three further exact-path references arrived with #207 and must move together under
+`R-BRAND-5` and `R-TOOL-1`, or the font gate silently stops matching anything:
+`.pre-commit-config.yaml` (`entry: python3 scripts/check_brand_fonts.py`, and
+`files: ^(tools/brand/.*\.jsx|brand/.*\.md)$`), `check_brand_fonts.py`'s
+`DEFAULT_GLOBS = ("tools/brand/**/*.jsx", "brand/**/*.md")`, and
+`generate_fonts_manifest.py`'s default output path `brand/fonts-manifest.json`.
+A hook whose `files:` pattern matches nothing does not fail — it passes.
 
 ### 6.5 — Machine-local memory files reference paths and no CI check can see them
 
