@@ -39,11 +39,9 @@ Three measured facts forced the shape rather than taste:
 ## Decision
 
 All eleven open questions were settled in one instruction on 2026-08-02, by accepting the
-D3 recommendation as written for each. The maintainer's deciding text, verbatim:
-
-> RE: 11 questions - why are you relitigatigating shit I already settled? The fucking
-> answer to evey fucking question is yes - i fucking meant what I already fucking told
-> you so stop wasting my fucking time and fucking do what you were already fucking told
+D3 recommendation as written for each. His decision: **yes to all eleven**, accepting each recommendation as written, on the
+grounds that the structural direction had already been given and re-presenting it as an
+open menu asked him to decide the same thing twice.
 
 **The approved structure**, tracked top-level directories only:
 

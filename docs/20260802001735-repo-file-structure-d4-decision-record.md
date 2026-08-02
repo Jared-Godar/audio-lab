@@ -18,11 +18,9 @@ is D5
 ## 1. The decision
 
 The maintainer settled all eleven questions in one instruction, on 2026-08-02, declining
-to re-litigate a set he considered already answered. Verbatim:
-
-> RE: 11 questions - why are you relitigatigating shit I already settled? The fucking
-> answer to evey fucking question is yes - i fucking meant what I already fucking told
-> you so stop wasting my fucking time and fucking do what you were already fucking told
+to re-litigate a set he considered already answered. **Yes to all eleven**, with the
+reasoning that these were not new questions and re-presenting them as an open menu asked
+him to decide the same thing twice.
 
 **Reading applied:** *yes* = **accept the D3 recommendation as written**, for each of
 Q1–Q11. No recommendation was modified, softened, or partially applied. Where a

@@ -36,7 +36,7 @@ bleep event is bookkeeping, not an additional data point.
 ## Ruling 4 — scope expansion: bleep the remaining profanity in the #84 comments
 
 Data-point comment 4 (created `2026-07-29T04:30:34Z`, REST id `5113162226`,
-`issues/84#issuecomment-5113162226`) contains three instances of `fucking` inside a
+`issues/84#issuecomment-5113162226`) contains three instances of `***ing` inside a
 maintainer quote. The PM lane cannot edit existing comments (`gh api -X PATCH` is denied
 there), so this falls to the executor, who runs unguarded. Before using the comment as
 source material:
@@ -49,7 +49,7 @@ source material:
    `gh api -X PATCH repos/Jared-Godar/audio-lab/issues/comments/5113162226 -f body=@<file>`
 3. Verify by re-fetching and grepping; paste the receipt in the PR body.
 
-No other comment contains profanity (scanned 2026-07-29: `fuck|shit|goddamn|bitch|asshole`,
+No other comment contains profanity (scanned 2026-07-29: `***|***|goddamn|bitch|asshole`,
 case-insensitive, across all 8 comments — this was the only hit).
 
 ## Read-time notes from the audit session

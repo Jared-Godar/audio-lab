@@ -379,6 +379,18 @@ the message presenting them, so the next session can act without re-deriving the
 for believing you when you telling me you did something or do I have to take longer than it
 would take me to do the work myself micromanaging you?"*
 
+**Public artifacts use a professional register.** This repository is public, permanent and
+indexed. Commit messages, pull-request and issue text, code comments and tracked documents
+are written for that audience.
+
+**Record decisions, not conversation.** An artifact carries what was decided and the
+reasoning behind it. Working conversation is a private channel.
+
+**One carve-out.** Episode content is the show, not an artifact about the show: transcripts,
+captions, show notes and episode copy carry the dialogue as written and approved, and are
+not altered for register. The test is authorship — if an agent wrote it, this applies; if it
+is the show speaking, it does not.
+
 ### Scoping: decompose before filing, adapt out loud after
 
 A remediation issue is strictly worse than an up-front one: it arrives after something

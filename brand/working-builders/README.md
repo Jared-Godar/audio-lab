@@ -35,10 +35,8 @@ could not browse to and could not find again later.
 
 Maintainer's framing, 2026-08-02:
 
-> "One working-builder folder under brands where you start putting all of the fucked up
-> draft scripts we iterate through until you get it right. Once I approve and the artifact
-> is generated, the script that made it gets placed alongside the asset it made in a
-> subfolder."
+**Decision:** one working folder for drafts under review; once a builder is approved and its
+asset generated, the builder moves to sit beside that asset.
 
 ## Where an approved builder goes — four rules, no judgement calls
 
