@@ -95,21 +95,37 @@ function report --argument-names verdict label
     test (count $body) -gt 0; and printf '          %s\n' $body
 end
 
-# Is every commit on $head already present, by patch, on $upstream?
+# Does $head contain any change not already on $upstream?
 #
 # `git branch --merged` is useless here: this repo squash-merges, so the commit that
 # lands on main is a new object with a different parent and the branch's ancestry is
-# never joined. `git cherry` compares patch IDs instead and marks upstream-equivalent
-# commits with '-', which is what makes a squash-merged branch detectable at all.
+# never joined.
 #
-# Returns success only on a SUCCESSFUL cherry with no '+' lines. A cherry that fails —
-# unrelated histories, a missing ref — must never read as "merged"; that is how an
-# empty result silently becomes a clean bill of health.
+# `git cherry` was used here until 2026-08-02 and is WRONG for this repo. It compares
+# per-commit patch IDs, but a squash merge collapses N commits into ONE commit whose
+# patch is their sum. For N = 1 the patch IDs match and it works; for N > 1 no
+# individual patch matches, every commit is marked '+', and a fully merged branch reads
+# as unmerged. Measured with a control and a negative: a 1-commit squash-merged branch
+# reported MERGED, an otherwise identical 2-commit branch reported NOT MERGED. Most
+# branches in this repo carry more than one commit, so the check was failing on the
+# common case while its comment claimed the opposite.
+#
+# `git merge-tree --write-tree` answers the question directly: merge $head into
+# $upstream in memory and compare the result to $upstream's own tree. Identical means
+# $head introduces nothing new — true regardless of how many commits were squashed, and
+# still false for a branch carrying real unmerged work (verified both ways).
+#
+# Returns success ONLY on a successful merge-tree whose result equals the upstream tree.
+# A failed merge-tree — unrelated histories, a missing ref, a conflict — returns 2 and
+# must never read as "merged"; that is how an empty result silently becomes a clean bill
+# of health.
 function _fully_merged --argument-names upstream head
-    set -l out (git cherry $upstream $head 2>/dev/null)
-    set -l rc $status
-    test $rc -ne 0; and return 2
-    test (printf '%s\n' $out | string match -r '^\+' | count) -eq 0
+    set -l merged (git merge-tree --write-tree $upstream $head 2>/dev/null)
+    test $status -ne 0; and return 2
+    set -l upstream_tree (git rev-parse $upstream^{tree} 2>/dev/null)
+    test $status -ne 0; and return 2
+    test -n "$merged" -a -n "$upstream_tree"; or return 2
+    test "$merged" = "$upstream_tree"
 end
 
 # How a fully-merged ref got that way. "squash-merged" means it carried commits and
@@ -218,6 +234,14 @@ end
 if test $use_network -eq 1
     set -l stale_remote
     for ref in (git for-each-ref --format='%(refname:short)' refs/remotes/origin/)
+        # `refs/remotes/origin/HEAD` shortens to the bare string "origin", NOT
+        # "origin/HEAD" — so the `= HEAD` guard below never fired on it and the remote's
+        # own name entered the stale list. The printed remedy then read
+        # `git push origin --delete origin <branch>`, which names the remote as a branch
+        # to delete. This script exists to be pasted from, so that was a live footgun
+        # (found by running it, 2026-08-02). Requiring the `origin/` prefix drops the
+        # symbolic HEAD and keeps every real branch.
+        string match -q 'origin/*' -- $ref; or continue
         set -l short (string replace 'origin/' '' $ref)
         test "$short" = "$DEFAULT_BRANCH" -o "$short" = HEAD; and continue
         if _fully_merged origin/$DEFAULT_BRANCH $ref
