@@ -61,19 +61,111 @@
     //    Ep01 and Ep03 builders on purpose: one system, one resolution path.
     // ==============================================================
 
+    // ---- TITLE FACE: the recorded decision, full stop ----
+    //
+    // TradeGothicNextLTPro-BdCn. Recorded in
+    // tools/brand/20260727-...-ep01-exhibit-cards-builder.jsx, dated 2026-07-27:
+    //
+    //   "The maintainer chose candidate E — TRADE GOTHIC NEXT BOLD CONDENSED —
+    //    across all three plates of the type shootout, run 2. Run 1 had produced
+    //    a false result ... C won that run. With the field corrected, the answer
+    //    changed. Do not treat run 1's outcome as history — it was measurement
+    //    error."
+    //
+    // An earlier revision of THIS file overrode that with a "wide grotesque"
+    // read off the Ep01 PNG by eye, which resolved to Arial by fallback. Arial
+    // was never part of Ep01; it was introduced by that fallback chain. A dated
+    // written decision is not overridden by a visual impression. The wide-face
+    // mode and its fallback groups have been removed rather than left switchable,
+    // so nothing can reach for a non-Trade-Gothic face again.
+
+    // ---- MONO FACE: same collision, and the dates settle it ----
+    //
+    // docs/20260727-...-type-shootout-guide.md §3.2 says of the monospace
+    // candidates: "None of these are in your kit; all are yours to add." That
+    // shootout is 2026-07-27. The approved Ep01 card is 2026-07-23. So on the
+    // day E1 was set, Letter Gothic Std WAS NOT INSTALLED — E1's mono cannot be
+    // Letter Gothic, and setting these cards in it is why they read as a
+    // different family however carefully the sizes are matched. E1's mono is a
+    // system typewriter face: Courier, which is slab-serifed where Letter
+    // Gothic is not.
+    //
+    // "ep01-courier" matches the approved card. "locked-lettergothic" returns to
+    // the shootout's winner. Same trade as the title: continuity with the art
+    // the maintainer approved, versus the type system recorded afterwards.
+    //
+    // ---- CORRECTION, 2026-08-01 (#202) — the reasoning above is wrong ----
+    //
+    // Everything from "MONO FACE" down to this line is preserved as rescued, but
+    // it does not survive measurement. Three separate errors:
+    //
+    //  1. "Letter Gothic Std WAS NOT INSTALLED" is an inference from one sentence
+    //     in the shootout guide, never checked against the disk. It IS installed,
+    //     and was: Letter Gothic Std / Regular, Italic, Bold, Bold Italic, in the
+    //     maintainer's synced Adobe library.
+    //  2. It is the ONLY monospaced family in that library — verified by reading
+    //     post.isFixedPitch and PANOSE bProportion across all 211 synced faces.
+    //     The maintainer's standing rule is that every face in the final design
+    //     is in that library and anything absent from it is definitionally wrong.
+    //     Courier New is a macOS system font and is not in it.
+    //  3. The "slab serifs prove Courier" reading cannot be checked the way it was
+    //     claimed. Those elements sit at cap height 18-23 px, where antialiasing
+    //     dominates and pixel-overlap between candidate faces differs by less than
+    //     the noise floor (0.30 vs 0.34 IoU). The artwork cannot settle a mono face
+    //     at that size, in either direction.
+    //
+    // The deeper error: the approved Ep01 PNG was itself exported with system-font
+    // substitutions — all 11 measured elements fit macOS system faces markedly
+    // better than any library face. It is a product of the same silent-fallback
+    // bug this file exists to prevent, so it CANNOT identify the intended faces.
+    // It yields geometry only. Faces come from the recorded shootout decision.
+    var MONO_FACE_MODE = "locked-lettergothic";  // "ep01-courier" | "locked-lettergothic"
+
     var FACE = {
         title: "TradeGothicNextLTPro-BdCn",
         label: null,
-        mono:  "LetterGothicStd"
+        mono:  (MONO_FACE_MODE === "locked-lettergothic")
+                 ? "LetterGothicStd"
+                 : "CourierNewPSMT",
+        // The approved Ep01 card sets EVERY mono element bold — header,
+        // subtitle, field keys and values. At the subtitle's 300-unit tracking
+        // the regular weight thins out into unreadable hairlines, which is
+        // exactly what went wrong on the first two runs. Bold is not a flourish
+        // here; it is what makes the letterspaced line survive.
+        // CONFIRMED, 2026-07-31, by two independent signals:
+        //   1. The maintainer's Illustrator Find/Replace Font panel lists
+        //      "Courier New Bold" under Recent Fonts.
+        //   2. The Ep01 artwork's mono has visible SLAB SERIFS on the stems
+        //      ("ESTABLISHED:", "1775 (older than the U.S.)"). Letter Gothic Std
+        //      is a SANS mono with squared terminals and cannot produce those.
+        // Both agree with the dates: the shootout guide records that on
+        // 2026-07-27 none of the mono candidates were installed, and the card is
+        // 2026-07-23 — so it had to be a system typewriter face.
+        //
+        // CORRECTION 2026-08-01 (#202): "CONFIRMED by two independent signals"
+        // was not. Signal 2 (slab serifs) is unresolvable at cap 18-23 px, and
+        // signal 1 (a face in Illustrator's Recent Fonts) records what was USED
+        // in a later rebuild, not what Ep01 was set in — it is downstream of the
+        // very substitution being diagnosed. The dates argument rests on Letter
+        // Gothic not being installed; it is installed. See the block above.
+        // What survives unchanged: EVERY mono element on the card is BOLD, and
+        // at the subtitle's tracking the regular weight thins to hairlines. That
+        // is why this resolves to LetterGothicStd-Bold and not the regular cut.
+        monoBold: (MONO_FACE_MODE === "locked-lettergothic")
+                    ? "LetterGothicStd-Bold"
+                    : "CourierNewPS-BoldMT"
     };
 
     var SEARCH = {
+        // Verbatim from the Ep01 builder — same family, same preference order,
+        // same weight-compromise shout. No wide or non-Trade-Gothic fallbacks.
         title: [
             { require: ["tradegothicnext"], exclude: ["italic", "oblique"],
-              prefer: ["bdcn", "boldcond", "condbold", "hvcn"] },
+              prefer: ["bdcn", "boldcond", "condbold", "hvcn", "condheavy", "bd", "bold"] },
+            { require: ["universnextpro", "cond"], exclude: ["italic", "oblique"],
+              prefer: ["boldcond", "condbold", "heavycond", "blackcond"] },
             { require: ["helveticaneueltpro"], exclude: ["italic", "oblique", "obl"],
-              prefer: ["bdcn", "blkcn"] },
-            { require: ["oswald"], exclude: ["italic"], prefer: ["bold", "semibold"] }
+              prefer: ["bdcn", "blkcn"] }
         ],
         label: [
             { require: ["tradegothicnext"], exclude: ["italic", "oblique", "cn"],
@@ -81,13 +173,32 @@
             { require: ["helveticaneueltpro"], exclude: ["italic", "oblique", "obl"],
               prefer: ["roman", "md"] }
         ],
-        mono: [
-            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "bold", "medium"] },
-            { require: ["oratorstd"],     exclude: ["italic", "oblique"], prefer: ["std", "medium"] },
-            { require: ["courierprime"],  exclude: ["italic", "oblique"], prefer: ["regular", "prime"] },
-            { require: ["ibmplexmono"],   exclude: ["italic", "oblique"], prefer: ["regular", "text"] },
-            { require: ["sourcecodepro"], exclude: ["italic", "oblique"], prefer: ["regular"] },
-            { require: ["courier"],       exclude: ["italic", "oblique"], prefer: ["regular", "psmt"] }
+        // Bold mono is its OWN role, not a variant looked up later. Every mono
+        // element on the Ep01 card is bold; resolving the regular weight is what
+        // made the letterspaced subtitle disappear on the first two runs.
+        // CORRECTION 2026-08-01 (#202): the locked-lettergothic chains used to
+        // fall through to Orator Std and then Courier. Neither is in the
+        // maintainer's synced library — Orator is not there at all, Courier is a
+        // macOS system font — so both were paths back to the exact silent
+        // substitution this file exists to stop. Letter Gothic Std is the ONLY
+        // monospaced family in that library (verified across all 211 synced
+        // faces), so there is no legitimate second choice. Unresolved must fail
+        // loudly; a one-entry chain is the mechanism that makes it.
+        monoBold: (MONO_FACE_MODE === "locked-lettergothic") ? [
+            { require: ["lettergothic"], exclude: ["italic", "oblique"], prefer: ["bold", "bd"] }
+        ] : [
+            { require: ["couriernew"],   exclude: ["italic", "oblique"], prefer: ["bold", "boldmt", "bd"] },
+            { require: ["courier"],      exclude: ["italic", "oblique", "prime"], prefer: ["bold", "boldmt", "bo"] },
+            { require: ["courierprime"], exclude: ["italic", "oblique"], prefer: ["bold"] },
+            { require: ["nimbusmono"],   exclude: ["italic", "oblique"], prefer: ["bold"] }
+        ],
+        // Same correction as monoBold above (#202): no system-font fallback.
+        mono: (MONO_FACE_MODE === "locked-lettergothic") ? [
+            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "medium"] }
+        ] : [
+            { require: ["couriernew"],    exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
+            { require: ["courier"],       exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
+            { require: ["courierprime"],  exclude: ["italic", "oblique"], prefer: ["regular", "prime"] }
         ]
     };
 
@@ -158,7 +269,10 @@
     // The fitter owns this band and nothing else draws into it.
     var TITLE_TOP    = 300;
     var TITLE_BOTTOM = 782;   // 38pt of air above the red rule at 820
-    var RED_RULE_Y   = 820;
+    // NOTE: the red rule is no longer at a fixed y. It is anchored to the
+    // bottom of the fitted title block (see buildCover), matching E1 where the
+    // rule underlines the last title line. Nothing should reintroduce a
+    // constant here -- that constant was the original collision.
     var TITLE_MAX_PT = 232;   // a one-word title should not become a billboard
     var TITLE_COL    = EP - 150;  // usable width for a title line
 
@@ -243,8 +357,42 @@
     var psTitle = resolveRole("title", FACE.title, SEARCH.title);
     var psLabel = resolveRole("label", FACE.label, SEARCH.label);
     var psMono  = resolveRole("mono ", FACE.mono,  SEARCH.mono);
+    var psMonoB = resolveRole("monoB", FACE.monoBold, SEARCH.monoBold);
     log("");
     var fTitle = fontObj(psTitle), fLabel = fontObj(psLabel), fMono = fontObj(psMono);
+    // If no bold mono resolves, fall back to the regular so the build still
+    // completes -- but the audit board says so, because the subtitle is the
+    // first thing that suffers and it suffers silently.
+    var fMonoB = fontObj(psMonoB) || fMono;
+    if (!fontObj(psMonoB)) log("  ** no BOLD mono resolved — subtitle and fields fall back to regular **");
+
+    // ---- HARD STOP, 2026-08-01 (#202) ----
+    //
+    // Before this, resolveRole() returned null on total failure, logged one line,
+    // and the build continued -- every unresolved role silently became
+    // Illustrator's default face. That is not a fallback chain failing safe; it
+    // is the silent substitution that produced this entire mess, and the header
+    // comment's claim that removing the wide mode means "nothing can reach for a
+    // non-Trade-Gothic face again" was false while this path existed: with the
+    // pinned face absent, the default was the ONLY thing left to reach for.
+    //
+    // Refuse to draw instead. A builder that produces a card in the wrong face is
+    // worse than one that produces nothing, because the wrong card gets approved.
+    var missing = [];
+    if (!fTitle) missing.push("title (" + FACE.title + ")");
+    if (!fMono)  missing.push("mono ("  + FACE.mono  + ")");
+    if (!fMonoB) missing.push("monoBold (" + FACE.monoBold + ")");
+    if (missing.length) {
+        alert("FACE RESOLUTION FAILED — nothing was drawn\n\n"
+            + "Unresolved: " + missing.join(", ") + "\n\n"
+            + "Every face in this design comes from the maintainer's synced Adobe\n"
+            + "library. A macOS system font is not a valid substitute, so there is\n"
+            + "no fallback to take. Activate the missing faces in Creative Cloud\n"
+            + "and re-run.\n\n"
+            + "Expected: Trade Gothic Next LT Pro Bold Condensed (title),\n"
+            + "Letter Gothic Std Bold (mono).");
+        return;
+    }
 
 
     // ==============================================================
@@ -304,14 +452,14 @@
     var L = Justification.LEFT, R = Justification.RIGHT, CTR = Justification.CENTER;
 
     var PS = {
-        cHead:   paraStyle("C/Head",     30,  40, 140, C.ink,  fMono,  L),
-        cHeadR:  paraStyle("C/HeadR",    30,  40, 140, C.grey, fMono,  R),
-        cSub:    paraStyle("C/Sub",      40,  56, 300, C.ink,  fMono,  CTR),
+        cHead:   paraStyle("C/Head",     30,  40, 140, C.ink,  fMonoB, L),
+        cHeadR:  paraStyle("C/HeadR",    30,  40, 140, C.grey, fMonoB, R),
+        cSub:    paraStyle("C/Sub",      40,  56, 300, C.ink,  fMonoB, CTR),
         cFieldK: paraStyle("C/FieldK",   32,  44, 140, C.grey, fMono,  L),
         cFieldV: paraStyle("C/FieldV",   32,  44,  60, C.ink,  fMono,  L),
         cStamp:  paraStyle("C/Stamp",    82,  88,  40, C.red,  fTitle, CTR),
-        cFoot1:  paraStyle("C/Foot1",    24,  32, 140, C.grey, fMono,  L),
-        cFoot2:  paraStyle("C/Foot2",    28,  38, 140, C.ink,  fMono,  L),
+        cFoot1:  paraStyle("C/Foot1",    24,  32, 140, C.grey, fMonoB, L),
+        cFoot2:  paraStyle("C/Foot2",    28,  38, 140, C.ink,  fMonoB, L),
         audit:   paraStyle("AUDIT/Text", 19,  27,   0, C.ink,  fMono,  L)
     };
 
@@ -384,77 +532,10 @@
     // The tighter constraint wins. A shared size is the typographically correct
     // answer for a stacked title: per-line sizing would make the block look
     // like a ransom note.
-    function fitTitle(b, lines, zoneTop, zoneBottom, colW, maxPt, font, tracking) {
-        var n = lines.length;
-        if (!n) return { size: 0, lead: 0, fitBy: "empty", lines: [] };
-
-        var zoneH = zoneBottom - zoneTop;
-        var lead  = zoneH / n;
-        var size  = Math.min(maxPt, lead * 0.90);   // cap height ≈ 0.72em; 0.90 keeps the stack tight but unclipped
-        var fitBy = (size === maxPt) ? "max cap" : "zone height";
-
-        // Width pass. Probe at the height-derived size, then scale down to the
-        // tightest line. Never scale UP — the height constraint is a ceiling.
-        var probe = size, worst = 1, i, m, s;
-        for (i = 0; i < n; i++) {
-            m = measure(lines[i], font, probe, tracking);
-            if (m.w > 0) {
-                s = colW / m.w;
-                if (s < worst) worst = s;
-            }
-        }
-        if (worst < 1) {
-            size = size * worst;
-            lead = size / 0.90;
-            fitBy = "line width";
-        }
-
-        // Re-measure at the final size so the block is centred on real bounds,
-        // not on an estimate of them.
-        var meas = [], maxH = 0;
-        for (i = 0; i < n; i++) {
-            m = measure(lines[i], font, size, tracking);
-            meas.push(m);
-            if (m.h > maxH) maxH = m.h;
-        }
-
-        // Block height = the leading steps between lines, plus the cap height of
-        // the last line. Centre THAT in the zone.
-        var blockH = (n - 1) * lead + maxH;
-        var top    = zoneTop + (zoneH - blockH) / 2;
-
-        var placed = [];
-        for (i = 0; i < n; i++) {
-            var tf = null;
-            try {
-                tf = lyType.textFrames.add();
-                tf.contents = lines[i];
-                var ca = tf.textRange.characterAttributes;
-                ca.autoLeading = false;
-                ca.size = size; ca.leading = size; ca.tracking = tracking;
-                ca.fillColor = C.ink;
-                if (font) ca.textFont = font;
-                try { app.redraw(); } catch (eR2) {}
-                // Point text anchors at its baseline, so centre on measured bounds.
-                tf.left = px(b, (EP - tf.width) / 2);
-                tf.top  = py(b, top + i * lead);
-                placed.push({ text: lines[i], w: tf.width, h: tf.height });
-            } catch (e) {
-                log("WARN: title line '" + lines[i] + "' — " + e);
-            }
-        }
-
-        return {
-            size: size, lead: lead, fitBy: fitBy, blockH: blockH,
-            top: top, bottom: top + blockH, lines: placed
-        };
-    }
-
-
     // One line of point text positioned by BASELINE rather than by box top, so a
     // value that had to shrink still sits on the same baseline as its key.
     // tf.height on all-caps text is the cap height, which is exactly the offset
-    // we need — no font-metrics guesswork.
+    // needed -- no font-metrics guesswork.
     function baselineText(b, baselineY, x, text, size, colour, font, tracking) {
         var tf = null;
         try {
@@ -468,20 +549,99 @@
             try { app.redraw(); } catch (eR) {}
             tf.left = px(b, x);
             tf.top  = py(b, baselineY - tf.height);
-        } catch (e) { log("WARN: line '" + text + "' — " + e); return null; }
+        } catch (e) { log("WARN: line '" + text + "' - " + e); return null; }
         return tf;
     }
 
     // Field values are fitted the same way titles are: measure, shrink to the
-    // column, never clip. The old builder set values as AREA text, which silently
-    // swallows anything too long — so a value running under the stamp looked
-    // fine to the script and unreadable in the PNG.
+    // column, never clip. Area text silently swallows overflow, so a value
+    // running under the stamp looked like success to the script.
     function fitValue(b, baselineY, x, maxW, text, maxPt) {
         var size = maxPt;
-        var m = measure(text, fMono, size, 60);
+        var m = measure(text, fMonoB, size, 60);
         if (m.w > maxW && m.w > 0) size = Math.max(19, size * (maxW / m.w));
-        baselineText(b, baselineY, x, text, size, C.ink, fMono, 60);
+        baselineText(b, baselineY, x, text, size, C.ink, fMonoB, 60);
         return { size: size, wanted: m.w, avail: maxW };
+    }
+
+    // E1's title is set in TWO sizes, not one. "MEMBERSHIP" and "REQUIREMENTS"
+    // share a big size while the short connector "HAS" drops to about two
+    // thirds of it. Setting every line at one shared size -- which is what the
+    // earlier runs did -- flattens precisely the rhythm that makes the approved
+    // card work, and is the reason those cards read as a different design
+    // rather than a sibling of it.
+    //
+    // A line is MINOR when it is a short connector: four characters or fewer,
+    // or under 45% the length of the longest line. Everything else is MAJOR.
+    var TITLE_MID_RATIO = 0.66;   // measured off the approved Ep01 cover
+
+    function isMinorLine(text, longest) {
+        var t = text.replace(/\s+/g, "");
+        return (t.length <= 4) || (t.length < longest * 0.45);
+    }
+
+    function fitTitle(b, lines, zoneTop, zoneBottom, colW, maxPt, font, tracking) {
+        var n = lines.length, i, m, s;
+        if (!n) return { size: 0, lead: 0, fitBy: "empty", lines: [] };
+
+        var longest = 0;
+        for (i = 0; i < n; i++) {
+            var L2 = lines[i].replace(/\s+/g, "").length;
+            if (L2 > longest) longest = L2;
+        }
+        var minor = [];
+        for (i = 0; i < n; i++) minor.push(isMinorLine(lines[i], longest));
+
+        // Height budget in "slots": a MAJOR line costs 1, a MINOR line costs
+        // TITLE_MID_RATIO. Sizing off slots rather than line count is what lets
+        // a card with a short connector give its major lines more room.
+        var slots = 0;
+        for (i = 0; i < n; i++) slots += minor[i] ? TITLE_MID_RATIO : 1;
+
+        var zoneH = zoneBottom - zoneTop;
+        var big   = Math.min(maxPt, (zoneH / slots) * 0.88);
+        var fitBy = (big >= maxPt) ? "max cap" : "zone height";
+
+        // Width pass: measure each line at the size it will ACTUALLY be set at,
+        // then scale the whole block down by the tightest line.
+        var worst = 1;
+        for (i = 0; i < n; i++) {
+            m = measure(lines[i], font, minor[i] ? big * TITLE_MID_RATIO : big, tracking);
+            if (m.w > 0) { s = colW / m.w; if (s < worst) worst = s; }
+        }
+        if (worst < 1) { big = big * worst; fitBy = "line width"; }
+
+        var sizes = [], leads = [], total = 0;
+        for (i = 0; i < n; i++) {
+            sizes.push(minor[i] ? big * TITLE_MID_RATIO : big);
+            leads.push(sizes[i] * 1.04);
+            total += leads[i];
+        }
+
+        var top = zoneTop + (zoneH - total) / 2;
+        var placed = [], y = top;
+        for (i = 0; i < n; i++) {
+            var tf = null;
+            try {
+                tf = lyType.textFrames.add();
+                tf.contents = lines[i];
+                var ca = tf.textRange.characterAttributes;
+                ca.autoLeading = false;
+                ca.size = sizes[i]; ca.leading = sizes[i]; ca.tracking = tracking;
+                ca.fillColor = C.ink;
+                if (font) ca.textFont = font;
+                try { app.redraw(); } catch (eR) {}
+                tf.left = px(b, (EP - tf.width) / 2);
+                tf.top  = py(b, y);
+                placed.push({ text: lines[i], w: tf.width, h: tf.height,
+                              size: sizes[i], minor: minor[i] });
+            } catch (e) { log("WARN: title line '" + lines[i] + "' - " + e); }
+            y += leads[i];
+        }
+
+        return { size: big, mid: big * TITLE_MID_RATIO, lead: leads[0],
+                 fitBy: fitBy, blockH: total, top: top, bottom: top + total,
+                 lines: placed };
     }
 
 
@@ -504,26 +664,25 @@
 
         // TITLE — fitted, never placed
         var fit = fitTitle(b, spec.title, TITLE_TOP, TITLE_BOTTOM, TITLE_COL,
-                           TITLE_MAX_PT, fTitle, -16);
+                           TITLE_MAX_PT, fTitle, -12);
         fit.board = b.name;
         fits.push(fit);
 
-        // The rule the old builder collided with. Assert the clearance rather
-        // than trusting it: if the fitter ever regresses, the audit board says so
-        // in numbers instead of the defect shipping silently in a PNG.
-        if (fit.bottom > RED_RULE_Y) {
-            log("  ** " + b.name + ": TITLE OVERRUNS THE RED RULE by "
-                + Math.round(fit.bottom - RED_RULE_Y) + "pt **");
+        // E1 sets the red rule TIGHT under the title -- it underlines the last
+        // line rather than floating in a fixed band below it. Anchoring the rule
+        // to the fitted block preserves that relationship at any title length,
+        // and removes the fixed y=820 that everything used to collide with.
+        var ruleY = fit.bottom + 18;
+        bar(b, ruleY, M + 20, W - 40, 9, C.red);
+        fit.ruleY = ruleY;
+
+        // Subtitle hangs off the rule, not off a constant.
+        var subY = ruleY + 64;
+        area(b, subY, M, W, 84, spec.subtitle, PS.cSub);
+        if (subY + 84 > 1040) {
+            log("  ** " + b.name + ": subtitle reaches the field block — title zone too deep **");
         }
-        bar(b, RED_RULE_Y, M + 20, W - 40, 9, C.red);
 
-        area(b, 900, M, W, 70, spec.subtitle, PS.cSub);
-
-        // The stamp's geometry is resolved BEFORE the fields are drawn, because
-        // the fields have to know where it lands. The Ep03 original placed a
-        // stamp at a fixed x and got away with it only because its values were
-        // short ("RESULTS IN"). "YOUNG SCHEMA QUESTIONNAIRE" runs straight under
-        // it — and the word we spelled out on purpose is the one that disappears.
         // FIRST ATTEMPT AT THIS WAS WRONG AND THE RE-RUN PROVED IT. Shrinking
         // the values to squeeze past a stamp sitting in the middle of the field
         // block left a ~220pt column, so "YOUNG SCHEMA QUESTIONNAIRE" hit the
@@ -559,7 +718,7 @@
         // print across it. The margin has to pay for the rotation.
         var sx = EP - 120 - sw;
         for (var i = 0; i < spec.fields.length; i++) {
-            baselineText(b, fy + 34, M + 30, spec.fields[i].k, 32, C.grey, fMono, 140);
+            baselineText(b, fy + 34, M + 30, spec.fields[i].k, 32, C.grey, fMonoB, 140);
 
             // Only rows that actually sit beside the stamp get the narrow column.
             // Shrinking every value to the worst case would punish the rows that
@@ -643,11 +802,11 @@
         log("    size " + Math.round(f.size) + "pt  lead " + Math.round(f.lead)
             + "pt   constrained by: " + f.fitBy);
         log("    block y " + Math.round(f.top) + " -> " + Math.round(f.bottom)
-            + "   red rule at " + RED_RULE_Y
-            + "   clearance " + Math.round(RED_RULE_Y - f.bottom) + "pt");
+            + "   red rule follows at " + Math.round(f.ruleY || 0) + "pt");
         for (var li = 0; li < f.lines.length; li++) {
-            log("      " + f.lines[li].text + "   " + Math.round(f.lines[li].w)
-                + "pt wide  (column " + TITLE_COL + ")");
+            log("      " + (f.lines[li].minor ? "minor " : "MAJOR ") + f.lines[li].text
+                + "   " + Math.round(f.lines[li].size) + "pt   "
+                + Math.round(f.lines[li].w) + "pt wide  (column " + TITLE_COL + ")");
         }
     }
     log("");
@@ -698,7 +857,7 @@
     var clearLines = [];
     for (var si = 0; si < fits.length; si++) {
         clearLines.push("  " + fits[si].board + ": " + Math.round(fits[si].size)
-            + "pt, " + Math.round(RED_RULE_Y - fits[si].bottom) + "pt clear of the red rule");
+            + "pt major / " + Math.round(fits[si].mid || 0) + "pt minor");
     }
 
     var summary = "Told Straight — Ep02 + Ep03 covers rebuilt.\n\n"
