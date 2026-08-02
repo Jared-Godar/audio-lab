@@ -75,3 +75,24 @@ repos:
     rev: v1.26.1
     hooks:
       - id: zizmor
+
+  # Local gates. These are the #204 mechanism: the rules they enforce were already
+  # written and already binding, and were broken anyway because enforcement depended
+  # on an agent choosing to run a check. A hook does not choose.
+  - repo: local
+    hooks:
+      # The maintainer's standing constraint — every face in the final design is in
+      # the audio-lab Adobe library (project zol6gng); a face absent from it is
+      # definitionally wrong — wired to something that fails. `ArialNarrow-Bold`
+      # reached main in a builder marked IN FORCE and was caught by the maintainer
+      # two merges later (#202); this blocks it at commit time instead.
+      #
+      # Reads brand/fonts-manifest.json only, so it needs no fonts installed and
+      # behaves identically in CI, a cloud session and a fresh clone. Regenerate the
+      # manifest with scripts/generate_fonts_manifest.py where the library is synced.
+      - id: brand-fonts-in-library
+        name: brand fonts are in the maintainer's Adobe library
+        entry: python3 scripts/check_brand_fonts.py
+        language: system
+        pass_filenames: true
+        files: ^(tools/brand/.*\.jsx|brand/.*\.md)$

@@ -163,6 +163,10 @@ switching arms is his call, evidence-driven.
 - Update `CHANGELOG.md`, `docs/`, `README.md`.
 - Write to `artifacts/` (gitignored working zone).
 - Sync labels from `.github/labels.json`.
+- Regenerate `brand/fonts-manifest.json` with `scripts/generate_fonts_manifest.py`
+  after activating a face in Creative Cloud. **Adding to the manifest's `exempt`
+  block is not automatic** — an exemption admits a face the library does not have,
+  needs a written reason, and is the maintainer's to review (#204).
 - ElevenLabs spends **under ~2,000 credits** for verification — cost quoted before,
   actual after.
 - Rename generated artifacts to satisfy the naming rule.
@@ -232,6 +236,14 @@ rule 6 violation with or without this exception.
    tree — end closure by confirming `git status` is clean. **If the merged PR touched
    `site/`, also confirm the site deploy** — see § "Website changes: preview before
    commit" below. Confirming it is closure work; running the sync by hand is not.
+
+   **Run `scripts/closure-pass.fish` and paste its output as the receipt.** It executes
+   every item above and exits non-zero while any of them is outstanding, so a skipped
+   step 8 is visible instead of silent — which is the whole point (#204): this step was
+   skipped after four consecutive merges and surfaced only when the maintainer ran
+   `git status` himself. The script reports and never repairs; deleting branches and
+   moving `HEAD` stay the maintainer's to authorise. It does not replace the step, and
+   a green run is not a substitute for reading what it printed.
 
 Definition of done, self-run with receipts: pre-commit green (pasted) · CI green ·
 metadata complete and read back · CHANGELOG entry · verification output shown per
