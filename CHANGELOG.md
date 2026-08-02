@@ -11,6 +11,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **A current PM session seed for the reorganisation — `docs/20260802054314-reorg-pm-session-seed.md`.**
+  Carries the reading order, the measured state of play, what an executor prompt must
+  contain, the launch block, and a per-stage table of where each stage's trap is — drawn
+  from the dependency map rather than from impression.
+
+- **The executor launch template rewritten — `prompts/EXECUTOR-SEED-PROMPT-TEMPLATE.md`.**
+  It was built entirely on machinery removed on 2026-07-30 (#94): the `AUDIO_LAB_EXECUTOR`
+  env var, the PM-lane `PreToolUse` guard it unlocked, and the per-turn contract-reinjection
+  hook. It also directed the reader to `docs/PM-WORKFLOW.md` and
+  `artifacts/specs/TEMPLATE.md` for the required sections — **neither file exists.** An
+  inert instruction is worse than an absent one: it teaches whoever pastes the block that
+  the file cannot be trusted, so they stop reading the parts still true — the launch record
+  shipping inside the same fence as the invocation, and the model pinned by full id rather
+  than an alias resolving to whatever is latest.
+
 - **A guard that makes silent path breakage loud — `scripts/check_path_references.py` (#211).**
   The reorganisation's dangerous failure class is not a broken link, which announces itself,
   but a reference that stops matching and whose surrounding check then reports success. The
@@ -217,6 +232,17 @@ visible in the diff and would otherwise evaporate.
   count 13 → 12. Also invisible in this diff.
 
 ### Fixed
+
+- **A dead link in `README.md` removed.** The structure table pointed at
+  `docs/PM-WORKFLOW.md`, which does not exist — found while auditing what the executor
+  template cited. Verified: zero broken `docs/` links remain in the README.
+
+- **`AGENTS.md` gains a register standard for public artifacts.** The repository is public,
+  permanent and indexed; commit messages, pull-request and issue text, code comments and
+  tracked documents are written for that audience. Records carry decisions and the reasoning
+  behind them. One carve-out: episode content is the show rather than an artifact about it,
+  so transcripts, captions and show notes are not altered for register — the test is
+  authorship. Nine documents, one issue body and one issue comment aligned to the standard.
 
 - **The path guard's own first version misdiagnosed a defect in itself as a defect in the
   repository.** Found by its own negative test 5: disabling one collector made every

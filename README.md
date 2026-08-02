@@ -189,7 +189,7 @@ auditable `--authorize-ceiling`.
 | `pipeline/` | the `voicelab` CLI — ElevenLabs client, casting, episode render and mastering |
 | `episodes/` | *Told Straight* deliverables: transcripts, show notes, art, `cast.json`, and the finished audio and video masters. Working audio stays in the gitignored `output/` |
 | `infra/` | CloudFormation for `toldstraight.com` DNS and mail |
-| `docs/` | durable findings — [decision records](docs/adr/), [the ops runbook](docs/runbook.md), [ElevenLabs operating notes](docs/elevenlabs.md), [voice capture](docs/voice-capture.md), [the planning workflow](docs/PM-WORKFLOW.md) |
+| `docs/` | durable findings — [decision records](docs/adr/), [the ops runbook](docs/runbook.md), [ElevenLabs operating notes](docs/elevenlabs.md), [voice capture](docs/voice-capture.md) |
 | `spotify/` | a listening-data scaffold: a `spotipy` dependency and a 2022 export in `data/`. No analysis written yet |
 | `prompts/` | the specs agent sessions are handed, kept immutable after handoff |
 | `fish/`, `scripts/` | shell helpers and repository automation |

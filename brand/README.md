@@ -4,9 +4,8 @@ The one home for identity. Structure drawn by the maintainer in
 [#176](https://github.com/Jared-Godar/audio-lab/issues/176) and **built** rather than
 described, by his decision of 2026-08-02:
 
-> "Build as I described - mkdir/touch stubs even if empty. Once I unfuck enough bullshit to
-> make these I want a clear destination for them to land witout you stuffing them wherever
-> the fuck suits you and muddying up the file structure all over again"
+**Decision:** build the structure as drawn, with placeholder files even where a folder is
+empty, so future assets have a predetermined destination.
 
 This reverses the earlier decision to defer the structure until content forced it. That
 deferral is what produced ad-hoc filing in the first place, which is the problem this
@@ -59,11 +58,10 @@ cheap to rename while they are empty.
 
 ## Where existing content lands — decided
 
-Maintainer, 2026-08-02: *"If shit doesn't fit in the 'loose guidelines' I provided, figure
-it the fuck out … stop the malicious compliance bullshit about what my rough draft did and
-didnt have like that was set in stone."* So these are decided, not deferred. **The files
-have not moved yet** — that happens in the staged execution — but every destination is
-settled.
+Maintainer decision, 2026-08-02: **where existing content does not fit the rough guide,
+decide it rather than leaving it unfiled** — the sketch was a guide, not a specification,
+and refusing to classify anything without a one-to-one match recreates the ad-hoc filing
+the structure exists to end.
 
 | Currently | Files | Destination |
 | --- | ---: | --- |

@@ -243,7 +243,7 @@ the executor runs on the same machine.
 **The root cause is one missing mechanism, not eleven mistakes.** Nothing compares a new
 repository against an established one. Each new project restarts at zero and re-derives
 a worse version of a solved setup. The maintainer's account of the cost, 2026-07-26:
-*"every fucking time I start a new project it's like you got dropped on your fucking
+*"every ***ing time I start a new project it's like you got dropped on your ***ing
 head and I am starting over again, except it is worse because I think you're doing the
 things you say."*
 
