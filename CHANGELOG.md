@@ -11,6 +11,38 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The executor launch template rewritten — `prompts/EXECUTOR-SEED-PROMPT-TEMPLATE.md`.**
+  It was built entirely on machinery removed on 2026-07-30 (#94): the `AUDIO_LAB_EXECUTOR`
+  env var, the PM-lane `PreToolUse` guard it unlocked, and the per-turn contract-reinjection
+  hook. It also directed the reader to `docs/PM-WORKFLOW.md` and
+  `artifacts/specs/TEMPLATE.md` for the required sections — **neither file exists.**
+
+  **An inert instruction is worse than an absent one.** A launch block that names a required
+  environment variable doing nothing, and points at two missing files, teaches whoever pastes
+  it that the file cannot be trusted — so they stop reading the parts that are still true,
+  which include the two rules that matter: the launch record ships inside the same fence as
+  the invocation, and the model is pinned by full id rather than by an alias that resolves
+  to whatever is latest.
+
+  Spec paths updated to `docs/` with a 14-digit timestamp prefix, since `artifacts/` is
+  retired by the reorganisation and second-granular timestamps are mandatory. Two checklist
+  items added: that the spec is honestly scoped, and that anything able to pass vacuously
+  carries a before/after count rather than a status.
+
+- **A current PM session seed for the reorganisation — `docs/20260802054314-reorg-pm-session-seed.md`.**
+  Carries the reading order, the measured state of play, what an executor prompt must
+  contain, the launch block, and a per-stage table of where each stage's trap is — drawn
+  from the dependency map rather than from impression.
+
+  Written from scratch rather than adapted, because the existing
+  `prompts/EXECUTOR-SEED-PROMPT-TEMPLATE.md` is built entirely on machinery removed on
+  2026-07-30 (#94): the `AUDIO_LAB_EXECUTOR` env var, the PM-lane `PreToolUse` guard, and
+  the per-turn contract-reinjection hook. It also cites `docs/PM-WORKFLOW.md` and
+  `artifacts/specs/TEMPLATE.md`, **neither of which exists** — `README.md:190` still links
+  the first, a dead link already logged for the governance stage. A seed that names a
+  required env var doing nothing, and two files that are absent, reads as live instruction
+  to whoever pastes it.
+
 - **A guard that makes silent path breakage loud — `scripts/check_path_references.py` (#211).**
   The reorganisation's dangerous failure class is not a broken link, which announces itself,
   but a reference that stops matching and whose surrounding check then reports success. The
@@ -217,6 +249,12 @@ visible in the diff and would otherwise evaporate.
   count 13 → 12. Also invisible in this diff.
 
 ### Fixed
+
+- **A dead link in `README.md` removed.** The repository-structure table pointed at
+  `docs/PM-WORKFLOW.md`, which does not exist — found while auditing what the executor
+  template cited. It was one of four already-broken links the dependency map recorded, and
+  the only one in a file that both survives the reorganisation and is the first thing a
+  visitor reads.
 
 - **The path guard's own first version misdiagnosed a defect in itself as a defect in the
   repository.** Found by its own negative test 5: disabling one collector made every
