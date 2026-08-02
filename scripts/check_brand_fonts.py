@@ -48,7 +48,16 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = REPO_ROOT / "brand" / "fonts-manifest.json"
 
-DEFAULT_GLOBS = ("tools/brand/**/*.jsx", "brand/**/*.md")
+# Builders no longer live in one directory. As of 2026-08-02 an approved builder sits in a
+# `builders/` folder beside the asset it produced -- under episodes/, podcast/ or brand/ --
+# and drafts sit in brand/working-builders/. So the gate follows the CONVENTION, not a path:
+# any .jsx inside a folder named `builders` or `working-builders` is a builder.
+#
+# Hard-coding `tools/brand` here was one of TWO independent guards that both had to be
+# updated together; correcting only this one left the gate exiting 0 while resolving 0 of 13
+# builders. Both are now convention-based so neither can go stale on a move again.
+DEFAULT_GLOBS = ("**/builders/*.jsx", "**/working-builders/*.jsx", "brand/**/*.md")
+BUILDER_DIRS = {"builders", "working-builders"}
 
 # Quoted string literals in JSX/JavaScript. Font names never contain a quote or a
 # newline, so a non-greedy same-line match is sufficient and avoids dragging in the
@@ -154,7 +163,7 @@ def resolve_targets(paths: list[str]) -> list[Path]:
         except ValueError:
             continue
         parts = relative.parts
-        in_builders = parts[:2] == ("tools", "brand") and suffix == ".jsx"
+        in_builders = suffix == ".jsx" and bool(BUILDER_DIRS & set(parts[:-1]))
         in_brand_docs = parts[:1] == ("brand",) and suffix == ".md"
         if in_builders or in_brand_docs:
             keep.append(path)

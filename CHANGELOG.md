@@ -11,6 +11,19 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The finished episode masters are in the repository — audio and video, for the first
+  time.** `told-straight-ep01.mp4` (12.5 MB, 9m34s) and `told-straight-ep02.mp4` (15.7 MB,
+  12m23s), both H.264 1920×1080 at 2 fps with AAC mono audio — the chapter-card slideshows
+  uploaded to YouTube — plus the two audio masters they were built from,
+  `membership-has-requirements.mp3` and `session-one-skills.mp3` (durations match the video
+  exactly, 574.33s and 742.88s). **None had ever been committed on any branch.**
+  `git rev-list --objects --all` filtered for video extensions returned nothing.
+
+  The cause was `.gitignore`: a blanket `*.mp4` / `*.mov` rule commented as covering
+  "edge-tts / yt-dlp / quick-cut byproducts" that also swallowed both YouTube masters, and
+  a blanket `*.mp3` doing the same to the audio. `git add` skips an ignored path silently,
+  so the failure never surfaced — the masters survived only because copies happened to
+  remain in a home folder.
 - **Two enforcement gates for rules that already existed and were broken anyway (#204).**
   Every rule broken on 2026-08-01 was already binding; each failed because enforcement
   depended on an agent choosing to run a check. These do not. Neither is a new rule and
@@ -48,8 +61,59 @@ visible in the diff and would otherwise evaporate.
   Constrains M10 (all remaining deliverables) and M5 (the `site/` → `website/` rename touches the
   live deploy and ships last, alone).
 
+- **D6 dependency map (#183) — `docs/20260802014505-repo-file-structure-d6-dependency-map.md`.**
+  Approval gate 2. The substitute for a smoke test: **1,502 path references across 139 files**,
+  measured at `08c537e` (345 tracked files — seven more than D5's baseline, **all seven absorbed
+  by existing rules with no rule added**). Three deliberately different search mechanisms, because
+  each caught what the others could not — a prefix grep, a link resolver, and a sweep for paths
+  assembled from segments. The third found a coupling no slash-based search can see.
+
+  References are classified by the fate of the file holding them: **257 in files that stay put**
+  (the real obligation), 880 in files that move but stay tracked, and **365 that evaporate** with
+  the 23 duplicate specs R-DEL-1 deletes. Every machine-read reference is enumerated with its line
+  and a failure mode; prose references are given as per-file counts plus the regeneration command,
+  because line numbers were proven to drift — the closure command sits at `AGENTS.md` line 228 at
+  two commits and line **232** today, so D4 and D5 both cite a stale number.
+
+  **Thirteen references fail silently** — they stop matching and the surrounding check reports
+  success. The worst two: `deploy-site.yml`'s `paths: site/**` filter, which would stop triggering
+  production deploys altogether, and the brand-font gate.
+
+- **Verification of the eleven gate-1 decisions.** Ten confirm cleanly against `origin/main` by
+  independent measurement — including R-DEL-1's 23 byte-identical duplicates (blob-SHA pass returns
+  exactly 23 identical, 0 divergent, 4 unique) and Q7's deletion (on-disk `.mp3` count is 134,
+  precisely D3's 141 minus the 7 files removed). Q3 is the exception: the five-way `docs/` split is
+  settled, but R-DOC-1/2/3 share one source pattern and differ only by human judgement, so **25
+  files need a per-file assignment before stage 1 can run.**
+
 ### Changed
 
+- **Ignore rules and standing prose no longer treat published deliverables as secrets.**
+  The distinction is now **finished versus working**, not audio versus text. `output/`
+  stays ignored wholesale — 141 working audio files, the volume those rules were written
+  for — and `episodes/**/*.mp3` and `episodes/**/*.mp4` are carved back in. Verified with a
+  control: the masters report trackable while `output/test.mp3` and `artifacts/scratch.mp4`
+  still report ignored. Three prose claims saying the same wrong thing were corrected —
+  `CLAUDE.md`'s "**Audio never enters git**", `README.md`'s "there is no audio in this
+  repository at all", and the `episodes/` row of the README structure table. The large-file
+  gate gains a directory-scoped exclusion rather than a raised limit, per its own
+  instruction not to weaken it to admit one file.
+
+- **Ep02 and Ep03 covers promoted from the 2026-07-31 rebuild.** Both sat unpromoted in the
+  gitignored `output/artwork/ep02-ep03-rebuild/` since 31 July — the rebuild builder's
+  header states PNGs land there "and the maintainer promotes them," and that step never
+  ran. This matters most for Ep02, whose committed cover dated to `7ad83c7` (#64/#66) and
+  **predates the 2026-07-27 type shootout entirely** — the only episode cover never rebuilt
+  into the type system, which is why it read as the odd one out. The Ep01 builder that
+  produced the approved reference cover
+  (`tools/brand/20260727-adobe-illustrator-toldstraight-ep01-covers-builder.jsx`) is
+  confirmed tracked since `a54befb` and unmodified; these covers are the least-bad current
+  state and are expected to be rebuilt against it.
+
+- **Two de-sparkled cast portraits committed** — Des Fable and Owen, replacing the
+  watermarked exports. The other three keep the Gemini export badge until a removal pass
+  runs; all five remain maintainer-approved and LOCKED per
+  `episodes/cast/portraits/manifest.json`.
 - **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
   "do automatically" list admits manifest regeneration while explicitly withholding
   `exempt` additions — an exemption admits a face the library does not have and is the
@@ -67,6 +131,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **`scripts/closure-pass.fish` reported a merged branch as unmerged whenever it carried
+  more than one commit.** `git cherry` compares per-commit patch IDs, but a squash merge
+  collapses N commits into one whose patch is their sum: for N = 1 the IDs match, for N > 1
+  none does. Measured with a control and a negative — a 1-commit squash-merged branch
+  reported merged, an otherwise identical 2-commit branch reported unmerged. Most branches
+  here carry more than one commit, so the check failed on the common case while its own
+  comment claimed the opposite. Replaced with `git merge-tree --write-tree`, which merges
+  in memory and compares against the upstream tree; verified merged for both the 1- and
+  2-commit squash cases and **not** merged for a branch carrying real work.
+
+- **`scripts/closure-pass.fish` printed a delete command naming the remote as a branch.**
+  It emitted `git push origin --delete origin <branch>`. `git for-each-ref` shortens
+  `refs/remotes/origin/HEAD` to the bare string `origin`, so the guard testing for `HEAD`
+  never fired and the remote's own name entered the stale list. Found by running it. The
+  script exists to be pasted from, which is what made this the urgent one.
 - **`CLAUDE.md` no longer contradicts `.gitignore` about the repo's own contract (D3 R1).** It
   described `artifacts/` as a gitignored working zone where "nothing here reaches a fresh clone",
   while `.gitignore` carves out `!artifacts/specs/` and `!artifacts/issues/` and **42 tracked files
@@ -82,6 +161,29 @@ visible in the diff and would otherwise evaporate.
   re-derived.
 
 ### Findings
+
+- **Both episode video masters exist on disk and have never been committed — and
+  `.gitignore` is why.** `~/ToldStraight-Ep01/told-straight-ep01.mp4` (12.5 MiB, 9m34s) and
+  `~/ToldStraight-Ep02/told-straight-ep02.mp4` (15.7 MiB, 12m23s), both H.264 1920×1080 at
+  **2 fps** with AAC mono audio — chapter-card slideshows, the files uploaded to YouTube.
+  Ep03 has no master. `git rev-list --objects --all` filtered for video extensions returns
+  nothing: no video object has ever existed in this repository on any branch. The cause is
+  `.gitignore` lines 60–62, whose comment scopes the rule to "edge-tts / yt-dlp /
+  quick-cut byproducts" while the pattern also swallows the finished masters — `git add`
+  skips them without a word. Also never committed: `narration/` in both episodes,
+  `record-host-ep01.txt`, `record-guest-ep01.txt`, `transcript-markup.txt`,
+  `episode-copy.txt`, `youtube-description.txt`, and Ep02's `session-one-skills.mp3`.
+
+- **A repository-scoped search cannot answer a question about an uncommitted deliverable.**
+  This map's first revision reported "zero `.mp4` files" — true of the repository, and the
+  wrong scope for the question *"will episode video need large-file storage?"*. The figure
+  originated in D3 § 2.10, was carried into D4 § 5, and was re-measured here inside the
+  same narrow frame instead of being re-derived against the question it answered — the
+  exact pattern the same document criticises in D1 and D2. Corrected in § 10.1 and recorded
+  rather than quietly fixed. **The conclusion survives for a better reason:** the largest
+  master is 15.7 MiB, under GitHub's 50 MB warning and far under its 100 MB hard limit, so
+  large-file storage is unnecessary as a *measurement* rather than as an absence of
+  evidence. The `~86 MB` episode premise in #185 is wrong by a factor of five.
 
 - **`git branch --merged` cannot see this repo's merged branches.** Squash-merging
   rewrites the work into a new commit with a different parent, so ancestry is never

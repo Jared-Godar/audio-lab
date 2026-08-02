@@ -41,9 +41,11 @@ Five days old, built in public, one decision at a time.
 | Mail live at `hello@toldstraight.com` | 2026-07-27 — SPF, DKIM and DMARC `p=reject` |
 | Episode 1 rebuilt | 2026-07-27 — 54 per-turn stems, a 10:29 master |
 
-**Nothing here is listenable, and that is not a soft "not yet".** There is no public
-feed, no player and no link. There is no audio in this repository at all — every
-`.mp3` is gitignored, so the 10:29 master is a file on one laptop and nowhere else.
+**Nothing here is published, and that is not a soft "not yet".** There is no public
+feed, no player and no link. The finished episode masters — audio and video — are
+tracked here as of 2026-08-02; working audio (auditions, stems, test renders) stays in
+the gitignored `output/`. Until that change every `.mp3` and `.mp4` was ignored, which
+left the masters as files on one laptop and nowhere else.
 An earlier fully-synthetic v1 of two episodes sits on a *private* feed (`ROADMAP.md`);
 the rebuild is on no feed whatsoever. `toldstraight.com` serves DNS and mail and
 nothing else — the apex deliberately has no `A` record, because there is nothing yet
@@ -185,7 +187,7 @@ auditable `--authorize-ceiling`.
 | | |
 | --- | --- |
 | `pipeline/` | the `voicelab` CLI — ElevenLabs client, casting, episode render and mastering |
-| `episodes/` | *Told Straight* deliverables: transcripts, show notes, art, `cast.json`. Audio is gitignored |
+| `episodes/` | *Told Straight* deliverables: transcripts, show notes, art, `cast.json`, and the finished audio and video masters. Working audio stays in the gitignored `output/` |
 | `infra/` | CloudFormation for `toldstraight.com` DNS and mail |
 | `docs/` | durable findings — [decision records](docs/adr/), [the ops runbook](docs/runbook.md), [ElevenLabs operating notes](docs/elevenlabs.md), [voice capture](docs/voice-capture.md), [the planning workflow](docs/PM-WORKFLOW.md) |
 | `spotify/` | a listening-data scaffold: a `spotipy` dependency and a 2022 export in `data/`. No analysis written yet |

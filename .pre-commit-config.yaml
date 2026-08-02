@@ -26,10 +26,17 @@ repos:
         # re-encoding degrades the approved art. Directory glob (not per-file) so the
         # re-runnable commit procedure admits Owen/Des/Voss/Anna and future portraits
         # without another gate edit. maxkb stays 1024 everywhere else.
+        # The third entry (2026-08-02) is the finished episode masters. These are the
+        # published artifacts -- the podcast audio and the YouTube video -- not working
+        # renders, which stay in the gitignored output/ zone. Largest today is 15.7 MB,
+        # well under GitHub's 100 MB ceiling. Directory-scoped glob so future episodes
+        # need no gate edit. maxkb stays 1024 everywhere else; if a master ever passes
+        # 75 MB, raise it with the maintainer rather than widening anything here.
         exclude: |
           (?x)^(
             brand/20260727-adobe-illustrator-toldstraight-type-shootout-contact-sheet\.png
             | episodes/cast/portraits/.*\.png
+            | episodes/[^/]+/[^/]+\.(mp3|mp4)
           )$
       - id: check-case-conflict
       - id: check-executables-have-shebangs
@@ -95,4 +102,8 @@ repos:
         entry: python3 scripts/check_brand_fonts.py
         language: system
         pass_filenames: true
-        files: ^(tools/brand/.*\.jsx|brand/.*\.md)$
+        # Convention, not a path. An approved builder lives in a `builders/` folder beside
+        # the asset it produced (episodes/, podcast/ or brand/); drafts live in
+        # brand/working-builders/. A pattern naming one directory silently stops matching
+        # the day anything moves -- and a `files:` pattern that matches nothing PASSES.
+        files: ^(.*/(builders|working-builders)/.*\.jsx|brand/.*\.md)$
