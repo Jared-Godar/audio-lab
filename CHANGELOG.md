@@ -48,6 +48,31 @@ visible in the diff and would otherwise evaporate.
   Constrains M10 (all remaining deliverables) and M5 (the `site/` → `website/` rename touches the
   live deploy and ships last, alone).
 
+- **D6 dependency map (#183) — `docs/20260802014505-repo-file-structure-d6-dependency-map.md`.**
+  Approval gate 2. The substitute for a smoke test: **1,502 path references across 139 files**,
+  measured at `08c537e` (345 tracked files — seven more than D5's baseline, **all seven absorbed
+  by existing rules with no rule added**). Three deliberately different search mechanisms, because
+  each caught what the others could not — a prefix grep, a link resolver, and a sweep for paths
+  assembled from segments. The third found a coupling no slash-based search can see.
+
+  References are classified by the fate of the file holding them: **257 in files that stay put**
+  (the real obligation), 880 in files that move but stay tracked, and **365 that evaporate** with
+  the 23 duplicate specs R-DEL-1 deletes. Every machine-read reference is enumerated with its line
+  and a failure mode; prose references are given as per-file counts plus the regeneration command,
+  because line numbers were proven to drift — the closure command sits at `AGENTS.md` line 228 at
+  two commits and line **232** today, so D4 and D5 both cite a stale number.
+
+  **Thirteen references fail silently** — they stop matching and the surrounding check reports
+  success. The worst two: `deploy-site.yml`'s `paths: site/**` filter, which would stop triggering
+  production deploys altogether, and the brand-font gate.
+
+- **Verification of the eleven gate-1 decisions.** Ten confirm cleanly against `origin/main` by
+  independent measurement — including R-DEL-1's 23 byte-identical duplicates (blob-SHA pass returns
+  exactly 23 identical, 0 divergent, 4 unique) and Q7's deletion (on-disk `.mp3` count is 134,
+  precisely D3's 141 minus the 7 files removed). Q3 is the exception: the five-way `docs/` split is
+  settled, but R-DOC-1/2/3 share one source pattern and differ only by human judgement, so **25
+  files need a per-file assignment before stage 1 can run.**
+
 ### Changed
 
 - **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
