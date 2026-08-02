@@ -29,6 +29,30 @@ Rendered audio: `YYYYMMDD-VENDOR-MODEL-VOICE-PURPOSE[-BITRATE].mp3`, e.g.
 mandatory and comes second. Sample directories: `samples/<vendor>/<voice>-<short-id>/`.
 Probes and smoke tests go in `_underscore-prefixed/` folders.
 
+**The date token is `YYYYMMDDHHmmss` and it is mandatory** (maintainer decision
+2026-08-01, [ADR 0021](docs/adr/0021-timestamp-prefix-is-mandatory-and-second-granular.md)).
+Fourteen digits, no separator, no `T`, no `Z`, then a hyphen — e.g.
+`20260801225106-repo-file-structure-d3-assessment-report.md`. It applies to every
+generated document, script, walkthrough and maintainer-requested document. Get it from
+`date "+%Y%m%d%H%M%S"`; it stamps **creation**, and does not change when the file is
+edited.
+
+Second granularity is not decoration: three documents authored on 2026-08-01 would
+otherwise have shared the prefix `20260801-` and sorted arbitrarily against each other.
+It supersedes both prior formats — the bare `YYYYMMDD-` and the `YYYYMMDDTHHMMSSZ-` used
+in `artifacts/walkthroughs/`.
+
+**Exempt — filenames read by exact name, where a rename breaks behaviour:**
+`README.md`, `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md` (GitHub renders
+these by name), `AGENTS.md` and `CLAUDE.md` (agent tooling loads them by name),
+`.github/**` (GitHub requires exact paths), `docs/adr/NNNN-*.md` (deliberate sequential
+numbering), and `pipeline/**` Python sources (a digit-leading filename is not a legal
+Python module name). Extending this list is a maintainer decision, not a judgement call at
+filing time.
+
+Files dated before 2026-08-01 keep their existing prefixes until **D7 (#184)** renames
+them as part of the reorg, which is already rewriting every inbound reference.
+
 ## ElevenLabs specifics
 
 - The account bills at **0.55x** the advertised `character_cost_multiplier`. Verify
