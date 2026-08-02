@@ -233,6 +233,32 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **Five tracked documents required `ELEVENLABS_API_KEY` and none said how it gets there
+  (#233).** `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CLAUDE.md` and
+  `docs/runbook.md` all assert the key lives in the shell environment and never in a file.
+  All five are right about the invariant; none named the supplier. Measured: a fresh login
+  shell does not have it set, and `git ls-files` tracks **zero** loaders — the Fish
+  functions that read it from 1Password are machine-local. A session starting from a clean
+  checkout therefore met a precondition it could not satisfy, and the only written method
+  was `set -gx ELEVENLABS_API_KEY <new-key>`, which writes the secret into the shell
+  history file. No key had actually leaked that way — `grep -c` for an `sk_` literal over
+  both history files returned **0**, so the hazard was latent, not realised. `CLAUDE.md`,
+  `SECURITY.md` and the runbook now name `secrets-load`, state plainly that it is
+  untracked and that an unset variable is therefore the expected state rather than a
+  broken setup, and say why the command-argument form is unsafe. **Documented only — the
+  loaders are deliberately not moved into the repository**, because publishing the
+  credential reference list is a disclosure decision, left open in #233 with the precedent
+  measured both ways: one tracked document publishes a real vault and item name, while the
+  CHANGELOG's copy of the same command was redacted.
+
+- **Two unresolvable citations in `docs/runbook.md` (#233).** The credential procedure
+  cited `AGENTS.md` § "Local environment" and § "Directing the maintainer through a GUI".
+  Neither is a section — `grep -n -i "local environment" AGENTS.md` returns nothing, and
+  the GUI rule is a sentence inside § "Communication". The same failure as the executor
+  template above: a citation that does not resolve teaches the reader the file cannot be
+  trusted, so they stop checking the parts that are still true. Repointed to
+  `SECURITY.md` § "Secret handling" and `AGENTS.md` § "Communication".
+
 - **A dead link in `README.md` removed.** The structure table pointed at
   `docs/PM-WORKFLOW.md`, which does not exist — found while auditing what the executor
   template cited. Verified: zero broken `docs/` links remain in the README.
@@ -292,6 +318,18 @@ visible in the diff and would otherwise evaporate.
   re-derived.
 
 ### Findings
+
+- **A 1Password service account cannot read a Personal or Private vault at all — the
+  platform does not offer the grant.** This is not a permission that was left unticked. A
+  credential stored in a personal vault is therefore unreachable by any non-interactive
+  automation regardless of how the reference is written; it has to be copied into a shared
+  vault first. Measured with `op-sa vault list`, which returns exactly one vault where the
+  interactive command lists several. The corollary explains a confusing symptom: the plain
+  `op` command returns `account is not signed in` from any non-interactive process, because
+  the desktop-app integration authorises an interactive terminal rather than the process
+  tree, while the service-account form works headless. Anything scripted must use the
+  service account, and a credential is not usable by automation merely because it exists in
+  1Password.
 
 - **Both episode video masters exist on disk and have never been committed — and
   `.gitignore` is why.** `~/ToldStraight-Ep01/told-straight-ep01.mp4` (12.5 MiB, 9m34s) and

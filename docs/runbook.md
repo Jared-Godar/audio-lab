@@ -40,13 +40,21 @@ a delete-plus-create against live records).
 
 ## 2. Rotate or re-cap the ElevenLabs API key — STUB in part
 
-**What is sourced** (`CLAUDE.md` § "ElevenLabs specifics", `AGENTS.md` § "Local
-environment", CHANGELOG § Findings 2026-07-27):
+**What is sourced** (`CLAUDE.md` § "ElevenLabs specifics", `SECURITY.md` § "Secret
+handling", CHANGELOG § Findings 2026-07-27):
 
-- `ELEVENLABS_API_KEY` lives in the shell environment, never a file, never code. After
-  rotation, update it with `set -gx ELEVENLABS_API_KEY <new-key>` (Fish) and re-verify
-  with `uv run voicelab rates` from `pipeline/` — a working rates read proves the new
-  key end to end.
+- `ELEVENLABS_API_KEY` lives in the shell environment, never a file, never code. It is
+  **not set by default**: on the maintainer's machine a Fish function, `secrets-load`,
+  reads it from 1Password and exports it into the current shell only. After rotation,
+  update the stored credential in 1Password, open a new shell, run `secrets-load`, and
+  re-verify with `uv run voicelab rates` from `pipeline/` — a working rates read proves
+  the new key end to end.
+- **Do not paste the key as a command argument.** `set -gx ELEVENLABS_API_KEY <new-key>`
+  works and was previously the instruction here, but the shell records the whole command
+  in its history file, so the secret outlives the session in plaintext. Use that form
+  only on a machine with no `secrets-load`, and remove the history entry afterwards.
+  `secrets-load` and `with-secrets` are machine-local and untracked, so they reach no
+  fresh clone (#233).
 - **Keys carry their own credit caps, independent of the account balance.** A key-scoped
   quota breach returns **HTTP 401** (not 402) with `quota_exceeded` in the body — read
   the body before concluding the key is bad. The `dpotify-claude` key hit its 5,000 cap
@@ -54,8 +62,7 @@ environment", CHANGELOG § Findings 2026-07-27):
 
 **STUB — the console click-path.** The steps to create, revoke, or re-cap a key in the
 ElevenLabs web console are not recorded in any tracked file, and this repo's rule is to
-never give a click path that was not verified (`AGENTS.md` § "Directing the maintainer
-through a GUI"). The knowledge lives in the ElevenLabs dashboard (the API-keys page of
+never give a click path that was not verified (`AGENTS.md` § "Communication"). The knowledge lives in the ElevenLabs dashboard (the API-keys page of
 the account the maintainer holds); record the verified path here the next time someone
 actually walks it.
 
