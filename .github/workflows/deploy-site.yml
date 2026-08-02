@@ -1,0 +1,174 @@
+name: Deploy site
+
+# Publishes site/ to the production bucket and invalidates the CDN cache, on
+# push to main and never before (#187, ADR 0020).
+#
+# WHY THIS EXISTS. Merging a PR that changes site/ used to change nothing: the
+# bucket was a separate manual step, and forgetting it left main and the live
+# site silently disagreeing. This workflow is the mechanism that makes the two
+# agree by default.
+#
+# WHY IT IS CI RATHER THAN A SESSION STEP. AGENTS.md conduct rule 6 requires
+# maintainer confirmation, at action time, for outward-facing actions, and
+# `aws s3 sync --delete` to production is outward-facing, destructive and
+# irreversible all at once. Putting the deploy here rather than in an agent's
+# shell means no session ever holds credentials that can publish: the deploy
+# runs on merged code, from a role no branch other than main can assume, and it
+# happens whether or not a session is open. ADR 0020 records that reasoning.
+#
+# NOTHING HERE CAN DEPLOY UNMERGED CODE. The trigger is push-to-main, and the
+# AWS role's trust policy independently pins the OIDC subject to
+# refs/heads/main (infra/github-oidc.yaml). Editing this file on a branch to
+# deploy early would fail at AssumeRole -- the gate is in AWS, not only here.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      # A change to this workflow itself redeploys, so a fix to the deploy
+      # path is proven by running it rather than by reading it.
+      - ".github/workflows/deploy-site.yml"
+  # Manual re-run, for the case where a deploy failed on a transient AWS error
+  # and the content is already merged. Still gated on main by the role's trust
+  # policy, so this cannot be pointed at a branch.
+  workflow_dispatch:
+
+# Least privilege at the job level: id-token to mint the OIDC token, contents
+# to check out. No write access to the repository itself.
+permissions:
+  id-token: write
+  contents: read
+
+# Never run two deploys at once -- concurrent `sync --delete` runs can race and
+# leave the bucket a mix of two commits. cancel-in-progress is false on
+# purpose: cancelling a half-finished sync is how the bucket ends up in that
+# mixed state, so a queued run waits for the current one to finish instead.
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Sync site to S3 and invalidate CloudFront
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_REGION: us-east-1
+      SITE_STACK: toldstraight-site
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Assume the deploy role via OIDC
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::448795057993:role/AudioLabGitHubDeploy
+          role-session-name: deploy-site-${{ github.run_id }}
+          aws-region: us-east-1
+
+      # Read the targets from the live stack rather than hardcoding them. If
+      # the hosting stack is ever recreated the distribution id changes, and a
+      # literal here would keep deploying to a bucket nobody is serving.
+      - name: Resolve the bucket and distribution from stack outputs
+        id: targets
+        run: |
+          set -euo pipefail
+          outputs=$(aws cloudformation describe-stacks \
+            --stack-name "$SITE_STACK" --region "$AWS_REGION" \
+            --query 'Stacks[0].Outputs' --output json)
+
+          bucket=$(echo "$outputs" | jq -r '.[] | select(.OutputKey=="SiteBucketName") | .OutputValue')
+          dist=$(echo "$outputs" | jq -r '.[] | select(.OutputKey=="DistributionId") | .OutputValue')
+          domain=$(echo "$outputs" | jq -r '.[] | select(.OutputKey=="DistributionDomainName") | .OutputValue')
+
+          # An empty value here means the stack exists but its outputs changed
+          # shape. Fail now with a readable message rather than running
+          # `aws s3 sync site/ s3:///` and getting an obscure parse error.
+          for pair in "bucket:$bucket" "dist:$dist" "domain:$domain"; do
+            if [ -z "${pair#*:}" ]; then
+              echo "::error::Stack $SITE_STACK did not return ${pair%%:*}. Outputs: $outputs" >&2
+              exit 1
+            fi
+          done
+
+          {
+            echo "bucket=$bucket"
+            echo "distribution=$dist"
+            echo "domain=$domain"
+          } >> "$GITHUB_OUTPUT"
+          echo "Target bucket: $bucket / distribution: $dist"
+
+      # --delete makes the bucket an exact mirror of site/, which is the point:
+      # a file removed in a merged PR disappears from the live site too. It is
+      # also why this step is destructive and why the role it runs under can
+      # write to nothing else.
+      - name: Sync site/ to the bucket
+        id: sync
+        env:
+          BUCKET: ${{ steps.targets.outputs.bucket }}
+        run: |
+          set -euo pipefail
+          aws s3 sync site/ "s3://$BUCKET/" --delete --no-progress | tee sync.log
+          # An empty log is a legitimate outcome (nothing changed since the
+          # last deploy), so it is reported, not failed.
+          changed=$(grep -c -E '^(upload|delete):' sync.log || true)
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "Objects uploaded or deleted: $changed"
+
+      - name: Invalidate the CloudFront cache
+        env:
+          DISTRIBUTION: ${{ steps.targets.outputs.distribution }}
+        run: |
+          set -euo pipefail
+          # '/*' counts as a single path against the 1,000-free-paths monthly
+          # allowance, so a full invalidation on every deploy stays free.
+          id=$(aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION" --paths '/*' \
+            --query 'Invalidation.Id' --output text)
+          echo "Invalidation $id created."
+
+      # A 200 from the CDN is not proof the sync landed, so this asks the
+      # distribution for the deployed index and checks it carries a marker the
+      # repository's own copy has. It hits the distribution domain rather than
+      # the apex so it keeps working regardless of DNS state.
+      - name: Verify the live page serves the deployed content
+        env:
+          DOMAIN: ${{ steps.targets.outputs.domain }}
+        run: |
+          set -euo pipefail
+          # CloudFront invalidations are eventually consistent; give the edge
+          # a few seconds and retry rather than failing a good deploy on a
+          # stale edge response.
+          for attempt in 1 2 3 4 5; do
+            status=$(curl -sS -o live.html -w '%{http_code}' "https://$DOMAIN/" || echo 000)
+            if [ "$status" = "200" ] && cmp -s <(tr -d '[:space:]' < live.html) <(tr -d '[:space:]' < site/index.html); then
+              echo "Live index.html matches site/index.html (attempt $attempt)."
+              exit 0
+            fi
+            echo "Attempt $attempt: HTTP $status, content not yet matching; retrying."
+            sleep 10
+          done
+          echo "::error::https://$DOMAIN/ did not serve the deployed site/index.html after 5 attempts (last status $status). The sync and invalidation may still have succeeded -- check the distribution before re-running." >&2
+          exit 1
+
+      - name: Write the run summary
+        if: always()
+        env:
+          BUCKET: ${{ steps.targets.outputs.bucket }}
+          DISTRIBUTION: ${{ steps.targets.outputs.distribution }}
+          DOMAIN: ${{ steps.targets.outputs.domain }}
+          CHANGED: ${{ steps.sync.outputs.changed }}
+        run: |
+          {
+            echo "### Site deploy"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Bucket | \`${BUCKET:-unresolved}\` |"
+            echo "| Distribution | \`${DISTRIBUTION:-unresolved}\` |"
+            echo "| Objects uploaded or deleted | ${CHANGED:-unknown} |"
+            echo "| Live | https://${DOMAIN:-unresolved}/ |"
+          } >> "$GITHUB_STEP_SUMMARY"

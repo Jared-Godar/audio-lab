@@ -36,6 +36,34 @@ visible in the diff and would otherwise evaporate.
   **222 MB of 483 MB — 46% of the tree**. Nine numbered disconnects, each with the command that
   measured it. Analysis only; nothing moved.
 
+- **`scripts/preview-site.fish` — the website preview gate, as one command (#187).** Serves
+  `site/` twice on loopback: **8788 = before**, exported from `origin/main` with
+  `git archive`, and **8789 = after**, the working tree including uncommitted edits. Prints both
+  URLs and the list of what differs, and tears down both servers and the temporary export on
+  Ctrl-C. "Before" comes from `origin/main` rather than the local checkout because the local
+  `main` is routinely behind or dirty — it was five commits behind with three uncommitted files
+  the same day (#189) — so a comparison against it shows a difference nobody is about to merge.
+
+- **`.github/workflows/deploy-site.yml` — site publication on push to `main` (#187).** Assumes
+  `AudioLabGitHubDeploy` by OIDC, resolves the bucket and distribution from the live stack
+  outputs rather than carrying literals, runs `aws s3 sync site/ --delete`, invalidates the
+  distribution, then **verifies the live page actually serves the deployed `index.html`** before
+  reporting success. Neither a required nor an advisory PR check: it is push-triggered and never
+  runs on a pull request, so it gates nothing and blocks no merge.
+
+- **`infra/github-oidc.yaml` — the CI deploy identity (#187).** The GitHub Actions OIDC provider
+  plus a role whose trust policy pins the subject to
+  `repo:Jared-Godar/audio-lab:ref:refs/heads/main` — one repo, one ref, no wildcard — and whose
+  permissions are one bucket, one distribution, one stack read. **Authored, not deployed:**
+  creating an IAM identity provider and role is billable and outward-facing, so it goes through
+  the maintainer via the reviewed change-set in `docs/site-deploy-walkthrough.md` § 7. Until
+  then the workflow fails at `AssumeRole` — written, not in force.
+
+- **ADR 0020 — publishing `site/` after a confirmed merge is pre-authorised.** Records the one
+  named narrowing of conduct rule 6, with the maintainer's decision quoted verbatim, and three
+  reversal conditions. Also backfills the ADR index, which was missing rows for **0018 and
+  0019** — both files existed, neither was listed.
+
 - **D2 target file-structure proposal (#179) — `docs/20260801-repo-file-structure-d2-target-proposal.md`.**
   Maps **every** tracked path in `main@c9685af` to a destination, plus the gitignored zones. Takes the
   root from **14 non-dot directories to 7**, collapses brand content from **6 surfaces to 1**, and
@@ -43,7 +71,107 @@ visible in the diff and would otherwise evaporate.
   the maintainer's sketch are argued rather than silently applied; ten open questions are carried to
   gate 1 (#181) rather than decided. Proposal only — nothing moved.
 
+### Changed
+
+- **`AGENTS.md`: website work now has exactly two manual gates — approve the preview, merge the
+  PR (#187).** Four amendments: step 2 requires an approved rendered preview before the first
+  commit on any `site/` change; step 8 confirms the CI deploy after a `site/` merge; the
+  "Definition of done" list gains the preview receipt; and the hold-for-the-maintainer list
+  gains the rule-6 exception, **written as an exception naming the rule it narrows** rather
+  than as a silent absence. A new § "Website changes: preview before commit" carries the
+  procedure.
+
+- **The preview rule moved from machine-local memory into the tracked contract (#187).** It was
+  recorded on 2026-07-31 in agent memory under `~/.claude/projects/`, which does not reach
+  cloud, cold-start, or fresh-clone sessions — which is why it was applied inconsistently.
+  Promoting it to `AGENTS.md` *is* the substance of the change; the memory file is now a
+  pointer, not a second copy that can drift.
+
+- **`docs/site-deploy-walkthrough.md` § 3 reversed its own standing warning.** It read *"merging
+  a PR that changes `site/` does not change the site"* with an instruction to sync manually after
+  every merge. Once the § 7 stack is deployed the opposite is true, so the box was rewritten
+  rather than left to mislead, and § 3–4 are relabelled as the maintainer's fallback — explicitly
+  **not** an agent's path, since an agent syncing from its own shell routes around branch
+  protection. New § 7 covers deploying the OIDC stack, including the trust-policy read-back that
+  is the one check worth doing character by character.
+
+- **`docs/aws-identity-center-roles.md` Part 2 is no longer "not needed yet".** Its console
+  click-path and inline JSON are relabelled a teaching reference superseded by
+  `infra/github-oidc.yaml`, with the two deliberate differences named. Its closing claim that
+  *"Nothing in `AGENTS.md` changes"* was corrected — rule 6 now carries one named exception.
+
+### Fixed
+
+- **The site deploy never worked as merged — the trust policy expected the wrong OIDC subject
+  (#196).** The first run after #192 merged failed 12 of 12 `AssumeRole` attempts. The role
+  trusted the classic `repo:Jared-Godar/audio-lab:ref:refs/heads/main`; GitHub issues this
+  repository the **immutable** form, `repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main`.
+  `infra/github-oidc.yaml` now trusts **both**, as a two-element `StringLike` list with the
+  numeric ids as named, verifiable parameters rather than opaque literals. **This is not a
+  widening** — both entries are fully qualified for the same repository and the same ref, and
+  neither contains a wildcard; it names one identity twice. Nothing was lost in the meantime:
+  #192 touched no `site/` files, so no content was pending publication. Maintainer decision on
+  the three options was "trust both forms."
+
 ### Findings
+
+- **GitHub issues immutable OIDC subject claims, and its own API will tell you it does not.**
+  `/actions/oidc/customization/sub` returns `"use_immutable_subject": false` while
+  simultaneously reporting `"sub_claim_prefix": "repo:Jared-Godar@16855088/audio-lab@1309379475"`
+  — and the claim actually presented to AWS is the immutable one. **The API is not the authority
+  on this; CloudTrail is.** A failed `AssumeRoleWithWebIdentity` records the real subject in the
+  event's `userName`:
+
+  ```console
+  $ aws cloudtrail lookup-events --lookup-attributes \
+      AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity ...
+  "userName": "repo:Jared-Godar@16855088/audio-lab@1309379475:ref:refs/heads/main",
+  "errorCode": "AccessDenied"
+  ```
+
+- **The GitHub Actions log does not contain the subject claim.** A failing
+  `configure-aws-credentials` step prints only `Not authorized to perform
+  sts:AssumeRoleWithWebIdentity`, repeated once per retry, with no indication of what was
+  presented — so the log tells you *that* the trust failed and never *why*. Reaching for
+  CloudTrail first turns this from a guessing exercise into one command. Nearly every published
+  example of this pattern, AWS's own included, shows the classic name-based subject, which is
+  what makes the mismatch easy to author and hard to see.
+
+- **`ThumbprintList` is optional on `AWS::IAM::OIDCProvider`, and omitting it is the safer
+  choice.** The IAM User Guide is explicit: *"If you choose not to include a thumbprint, IAM will
+  retrieve the top intermediate CA thumbprint of the OIDC IdP server certificate."* AWS also now
+  verifies the JWKS endpoint's TLS certificate against its own trusted-CA library. Nearly every
+  GitHub-OIDC tutorial still hardcodes `6938fd4d98bab03faadb97b34396831e3780aea1` — including the
+  AWS Security Blog post this repo's own Part 2 sketch was based on — and that literal breaks with
+  an opaque authentication failure when GitHub rotates the certificate. `infra/github-oidc.yaml`
+  omits it deliberately.
+
+- **The account had zero OIDC identity providers before this work.**
+  `aws iam list-open-id-connect-providers` returned an empty `OpenIDConnectProviderList` on
+  2026-08-01. This matters because the provider is an **account-level singleton per URL**: the
+  stack can safely create it, but any future stack needing GitHub OIDC must reference the ARN
+  rather than declare its own — a second declaration fails with `EntityAlreadyExists`, and
+  deleting this stack would pull the provider out from under the other one.
+
+- **`aws-actions/configure-aws-credentials` is at v6 (v6.2.3), not the v4 in the repo's sketch.**
+  Pinned by commit SHA `e6de054238d6b7531b4efff3b6587d9aade6a06c`, with `role-to-assume`,
+  `aws-region` and `role-session-name` confirmed present in that revision's `action.yml` rather
+  than assumed from the older example.
+
+- **Fish's `--on-signal` replaces a signal's default disposition; it does not augment it.** This
+  differs from bash `trap`, and it bit the first version of `scripts/preview-site.fish`: defining
+  an `--on-signal INT` cleanup handler meant Ctrl-C stopped both servers and removed the temp
+  export, then **left the script running** in its idle loop, serving nothing. A handler that is
+  meant to end the script must call `exit` itself. Verified in isolation: `exit` inside an
+  `--on-signal` handler does terminate the script, and `--on-event fish_exit` does fire for
+  non-interactive script runs, so the two handlers are split — one idempotent cleanup on
+  `fish_exit`, one interrupt handler that cleans up and exits 130.
+
+- **`pgrep -f <script>` matches the shell wrapper before the script itself.** Signalling the
+  first PID it returns can therefore hit the parent `zsh -c`, whose death leaves the real process
+  and its children running — which reads exactly like "the cleanup handler is broken" when in
+  fact the signal never reached it. Confirm the target with `ps -eo pid,ppid,command` before
+  concluding anything from a signal test.
 
 - **The 4 files in `prompts/` that are not duplicates are not specs — they are session-seed
   templates.** D1 established 23 of 27 were byte-identical to `artifacts/specs/` but left the
@@ -161,6 +289,156 @@ visible in the diff and would otherwise evaporate.
   misleading `Private field '#target'` error. Stripping `^#` lines makes the check work; `main`'s
   725-line version run through the identical path as a control also passes. Parse validity is all
   this proves — no version of this builder has been run in Illustrator.
+
+### Added — the approved card standard, recovered by measurement
+
+- **`brand/20260801-toldstraight-approved-card-standard.md` — the design decisions carried by
+  `episodes/ToldStraight-Ep01/cover.png`, written down and tracked for the first time.** Faces,
+  palette, and every element's ink box, cap height, fitted point size and tracking, for both the
+  cover and the chapter-card format. Marked **IN FORCE**, not "written, not in force": it is the
+  reference a builder is checked against.
+
+- **`tools/brand/20260801-python-pillow-toldstraight-approved-card-measurement.py`** — regenerates
+  the entire standard from the PNG (`--identify` fits the faces, `--proof` renders the card back
+  from the measured numbers and diffs it). The standard is reproducible rather than asserted.
+
+- **`tools/brand/20260801-adobe-illustrator-toldstraight-approved-card-system-builder.jsx`** — one
+  builder for covers and chapter cards, driven by the measured constants, with `SUBTITLE_SCALE` and
+  `BOTTOM_SCALE` knobs for the requested size bumps. **It fails loudly on an unresolved face and
+  never substitutes a wide fallback**, which is the specific defect that produced the divergence.
+
+### Findings — the Ep01 fonts were recoverable all along
+
+- **No script ever produced the approved Ep01 cover, and none was lost.** The cover landed
+  2026-07-23 in `f9e662a` — its only commit, byte-identical to `_v1-archive/cover.png`. The
+  earliest builder in the repo is 2026-07-27 (`a54befb`). Every `.jsx` blob in the object
+  database **including unreachable objects** is a known builder dated ≥ 2026-07-27. The card was
+  made outside the repo; the PNG is the only source that ever existed.
+
+- **"Unknown, and unknowable from the PNGs" was wrong.** The 2026-07-27 type shootout recorded the
+  Ep01 faces that way (its own #60 Gap 4), noted the type scale was *"eyeballed, not measured —
+  the pixel-measurement script was refused by the lane guard"*, chose different faces, and re-set
+  every downstream asset in them. That is the root cause of only Ep01 looking right. The lane guard
+  was removed with the governance consolidation (#94), so the measurement finally ran.
+
+- **The Ep01 title is CONDENSED, and had been read as wide by eye more than once.** Identified by
+  per-glyph ink-width ÷ cap-height — a ratio independent of point size *and* tracking — fitted
+  against **987 faces installed on this machine** (all macOS system fonts plus all 215 Adobe
+  CoreSync synced faces), then confirmed by pixel overlap at matched cap height:
+
+  | Candidate | per-glyph RMS | IoU | tracking needed |
+  | --- | --- | --- | --- |
+  | **Arial Narrow Bold** | **0.0179** | **0.777** | −4.3 px |
+  | Helvetica Neue Condensed Bold | 0.0491 | 0.540 | +2.5 px |
+  | Arial Bold | 0.1621 | 0.546 | −30.3 px |
+  | Helvetica Bold | 0.1588 | 0.556 | −29.0 px |
+
+  Wide faces are 15–20% too wide on **every** glyph and only reach the measured line width at
+  roughly −145/1000 em, which visibly collides the letters. Mono is **Courier New Bold**
+  (IoU 0.587 against 0.406 Menlo, 0.358 Courier New Regular, 0.229 Andale Mono).
+
+- **Both faces are macOS system fonts, not Adobe Fonts — and the Adobe faces the builders ask for
+  are not installed.** Trade Gothic Next, Letter Gothic and Univers appear in **none** of the 215
+  synced CoreSync faces on this machine. A builder requesting `TradeGothicNextLTPro-BdCn` or
+  `LetterGothicStd` therefore resolves down its fallback chain, which is precisely how a wide face
+  entered the system.
+
+- **The measured standard reproduces the card: ink IoU 0.80** rendering §3 back out and diffing
+  against the original (rotated `MEMBER` stamp excluded — its geometry is estimated, not measured,
+  and the builder says so in its audit).
+
+- **Two numbers earlier work guessed, now measured.** The short-title-line ratio is **0.755**
+  (111/147 px), not 0.66. The cover subtitle's tracking is **≈ +142–164/1000 em**, not 300.
+
+### Changed — #190 triage, case B (cast manifest)
+
+- **`episodes/cast/portraits/manifest.json` gains `revised_2026_07_31`, rescued from the
+  `sparkle-cleanup` worktree; the rest of that copy was discarded.** The note records that Owen,
+  Des Fable, Michael Voss and Anna Sinclair were promoted from starter-sketch to **LOCKED**
+  (maintainer-approved 2026-07-31), and their four `subject_prompt` entries were updated to match
+  so the file does not contradict its own note. **Only the note was taken.** The uncommitted copy
+  it came from was written before the #167 cast expansion and, applied whole, would have deleted
+  every `demographics` block, the `demographics_note` and `demographics_schema`, and the four
+  `20260731-` cast entries (Rosa Villalobos, Yolanda Bridges, Mei-Lin Chao, Hector Salazar) —
+  9 portraits down to 5. Verified after the edit: 9 entries, demographics blocks byte-identical to
+  `origin/main`, all three trailing keys unchanged.
+
+### Findings — #190 triage
+
+- **The rescued note's sparkle-removal claim was false and was not imported as written.** It said
+  the Gemini export "sparkle" badge "was removed from the portraits." The five `20260729-` PNGs on
+  `main` are still the blobs committed in #90/#93 on 2026-07-29 and have never been rewritten, so
+  the badge is still there. The note as landed says the removal is **not done**. A provenance file
+  that records an intention as an accomplishment is worse than one that records nothing.
+
+- **`git diff origin/main <branch>` alone cannot answer "has this landed."** It also fires when the
+  branch is merely *behind*. `bsky-atproto-dns-173` and `worktree-social-links-164` both show a
+  `CHANGELOG.md` difference while every line they added is already present in `main` verbatim —
+  the difference is `main` moving on, not unlanded work. The reliable test is per-file against the
+  **merge-base**: for each file the branch changed since `git merge-base origin/main HEAD`, ask
+  whether `main`'s blob now matches. Applied across the six worktrees this reclassified two of them
+  from "differs" to "landed" and exposed one genuinely unlanded set (below).
+
+- **`x-avatar-builder-154` holds four Illustrator builders that exist nowhere on `main`.**
+  `…-x-avatar-builder.jsx` (540L), `…-x-header-builder.jsx` (597L), `…-youtube-banner-builder.jsx`
+  (480L) and `…-youtube-watermark-builder.jsx` (354L) — 1,971 lines absent from `main` — plus
+  `docs/social-handle-availability-and-registration.md` at 893 lines against `main`'s 602. All of it
+  is pushed to `origin/x-avatar-builder-154`, so nothing is at risk of loss, but the branch is not
+  merged and was not in #190's original triage.
+
+### Fixed — #202, the mono face returns to the maintainer's library
+
+- **`MONO_FACE_MODE` is now `locked-lettergothic`, not `ep01-courier`.** The rescued layer
+  selected **Courier New** — a macOS system font — over the maintainer's recorded shootout winner,
+  reasoning from one sentence in the type-shootout guide that Letter Gothic Std "was not installed"
+  on 2026-07-23. It was, and is: `Letter Gothic Std` Regular/Italic/Bold/Bold Italic, in the synced
+  `audio-lab` Adobe library. It is also the **only** monospaced family in that library, verified by
+  reading `post.isFixedPitch` and PANOSE `bProportion` across all 211 synced faces. The maintainer's
+  standing rule is that every face in the final design is in that library; anything absent from it
+  is definitionally wrong.
+
+- **The `locked-lettergothic` fallback chains no longer reach a system font.** They fell through
+  Orator Std (not in the library at all) to Courier (a system font) — two paths straight back to the
+  substitution this builder exists to prevent. Letter Gothic Std has no legitimate second choice,
+  so the chain is now one entry.
+
+- **An unresolved face now draws nothing.** `resolveRole()` returned `null` on total failure, logged
+  a single line, and the build continued — every unresolved role silently became Illustrator's
+  default. The file's own header claimed that removing the wide-face mode meant "nothing can reach
+  for a non-Trade-Gothic face again"; that was false while this path existed, because with the
+  pinned face absent the default was the only thing left to reach for. The builder now alerts and
+  returns without drawing. A card in the wrong face is worse than no card, because the wrong card
+  gets approved.
+
+- **Rescued reasoning preserved verbatim, corrected in place.** Nothing from the rescued layers was
+  rewritten. Dated `CORRECTION, 2026-08-01 (#202)` blocks sit beneath the original text, so the
+  authored argument and its refutation are both readable — which is the entire point of #190's
+  rescue half.
+
+### Findings — the artwork cannot identify the intended faces
+
+- **The `--identify` measurement merged in #198 never tested a single Adobe font.** It globs
+  `livetype/**/*.otf`; the faces live at `livetype/.w/.39691.otf`. Python's `glob` does not descend
+  into dot-directories and `*` does not match a leading dot, so it matched **0 of 211** files while
+  reporting "987 faces tested … plus all 215 Adobe CoreSync synced faces". It counted paths it had
+  assembled, never checked that any resolved.
+
+- **Title face confirmed as recorded: Trade Gothic Next LT Pro Bold Condensed.** With the glob
+  fixed, it is the best library face by pixel overlap — IoU **0.6961** at tracking **+32**, ahead of
+  Heavy Condensed (0.6303) and Helvetica Neue LT Pro Bold Condensed (0.6173). The 2026-07-27
+  shootout decision needed no re-deriving; it was right.
+
+- **The approved Ep01 PNG was itself exported with system-font substitutions, so it cannot identify
+  faces.** All 11 measured elements fit macOS system faces markedly better than any library face
+  (title_1: Arial Narrow Bold 0.916 vs 0.689; every mono element: Courier New Bold ~0.69–0.73 vs
+  Letter Gothic Std ~0.35–0.43). Measuring a fallback-contaminated artifact recovers the fallback,
+  not the design. **Faces come from the recorded decision; the artwork yields geometry only** — ink
+  boxes, cap heights, widths, palette, rules, all face-independent.
+
+- **Pixel overlap cannot discriminate faces below roughly cap 40 px.** At the card's mono sizes
+  (cap 18–23) candidate faces differ by less than the noise floor — 0.30 vs 0.34. Face assignment
+  for small text follows the design system, not measurement, and saying otherwise claims a
+  resolution the method does not have.
 
 ## 2026-07-31
 

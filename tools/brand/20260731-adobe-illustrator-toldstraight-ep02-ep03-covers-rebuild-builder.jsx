@@ -93,7 +93,33 @@
     // "ep01-courier" matches the approved card. "locked-lettergothic" returns to
     // the shootout's winner. Same trade as the title: continuity with the art
     // the maintainer approved, versus the type system recorded afterwards.
-    var MONO_FACE_MODE = "ep01-courier";  // "ep01-courier" | "locked-lettergothic"
+    //
+    // ---- CORRECTION, 2026-08-01 (#202) — the reasoning above is wrong ----
+    //
+    // Everything from "MONO FACE" down to this line is preserved as rescued, but
+    // it does not survive measurement. Three separate errors:
+    //
+    //  1. "Letter Gothic Std WAS NOT INSTALLED" is an inference from one sentence
+    //     in the shootout guide, never checked against the disk. It IS installed,
+    //     and was: Letter Gothic Std / Regular, Italic, Bold, Bold Italic, in the
+    //     maintainer's synced Adobe library.
+    //  2. It is the ONLY monospaced family in that library — verified by reading
+    //     post.isFixedPitch and PANOSE bProportion across all 211 synced faces.
+    //     The maintainer's standing rule is that every face in the final design
+    //     is in that library and anything absent from it is definitionally wrong.
+    //     Courier New is a macOS system font and is not in it.
+    //  3. The "slab serifs prove Courier" reading cannot be checked the way it was
+    //     claimed. Those elements sit at cap height 18-23 px, where antialiasing
+    //     dominates and pixel-overlap between candidate faces differs by less than
+    //     the noise floor (0.30 vs 0.34 IoU). The artwork cannot settle a mono face
+    //     at that size, in either direction.
+    //
+    // The deeper error: the approved Ep01 PNG was itself exported with system-font
+    // substitutions — all 11 measured elements fit macOS system faces markedly
+    // better than any library face. It is a product of the same silent-fallback
+    // bug this file exists to prevent, so it CANNOT identify the intended faces.
+    // It yields geometry only. Faces come from the recorded shootout decision.
+    var MONO_FACE_MODE = "locked-lettergothic";  // "ep01-courier" | "locked-lettergothic"
 
     var FACE = {
         title: "TradeGothicNextLTPro-BdCn",
@@ -115,6 +141,16 @@
         // Both agree with the dates: the shootout guide records that on
         // 2026-07-27 none of the mono candidates were installed, and the card is
         // 2026-07-23 — so it had to be a system typewriter face.
+        //
+        // CORRECTION 2026-08-01 (#202): "CONFIRMED by two independent signals"
+        // was not. Signal 2 (slab serifs) is unresolvable at cap 18-23 px, and
+        // signal 1 (a face in Illustrator's Recent Fonts) records what was USED
+        // in a later rebuild, not what Ep01 was set in — it is downstream of the
+        // very substitution being diagnosed. The dates argument rests on Letter
+        // Gothic not being installed; it is installed. See the block above.
+        // What survives unchanged: EVERY mono element on the card is BOLD, and
+        // at the subtitle's tracking the regular weight thins to hairlines. That
+        // is why this resolves to LetterGothicStd-Bold and not the regular cut.
         monoBold: (MONO_FACE_MODE === "locked-lettergothic")
                     ? "LetterGothicStd-Bold"
                     : "CourierNewPS-BoldMT"
@@ -140,20 +176,25 @@
         // Bold mono is its OWN role, not a variant looked up later. Every mono
         // element on the Ep01 card is bold; resolving the regular weight is what
         // made the letterspaced subtitle disappear on the first two runs.
+        // CORRECTION 2026-08-01 (#202): the locked-lettergothic chains used to
+        // fall through to Orator Std and then Courier. Neither is in the
+        // maintainer's synced library — Orator is not there at all, Courier is a
+        // macOS system font — so both were paths back to the exact silent
+        // substitution this file exists to stop. Letter Gothic Std is the ONLY
+        // monospaced family in that library (verified across all 211 synced
+        // faces), so there is no legitimate second choice. Unresolved must fail
+        // loudly; a one-entry chain is the mechanism that makes it.
         monoBold: (MONO_FACE_MODE === "locked-lettergothic") ? [
-            { require: ["lettergothic"], exclude: ["italic", "oblique"], prefer: ["bold", "bd"] },
-            { require: ["oratorstd"],    exclude: ["italic", "oblique"], prefer: ["bold", "medium", "std"] },
-            { require: ["courier"],      exclude: ["italic", "oblique"], prefer: ["bold", "bo"] }
+            { require: ["lettergothic"], exclude: ["italic", "oblique"], prefer: ["bold", "bd"] }
         ] : [
             { require: ["couriernew"],   exclude: ["italic", "oblique"], prefer: ["bold", "boldmt", "bd"] },
             { require: ["courier"],      exclude: ["italic", "oblique", "prime"], prefer: ["bold", "boldmt", "bo"] },
             { require: ["courierprime"], exclude: ["italic", "oblique"], prefer: ["bold"] },
             { require: ["nimbusmono"],   exclude: ["italic", "oblique"], prefer: ["bold"] }
         ],
+        // Same correction as monoBold above (#202): no system-font fallback.
         mono: (MONO_FACE_MODE === "locked-lettergothic") ? [
-            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "medium"] },
-            { require: ["oratorstd"],     exclude: ["italic", "oblique"], prefer: ["std", "medium"] },
-            { require: ["courier"],       exclude: ["italic", "oblique"], prefer: ["regular", "psmt"] }
+            { require: ["lettergothic"],  exclude: ["italic", "oblique"], prefer: ["std", "medium"] }
         ] : [
             { require: ["couriernew"],    exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
             { require: ["courier"],       exclude: ["italic", "oblique", "bold"], prefer: ["psmt", "regular"] },
@@ -324,6 +365,34 @@
     // first thing that suffers and it suffers silently.
     var fMonoB = fontObj(psMonoB) || fMono;
     if (!fontObj(psMonoB)) log("  ** no BOLD mono resolved — subtitle and fields fall back to regular **");
+
+    // ---- HARD STOP, 2026-08-01 (#202) ----
+    //
+    // Before this, resolveRole() returned null on total failure, logged one line,
+    // and the build continued -- every unresolved role silently became
+    // Illustrator's default face. That is not a fallback chain failing safe; it
+    // is the silent substitution that produced this entire mess, and the header
+    // comment's claim that removing the wide mode means "nothing can reach for a
+    // non-Trade-Gothic face again" was false while this path existed: with the
+    // pinned face absent, the default was the ONLY thing left to reach for.
+    //
+    // Refuse to draw instead. A builder that produces a card in the wrong face is
+    // worse than one that produces nothing, because the wrong card gets approved.
+    var missing = [];
+    if (!fTitle) missing.push("title (" + FACE.title + ")");
+    if (!fMono)  missing.push("mono ("  + FACE.mono  + ")");
+    if (!fMonoB) missing.push("monoBold (" + FACE.monoBold + ")");
+    if (missing.length) {
+        alert("FACE RESOLUTION FAILED — nothing was drawn\n\n"
+            + "Unresolved: " + missing.join(", ") + "\n\n"
+            + "Every face in this design comes from the maintainer's synced Adobe\n"
+            + "library. A macOS system font is not a valid substitute, so there is\n"
+            + "no fallback to take. Activate the missing faces in Creative Cloud\n"
+            + "and re-run.\n\n"
+            + "Expected: Trade Gothic Next LT Pro Bold Condensed (title),\n"
+            + "Letter Gothic Std Bold (mono).");
+        return;
+    }
 
 
     // ==============================================================

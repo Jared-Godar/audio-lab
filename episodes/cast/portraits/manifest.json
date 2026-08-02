@@ -1,6 +1,7 @@
 {
   "_note": "Provenance index for the show-wide Archer-style cast portraits. Filenames are self-describing (DATE-VENDOR-MODEL-SUBJECT-PURPOSE); this file carries the recipe. No seed is recorded because the consumer Gemini image UI does not expose one. Portraits were produced by iterative edits in a single Gemini thread starting from each canonical prompt below.",
   "created": "2026-07-29",
+  "revised_2026_07_31": "The four synthetic looks carried since 2026-07-29 (Owen, Des Fable, Michael Voss, Anna Sinclair) were promoted from starter-sketch to LOCKED, maintainer-approved 2026-07-31; their subject_prompt entries below say so. Removing the Gemini export 'sparkle' badge from the portrait PNGs is NOT done: as of 2026-08-01 the five 20260729- files are byte-identical to the ones committed in #90/#93 and still carry it. Removal method and per-file status get recorded here when that pass actually lands. Provenance of this entry: rescued per #190 from an uncommitted copy in the stale sparkle-cleanup worktree, whose remaining changes were discarded because that copy predated the #167 cast expansion and would have deleted every demographics block plus the four 20260731- cast entries.",
   "vendor": "google-gemini",
   "model": "nano-banana-2",
   "tool": "https://gemini.google.com/images",
@@ -37,7 +38,7 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "Expert who studies ADHD and has it himself; mid-30s to 40s, glasses, tidy short hair, clean or lightly stubbled, bookish but warm. STARTER SKETCH — look not yet locked.",
+      "subject_prompt": "Expert who studies ADHD and has it himself; mid-30s to 40s, glasses, tidy short hair, clean or lightly stubbled, bookish but warm. LOCKED — maintainer-approved 2026-07-31.",
       "demographics": {
         "gender": "male",
         "race_ethnicity": "white_non_hispanic",
@@ -53,7 +54,7 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "British everyman co-host and 'fellow club member', lived-in and slightly scattered, warm and self-deprecating; late 30s-40s, slightly rumpled, expressive eyebrows, casual layered clothing. STARTER SKETCH — look not yet locked.",
+      "subject_prompt": "British everyman co-host and 'fellow club member', lived-in and slightly scattered, warm and self-deprecating; late 30s-40s, slightly rumpled, expressive eyebrows, casual layered clothing. LOCKED — maintainer-approved 2026-07-31.",
       "demographics": {
         "gender": "male",
         "race_ethnicity": "white_non_hispanic",
@@ -69,7 +70,7 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "American academic who 'speaks fluent effect size'; polished, credentialed, self-aware; 40s-50s, glasses, blazer or collared shirt, composed slightly-smug-but-likable expression. STARTER SKETCH — look not yet locked.",
+      "subject_prompt": "American academic who 'speaks fluent effect size'; polished, credentialed, self-aware; 40s-50s, glasses, blazer or collared shirt, composed slightly-smug-but-likable expression. LOCKED — maintainer-approved 2026-07-31.",
       "demographics": {
         "gender": "male",
         "race_ethnicity": "white_non_hispanic",
@@ -85,7 +86,7 @@
       "real": false,
       "generated": true,
       "source": "synthetic character; no reference photo. Anchored to Jared's locked portrait for style consistency.",
-      "subject_prompt": "Clinician who treats and explains the condition at the bedside; warm, direct, reassuring authority; 40s-50s, auburn-brown hair with a grey streak pulled back off the face, small stud earrings, holding tortoiseshell glasses to her chin, maroon/burgundy blazer over a cream blouse, warm slight smile. STARTER SKETCH — look not yet locked.",
+      "subject_prompt": "Clinician who treats and explains the condition at the bedside; warm, direct, reassuring authority; 40s-50s, auburn-brown hair with a grey streak pulled back off the face, small stud earrings, holding tortoiseshell glasses to her chin, maroon/burgundy blazer over a cream blouse, warm slight smile. LOCKED — maintainer-approved 2026-07-31.",
       "demographics": {
         "gender": "female",
         "race_ethnicity": "white_non_hispanic",
