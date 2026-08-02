@@ -68,6 +68,18 @@ them as part of the reorg, which is already rewriting every inbound reference.
   with `uv run voicelab rates`; see `docs/elevenlabs.md`.
 - `ELEVENLABS_API_KEY` lives in the shell environment — never in a `.env`, never in
   code, no dotenv dependency.
+- **It is not in the environment by default, and nothing in this repository puts it
+  there.** A fresh login shell does not have it set. On the maintainer's machine it is
+  supplied on demand by a Fish function, `secrets-load`, which reads the credential from
+  1Password and exports it into the current shell only — never persisted, never written
+  to disk. `with-secrets <command>` is the narrower form: the value exists only inside
+  that one child process. **Both functions are machine-local and untracked (#233)**, so
+  a fresh clone, a cloud session, and a cold start all have neither. If a session finds
+  the variable unset, that is the expected state, not a broken setup — and rebuilding a
+  loader is not the fix.
+- **Never pass the key as a command argument.** `set -gx ELEVENLABS_API_KEY <value>`
+  works, but the shell records the command — secret included — in its history file, so
+  the key outlives the session in plaintext. Prefer `secrets-load`.
 - HTTP 200 does **not** mean `voice_settings` were honored. Check the capability
   flags from `/v1/models` — v3 silently ignores `style` and `speaker_boost`.
 - Quote credit cost before spending; print the ledger after.
