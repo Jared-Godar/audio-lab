@@ -2,6 +2,11 @@
 
 **The one place to look for a builder you are being asked to run.**
 
+**Empty right now, and that is the correct state** — there is no draft under review. It is
+provisioned so the next draft has a home in the repository instead of a session directory
+outside it. The 14 already-approved builders are not here; they moved beside their assets
+on 2026-08-02 (see [`../README.md`](../README.md)).
+
 A builder is an Adobe Illustrator or InDesign script the agent writes and the *maintainer*
 runs, because the licensed typefaces live only on his machine. Until 2026-08-02 those
 drafts had no home in the repository at all — they were handed over from a session

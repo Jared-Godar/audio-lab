@@ -87,13 +87,12 @@ Three that needed a call rather than a match:
 
 ## The 14 builders
 
-Two homes, per the lifecycle in
-[`working-builders/README.md`](working-builders/README.md): drafts live in
-`brand/working-builders/` while being iterated, and an approved builder moves beside the
-asset it produced. Every builder already names its own output directory, so no destination
-is guessed.
+**Moved 2026-08-02 — this is done, not planned.** All 14 left `tools/brand/`, which is now
+retired with zero files. Drafts live in `brand/working-builders/` while being iterated; an
+approved builder sits beside the asset it produced. Every builder named its own output
+directory, so no destination was guessed.
 
-| Builder | Writes to | Approved home |
+| Builder | Writes to | Now lives at |
 | --- | --- | --- |
 | `…-ep01-covers-builder.jsx` | `output/artwork/ep01-v2` | `episodes/ep01/art/builders/` |
 | `…-ep01-exhibit-cards-builder.jsx` | `output/artwork/ep01-v2` | `episodes/ep01/art/builders/` |
