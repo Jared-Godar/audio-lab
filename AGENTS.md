@@ -213,9 +213,22 @@ rule 6 violation with or without this exception.
    (`skip-changelog` is for genuinely trivial changes only). The § Findings section
    records what was learned about external services that a diff cannot show.
 4. **Commit with `git commit -F <file>`** (file authored outside the repo): line 1 =
-   PR title verbatim, blank line, then a curated 500–2,500-byte body — this repo
-   squashes with `COMMIT_MESSAGES`, so the branch's single commit body IS the
+   PR title verbatim, blank line, then a curated body of **at least 500 bytes** — this
+   repo squashes with `COMMIT_MESSAGES`, so the branch's single commit body IS the
    permanent record on `main`. A bare `-m` subject is a defect.
+
+   **There is no upper limit. The body runs as long as the change requires.** The test is
+   not length but whether every line carries something a reader of `main` needs and cannot
+   get from the diff — why it was done this way, what was measured, what was rejected and
+   why. A body that is long because it was never edited is the defect; a body that is long
+   because the change was is not.
+
+   *The former 2,500-byte ceiling is retired (maintainer decision 2026-08-02). It carried
+   no recorded rationale — the surrounding sentence justifies the floor, never the cap —
+   and **20 of the last 30 commits on `main` exceeded it**, the largest at 16,887 bytes,
+   with nobody flagging any of them. A rule broken two times in three does not constrain
+   behaviour; it teaches readers to skip the section it lives in. Reversal condition: if
+   bodies start reading as padded rather than dense, a hard number comes back.*
 5. **Open the PR with full metadata** — assignee `Jared-Godar`, ≥1 `type:` and ≥1
    `area:` label verified against `.github/labels.json`, `priority:` where
    meaningful, milestone where the linked issue has one, `Closes #N` repeated per
