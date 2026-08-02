@@ -10,28 +10,55 @@
  * is recorded in brand/20260801-toldstraight-approved-card-standard.md.
  * Nothing here is eyeballed or recalled.
  *
- * The faces were recovered by fitting glyph ink-width / cap-height --
- * a ratio independent of both point size and tracking -- against 987
- * fonts installed on the maintainer's machine, then confirmed by pixel
- * overlap at matched cap height. Results:
+ * THE FACES ARE THE MAINTAINER'S RECORDED DECISION, not a measurement:
  *
- *   TITLE : Arial Narrow Bold   RMS 0.018, IoU 0.777   <- CONDENSED
- *   MONO  : Courier New Bold                IoU 0.587
+ *   TITLE : Trade Gothic Next LT Pro Bold Condensed
+ *   MONO  : Letter Gothic Std Bold
  *
- * Wide grotesques were tested and REJECTED. Arial Bold and Helvetica
- * Bold are 15-20% too wide on every glyph and only reach the measured
- * line width at about -145/1000 em tracking, which collides the
- * letters. The Ep01 title is not a wide face. It has been read as one
- * by eye more than once; the measurement settles it.
+ * Both were chosen in the 2026-07-27 type shootout, run 2, across all
+ * three plates. Both are in the maintainer's synced audio-lab Adobe
+ * library. Ranked against the artwork within that library, Trade Gothic
+ * Next LT Pro Bold Condensed is also the closest fit -- IoU 0.6961 at
+ * +32 tracking, ahead of Heavy Condensed at 0.6303 -- so the decision
+ * and the measurement agree. Letter Gothic Std is the only monospaced
+ * family in the library, so the mono has no alternative to weigh.
  *
- * NEITHER FACE IS AN ADOBE FONT. Trade Gothic Next, Letter Gothic and
- * Univers are absent from all 215 synced CoreSync faces on that
- * machine, which is exactly how a builder asking for
- * TradeGothicNextLTPro-BdCn ended up rendering a fallback.
+ * The title is CONDENSED. It has been read as a wide grotesque by eye
+ * more than once and it is not: wide faces are 15-20% too wide on every
+ * glyph and only reach the measured line width at about -145/1000 em
+ * tracking, which collides the letters.
  *
- * THEREFORE: this builder FAILS LOUDLY on an unresolved face. It never
- * substitutes a wide fallback. Silent fallback is the whole reason the
- * standard had to be reconstructed from pixels.
+ * The GEOMETRY -- ink boxes, cap heights, widths, palette, rules -- is
+ * measured off the artwork and is face-independent, so it is sound.
+ *
+ * CORRECTED 2026-08-01 (#202). The paragraph that stood here claimed
+ * "NEITHER FACE IS AN ADOBE FONT -- Trade Gothic Next, Letter Gothic and
+ * Univers are absent from all 215 synced CoreSync faces on that machine."
+ * That is false. All three are installed: Trade Gothic Next LT Pro in 17
+ * styles including Bold Condensed, Letter Gothic Std in 4, Univers Next
+ * Pro in 57. The measurement that "proved" their absence globbed
+ * livetype/**\/*.otf while the faces live at livetype/.w/.39691.otf --
+ * Python's glob skips dot-directories and * does not match a leading
+ * dot, so it examined 0 of 211 files and reported 215.
+ *
+ * It also had the causation backwards. A builder asking for
+ * TradeGothicNextLTPro-BdCn did render a fallback -- not because the face
+ * was missing, but because the font list being searched never contained it.
+ *
+ * And the artwork cannot arbitrate: the approved Ep01 cover was itself
+ * exported with system-font substitutions (all 11 elements fit macOS
+ * system faces better than any library face), so fitting to it recovers
+ * the substitution rather than the design. Faces come from the
+ * maintainer's recorded 2026-07-27 shootout. The artwork gives geometry.
+ *
+ * STANDING CONSTRAINT: every face in the final design is in the
+ * maintainer's audio-lab Adobe library. A face absent from that library
+ * is definitionally wrong, and a macOS system font is never a valid
+ * substitute.
+ *
+ * THEREFORE: this builder FAILS LOUDLY on an unresolved face. There are
+ * no system fonts in any chain. Silent fallback is the whole reason this
+ * had to be rebuilt twice.
  *
  * TO RUN:  File > Scripts > Other Script...  and pick this file.
  * IT NEVER TOUCHES AN OPEN DOCUMENT. It always creates a new one.
@@ -73,25 +100,40 @@
     // ==============================================================
     var CANVAS = 1600;
 
+    // The maintainer's recorded 2026-07-27 shootout decision. Not derived
+    // here, and not derivable from the artwork -- see the header.
     var FACE = {
-        title: "ArialNarrow-Bold",
-        mono:  "CourierNewPS-BoldMT"
+        title: "TradeGothicNextLTPro-BdCn",
+        mono:  "LetterGothicStd-Bold"
     };
 
-    // Condensed-only fallbacks. There is deliberately NO wide face in
-    // any chain -- a wide fallback is the documented failure mode.
+    // LIBRARY FACES ONLY. Every entry below is in the maintainer's synced
+    // audio-lab Adobe library; there is deliberately no macOS system font
+    // in any chain, and no wide face in the title chain.
+    //
+    // The previous version listed arialnarrow / helveticaneue / ptsansnarrow /
+    // robotocondensed / firasanscondensed for the title and couriernew /
+    // courier / menlo for the mono. Of those eight, ONE is in the library
+    // (Helvetica Neue LT Pro). The rest are system fonts, so the chain was a
+    // guaranteed route to a face the maintainer has ruled out.
+    //
+    // Mono has exactly one entry because Letter Gothic Std is the ONLY
+    // monospaced family in the library -- verified by reading
+    // post.isFixedPitch and PANOSE bProportion across all 211 synced faces.
+    // There is no legitimate second choice, and inventing one is how this
+    // went wrong before.
     var SEARCH = {
         title: [
-            { require: ["arialnarrow"],       prefer: ["bold", "bd"] },
-            { require: ["helveticaneue"],     prefer: ["condensedbold", "condbold", "bdcn"] },
-            { require: ["ptsansnarrow"],      prefer: ["bold"] },
-            { require: ["robotocondensed"],   prefer: ["bold"] },
-            { require: ["firasanscondensed"], prefer: ["bold"] }
+            { require: ["tradegothicnext"],   exclude: ["italic", "oblique"],
+              prefer: ["bdcn", "boldcond", "condbold", "bd", "bold"] },
+            { require: ["universnextpro", "cond"], exclude: ["italic", "oblique"],
+              prefer: ["boldcond", "condbold", "bold"] },
+            { require: ["helveticaneueltpro"], exclude: ["italic", "oblique", "obl"],
+              prefer: ["bdcn", "boldcond", "blkcn"] }
         ],
         mono: [
-            { require: ["couriernew"], prefer: ["boldmt", "bold", "bd"] },
-            { require: ["courier"],    exclude: ["prime"], prefer: ["bold", "bo"] },
-            { require: ["menlo"],      prefer: ["bold"] }
+            { require: ["lettergothic"], exclude: ["italic", "oblique"],
+              prefer: ["bold", "bd"] }
         ]
     };
 
@@ -217,12 +259,14 @@
         doc.close(SaveOptions.DONOTSAVECHANGES);
         alert("FONT NOT RESOLVED — nothing was built.\n\n"
             + "Missing: " + miss + "\n\n"
-            + "This builder refuses to substitute a wide face. Setting these\n"
-            + "cards in Helvetica or Arial at normal width is the documented\n"
-            + "defect this file exists to prevent — it is 15-20% too wide on\n"
-            + "every glyph.\n\n"
-            + "Activate the face and run again. See\n"
-            + "brand/20260801-toldstraight-approved-card-standard.md");
+            + "Every face in this design is in your audio-lab Adobe library.\n"
+            + "There is deliberately no fallback: a macOS system font is not a\n"
+            + "valid substitute, and accepting one silently is the defect this\n"
+            + "file exists to prevent (#202).\n\n"
+            + "Activate the face in Creative Cloud and run again:\n"
+            + "  TITLE  Trade Gothic Next LT Pro — Bold Condensed\n"
+            + "  MONO   Letter Gothic Std — Bold\n\n"
+            + "See brand/20260801-toldstraight-approved-card-standard.md");
         return;
     }
     log("TITLE face resolved: " + fTitle.name
