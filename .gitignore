@@ -45,6 +45,22 @@ Userdata.json
 Inferences.json
 
 # ── Generated audio, video & data ────────────────────────────
+#
+# WHAT THESE RULES ARE FOR: keeping WORKING media out — voice auditions, test
+# renders, stems, tempo experiments. There are 141 such files under output/ and
+# that is the volume this block exists to hold back.
+#
+# WHAT THEY ARE NOT FOR: the finished episode. A published episode master is
+# distributed to the whole world on a podcast feed and on YouTube; treating it
+# as something that must not enter a repository was never a decision anyone
+# made, it was a side effect of a pattern written for scratch files.
+#
+# That side effect cost real work. `*.mp4` silently swallowed BOTH YouTube
+# masters (told-straight-ep01.mp4, told-straight-ep02.mp4) for ten days --
+# `git add` skips an ignored path without a word, so nobody saw it fail. They
+# survived only because they happened to still be sitting in a home folder.
+# Maintainer decision 2026-08-02: finished masters are tracked. See the
+# carve-outs at the bottom of this block.
 output/
 # Audio
 *.mp3
@@ -57,7 +73,7 @@ output/
 *.aiff
 *.aif
 *.wma
-# Video (edge-tts / yt-dlp / quick-cut byproducts)
+# Video
 *.mp4
 *.mov
 *.webm
@@ -71,9 +87,19 @@ output/
 # the exported *.png deliverables are tracked, the editable source is not.
 *.ai
 
-# NOTE: episode deliverables are intentionally TRACKED — cover/chapter art
-# (*.png), transcripts (*.md/*.txt/*.vtt/*.html), captions, and show notes.
-# Only the heavy source audio (*.mp3 etc. above) is ignored.
+# ── Finished episode deliverables are TRACKED ────────────────
+# Cover and chapter art (*.png), transcripts (*.md/*.txt/*.vtt/*.html),
+# captions and show notes were always tracked. As of 2026-08-02 the finished
+# audio and video masters are too -- these are the published artifacts, not
+# working files. Anything still being iterated on stays in output/, which is
+# ignored wholesale above and is unaffected by these carve-outs.
+!episodes/**/*.mp3
+!episodes/**/*.mp4
+
+# Guardrail, not a limit: nothing here approaches GitHub's 100 MB ceiling
+# (largest master today is 15.7 MB). If a finished master ever exceeds 75 MB,
+# raise it with the maintainer before committing rather than inventing a
+# storage scheme for a problem that has not happened.
 
 # ── ML / transcription model blobs (e.g. local Whisper) ──────
 *.pt

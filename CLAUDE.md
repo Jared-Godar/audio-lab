@@ -24,8 +24,12 @@ wins.
 - `brand/` — design tokens and the type-decision contact sheet.
 - `infra/policies/` — verbatim JSON of the live IAM policies.
 - `output/` — **gitignored** renders and audition results.
-- `episodes/` — tracked deliverables (art, transcripts, notes). **Audio never enters
-  git.** Episodes 1–3 are unpublished drafts.
+- `episodes/` — tracked deliverables: art, transcripts, notes, **and the finished audio
+  and video masters** (maintainer decision 2026-08-02). Working audio — auditions, stems,
+  test renders — stays in the gitignored `output/`. The distinction is finished versus
+  working, not audio versus text: a published master is distributed to the world on a feed
+  and on YouTube, so keeping it out of the repository protected nothing and silently cost
+  both YouTube masters ten days of being untracked. Episodes 1–3 are unpublished drafts.
 
 ## Artifact naming (repo shapes for conduct-core rule 5)
 

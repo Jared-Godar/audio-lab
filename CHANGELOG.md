@@ -11,6 +11,19 @@ visible in the diff and would otherwise evaporate.
 
 ### Added
 
+- **The finished episode masters are in the repository — audio and video, for the first
+  time.** `told-straight-ep01.mp4` (12.5 MB, 9m34s) and `told-straight-ep02.mp4` (15.7 MB,
+  12m23s), both H.264 1920×1080 at 2 fps with AAC mono audio — the chapter-card slideshows
+  uploaded to YouTube — plus the two audio masters they were built from,
+  `membership-has-requirements.mp3` and `session-one-skills.mp3` (durations match the video
+  exactly, 574.33s and 742.88s). **None had ever been committed on any branch.**
+  `git rev-list --objects --all` filtered for video extensions returned nothing.
+
+  The cause was `.gitignore`: a blanket `*.mp4` / `*.mov` rule commented as covering
+  "edge-tts / yt-dlp / quick-cut byproducts" that also swallowed both YouTube masters, and
+  a blanket `*.mp3` doing the same to the audio. `git add` skips an ignored path silently,
+  so the failure never surfaced — the masters survived only because copies happened to
+  remain in a home folder.
 - **Two enforcement gates for rules that already existed and were broken anyway (#204).**
   Every rule broken on 2026-08-01 was already binding; each failed because enforcement
   depended on an agent choosing to run a check. These do not. Neither is a new rule and
@@ -75,6 +88,32 @@ visible in the diff and would otherwise evaporate.
 
 ### Changed
 
+- **Ignore rules and standing prose no longer treat published deliverables as secrets.**
+  The distinction is now **finished versus working**, not audio versus text. `output/`
+  stays ignored wholesale — 141 working audio files, the volume those rules were written
+  for — and `episodes/**/*.mp3` and `episodes/**/*.mp4` are carved back in. Verified with a
+  control: the masters report trackable while `output/test.mp3` and `artifacts/scratch.mp4`
+  still report ignored. Three prose claims saying the same wrong thing were corrected —
+  `CLAUDE.md`'s "**Audio never enters git**", `README.md`'s "there is no audio in this
+  repository at all", and the `episodes/` row of the README structure table. The large-file
+  gate gains a directory-scoped exclusion rather than a raised limit, per its own
+  instruction not to weaken it to admit one file.
+
+- **Ep02 and Ep03 covers promoted from the 2026-07-31 rebuild.** Both sat unpromoted in the
+  gitignored `output/artwork/ep02-ep03-rebuild/` since 31 July — the rebuild builder's
+  header states PNGs land there "and the maintainer promotes them," and that step never
+  ran. This matters most for Ep02, whose committed cover dated to `7ad83c7` (#64/#66) and
+  **predates the 2026-07-27 type shootout entirely** — the only episode cover never rebuilt
+  into the type system, which is why it read as the odd one out. The Ep01 builder that
+  produced the approved reference cover
+  (`tools/brand/20260727-adobe-illustrator-toldstraight-ep01-covers-builder.jsx`) is
+  confirmed tracked since `a54befb` and unmodified; these covers are the least-bad current
+  state and are expected to be rebuilt against it.
+
+- **Two de-sparkled cast portraits committed** — Des Fable and Owen, replacing the
+  watermarked exports. The other three keep the Gemini export badge until a removal pass
+  runs; all five remain maintainer-approved and LOCKED per
+  `episodes/cast/portraits/manifest.json`.
 - **`AGENTS.md` step 8 names `scripts/closure-pass.fish`**, and the
   "do automatically" list admits manifest regeneration while explicitly withholding
   `exempt` additions — an exemption admits a face the library does not have and is the
@@ -92,6 +131,21 @@ visible in the diff and would otherwise evaporate.
 
 ### Fixed
 
+- **`scripts/closure-pass.fish` reported a merged branch as unmerged whenever it carried
+  more than one commit.** `git cherry` compares per-commit patch IDs, but a squash merge
+  collapses N commits into one whose patch is their sum: for N = 1 the IDs match, for N > 1
+  none does. Measured with a control and a negative — a 1-commit squash-merged branch
+  reported merged, an otherwise identical 2-commit branch reported unmerged. Most branches
+  here carry more than one commit, so the check failed on the common case while its own
+  comment claimed the opposite. Replaced with `git merge-tree --write-tree`, which merges
+  in memory and compares against the upstream tree; verified merged for both the 1- and
+  2-commit squash cases and **not** merged for a branch carrying real work.
+
+- **`scripts/closure-pass.fish` printed a delete command naming the remote as a branch.**
+  It emitted `git push origin --delete origin <branch>`. `git for-each-ref` shortens
+  `refs/remotes/origin/HEAD` to the bare string `origin`, so the guard testing for `HEAD`
+  never fired and the remote's own name entered the stale list. Found by running it. The
+  script exists to be pasted from, which is what made this the urgent one.
 - **`CLAUDE.md` no longer contradicts `.gitignore` about the repo's own contract (D3 R1).** It
   described `artifacts/` as a gitignored working zone where "nothing here reaches a fresh clone",
   while `.gitignore` carves out `!artifacts/specs/` and `!artifacts/issues/` and **42 tracked files
