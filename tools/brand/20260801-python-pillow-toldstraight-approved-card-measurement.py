@@ -1,20 +1,32 @@
 #!/usr/bin/env python3
-"""Told Straight — measure the approved card standard from the artwork.
+"""Told Straight — measure the approved card GEOMETRY from the artwork.
 
-Re-derives everything in brand/20260801-toldstraight-approved-card-standard.md
-directly from episodes/ToldStraight-Ep01/cover.png. The standard is therefore
-reproducible rather than asserted.
+Re-derives the geometry in brand/20260801-toldstraight-approved-card-standard.md
+from episodes/ToldStraight-Ep01/cover.png: palette, per-element ink boxes, cap
+heights, rules, and the point size and tracking that fit the maintainer's faces
+to those boxes.
 
-On 2026-07-27 the type shootout recorded the Ep01 faces as "unknown, and
-unknowable from the PNGs" and eyeballed the type scale instead, because the
-pixel-measurement script was refused by the lane guard. The guard was removed
-with the governance consolidation (#94). This is that measurement.
+It does NOT identify the faces, and an earlier version of this file was wrong to
+claim it could (#202). The approved cover was exported with system-font
+substitutions -- run --identify-all and every element scores better on a macOS
+system face than on anything in the maintainer's library. Measuring an artifact
+that was rendered in the wrong font recovers the wrong font. Faces come from the
+maintainer's recorded 2026-07-27 type shootout; the artwork yields geometry only,
+which is face-independent and therefore still trustworthy.
 
-    uv run --with pillow --no-project python <this file> [--identify] [--proof]
+    uv run --with pillow --no-project python <this file>
+        [--identify | --identify-all] [--proof] [--save PATH]
 
-  (default)    geometry: palette, per-element ink boxes, rules
-  --identify   fit the title/mono faces against every font on this machine
-  --proof      render the card from the measured numbers and diff it
+  (default)        geometry: palette, per-element ink boxes, rules, fitted
+                   point sizes and tracking for the library faces
+  --identify       rank the library's faces against the artwork -- a diagnostic
+                   for "which is closest", NOT a decision procedure
+  --identify-all   same, plus macOS system fonts; demonstrates the substitution
+  --proof          render from the measured numbers and report ink agreement
+
+  Expect --proof to land near 0.62, not 1.0. The render is in the maintainer's
+  faces and the artwork is not, so perfect agreement would mean the correction
+  had not been applied. Agreement is a geometry check, not an acceptance test.
 
 Reads font metrics only. No font data is copied, embedded, or committed.
 """
@@ -41,8 +53,100 @@ PAL = {
     "hair": (200, 196, 186),
 }
 
-TITLE_TTF = "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"
-MONO_TTF = "/System/Library/Fonts/Supplemental/Courier New Bold.ttf"
+# ---------------------------------------------------------------------------
+# FACES. These come from the maintainer's recorded 2026-07-27 type shootout,
+# NOT from this script. That inversion is deliberate and is the correction made
+# in #202.
+#
+# The original version of this file claimed to *recover* the faces by fitting
+# them to the artwork, and named Arial Narrow Bold and Courier New Bold. Two
+# things were wrong with that:
+#
+#   1. Its font glob was "livetype/**/*.otf". The maintainer's synced Adobe
+#      faces live at "livetype/.w/.39691.otf" -- Python's glob does not descend
+#      into dot-directories and "*" does not match a leading dot, so it matched
+#      0 of 211 files while reporting "987 faces tested ... plus all 215 Adobe
+#      CoreSync synced faces". Every Adobe face was silently excluded.
+#   2. More fundamentally, the approved Ep01 PNG was itself exported with
+#      system-font substitutions -- all 11 elements fit macOS system faces
+#      better than any library face. Measuring a fallback-contaminated artifact
+#      recovers the FALLBACK, not the design. No glob fix repairs that.
+#
+# So the artwork yields GEOMETRY only -- ink boxes, cap heights, widths,
+# palette, rules, all face-independent. Faces are given.
+#
+# Standing constraint (maintainer, stated repeatedly): every face in the final
+# design is in the `audio-lab` Adobe library (project zol6gng). A face absent
+# from that library is definitionally wrong. Arial and Courier New are macOS
+# system fonts and are not in it.
+# ---------------------------------------------------------------------------
+
+ADOBE_LIB = os.path.expanduser(
+    "~/Library/Application Support/Adobe/CoreSync/plugins/livetype/.w"
+)
+
+TITLE_FACE = ("Trade Gothic Next LT Pro", "Bold Condensed")
+MONO_FACE = ("Letter Gothic Std", "Bold")
+
+
+def library_faces():
+    """Every synced Adobe face, keyed by (family, style) from its name table.
+
+    CoreSync stores synced fonts under obfuscated hidden filenames whose
+    numbers are NOT stable across re-syncs, so a path like ".39691.otf" must
+    never be hardcoded. The family/style in the font's own name table is the
+    only durable handle.
+    """
+    found = {}
+    for path in sorted(glob.glob(os.path.join(ADOBE_LIB, ".*.otf"))):
+        try:
+            found[ImageFont.truetype(path, 40).getname()] = path
+        except Exception:
+            continue
+    return found
+
+
+def resolve(face, pool):
+    """Look up a required face, or fail loudly. Never substitute."""
+    if face in pool:
+        return pool[face]
+    sys.exit(
+        "FACE NOT AVAILABLE: {} / {}\n\n"
+        "It is not among the {} synced Adobe faces on this machine. Activate it\n"
+        "in Creative Cloud and re-run. There is deliberately no fallback: a\n"
+        "system font is not a valid substitute, and silently accepting one is\n"
+        "the defect this file was rewritten to remove (#202).".format(
+            face[0], face[1], len(pool)
+        )
+    )
+
+
+_FACES = {}
+
+
+def faces():
+    """Resolve the two required faces once, failing loudly if either is absent.
+
+    Prints how many library faces were actually found. That line exists because
+    the version of this file that shipped in #198 reported a face count it had
+    never verified -- it counted paths it had globbed, not fonts that resolved,
+    and the true count was zero. A pool size printed next to the faces drawn
+    from it makes that class of claim self-checking.
+    """
+    if not _FACES:
+        pool = library_faces()
+        print(f"Adobe library: {len(pool)} faces resolved from {ADOBE_LIB}")
+        if not pool:
+            sys.exit(
+                "NO ADOBE FACES RESOLVED.\n\n"
+                "Expected ~211 under that path. Zero means either Creative Cloud\n"
+                "is not syncing or the path has moved -- not that the library is\n"
+                "empty. Do not interpret a zero pool as a measurement result."
+            )
+        _FACES["title"] = resolve(TITLE_FACE, pool)
+        _FACES["mono"] = resolve(MONO_FACE, pool)
+    return _FACES
+
 
 # per-glyph ink-width / cap-height measured off the Ep01 title
 TITLE_PROFILE = {
@@ -158,7 +262,7 @@ def geometry():
         bx0, by0, bx1, by1 = b
         w, h = bx1 - bx0 + 1, by1 - by0 + 1
         cap = 147 if name == "title_3" else h
-        ttf = TITLE_TTF if name.startswith("title") else MONO_TTF
+        ttf = faces()["title" if name.startswith("title") else "mono"]
         f = cap_font(ttf, cap)
         tr = fit_tracking(f, text, w)
         print(
@@ -192,22 +296,34 @@ def geometry():
         print("hairlines  y " + ", ".join(str(v) for v in hair))
 
 
-def identify():
-    """Fit every installed font against the measured per-glyph profile."""
-    paths = glob.glob(
-        os.path.expanduser(
-            "~/Library/Application Support/Adobe/CoreSync/plugins/livetype/**/*.otf"
-        ),
-        recursive=True,
-    )
-    for d in (
-        "/System/Library/Fonts",
-        "/System/Library/Fonts/Supplemental",
-        "/Library/Fonts",
-        os.path.expanduser("~/Library/Fonts"),
-    ):
-        for e in ("otf", "ttf", "ttc"):
-            paths += glob.glob(f"{d}/*.{e}")
+def identify(library_only=True):
+    """Rank installed faces against the measured per-glyph profile.
+
+    THIS DOES NOT DECIDE THE FACES. The approved Ep01 PNG was exported with
+    system-font substitutions, so fitting against it recovers the substitution,
+    not the design -- run with --identify-all to see that for yourself: every
+    element scores better on a macOS system face than on anything in the
+    library. The faces are set by the maintainer's recorded 2026-07-27 shootout
+    (see TITLE_FACE / MONO_FACE above). This function is a diagnostic for
+    "which library face is closest", not an oracle.
+
+    Defaults to library-only, because a ranking that includes faces the
+    maintainer has ruled out invites exactly the mistake #202 documents.
+    """
+    # ".*.otf" twice over: the directory is hidden AND so is every file in it.
+    # A "**/*.otf" pattern matches neither -- that was the #202 defect.
+    paths = glob.glob(os.path.join(ADOBE_LIB, ".*.otf"))
+    print(f"library faces in pool: {len(paths)}")
+    if not library_only:
+        for d in (
+            "/System/Library/Fonts",
+            "/System/Library/Fonts/Supplemental",
+            "/Library/Fonts",
+            os.path.expanduser("~/Library/Fonts"),
+        ):
+            for e in ("otf", "ttf", "ttc"):
+                paths += glob.glob(f"{d}/*.{e}")
+        print(f"total pool incl. system fonts: {len(paths)}")
 
     rows = []
     for p in paths:
@@ -260,8 +376,18 @@ def proof():
     out = Image.new("RGB", (W, H), PAL["paper"])
     d = ImageDraw.Draw(out)
 
-    def put(text, ttf, cap, track, colour, cap_top, left=None, centre=None):
+    F = faces()
+
+    # Every element's tracking is FITTED to the ink width measured off the
+    # artwork, never carried as a constant. The previous version hardcoded
+    # eleven tracking values derived from Arial Narrow and Courier New; when
+    # the faces were corrected (#202) each of those silently became wrong,
+    # with nothing to signal it. A derived value cannot go stale that way.
+    def put(text, role, cap, colour, cap_top, box, left=None, centre=None):
+        ttf = F[role]
         f = cap_font(ttf, cap)
+        b = ink_box(px, *box)
+        track = fit_tracking(f, text, (b[2] - b[0] + 1)) if b else 0
         bw = tracked_ink(f, text, track)
         bb = bw.getbbox()
         if not bb:
@@ -276,32 +402,83 @@ def proof():
             x += d.textlength(ch, font=f) + tr
 
     d.rectangle([40, 40, W - 41, H - 41], outline=PAL["ink"], width=6)
-    put("FORM ADHD-01", MONO_TTF, 21, 108, PAL["ink"], 96, left=71)
+    put("FORM ADHD-01", "mono", 21, PAL["ink"], 96, (62, 90, 380, 125), left=71)
     put(
         "DEPT. OF NEURODEVELOPMENTAL AFFAIRS",
-        MONO_TTF,
+        "mono",
         18,
-        0,
         PAL["grey"],
         99,
+        (880, 90, 1538, 125),
         left=900,
     )
     d.rectangle([62, 149, 1537, 151], fill=PAL["ink"])
-    put("MEMBERSHIP", TITLE_TTF, 147, -13, PAL["ink"], 293, centre=801.5)
-    put("HAS", TITLE_TTF, 111, -21, PAL["ink"], 463, centre=801.5)
-    put("REQUIREMENTS", TITLE_TTF, 147, -12, PAL["ink"], 619, centre=802)
+    put(
+        "MEMBERSHIP", "title", 147, PAL["ink"], 293, (140, 280, 1460, 450), centre=801.5
+    )
+    put("HAS", "title", 111, PAL["ink"], 463, (140, 455, 1460, 580), centre=801.5)
+    put(
+        "REQUIREMENTS", "title", 147, PAL["ink"], 619, (140, 610, 1460, 770), centre=802
+    )
     d.rectangle([120, 776, 1480, 783], fill=PAL["red"])
-    put("ADULT ADHD - TOLD STRAIGHT", MONO_TTF, 31, 142, PAL["ink"], 831, centre=801.5)
-    for key, val, top, rule, vx in [
-        ("MEMBER:", "[ YOU ]", 938, 985, 600),
-        ("STATUS:", "DIAGNOSED - CONFIRMED", 1030, 1077, 590),
-        ("ESTABLISHED:", "1775 (older than the U.S.)", 1122, 1169, 593),
+    # Cover subtitle is MONO (the chapter-card subtitle is the title face --
+    # see the standard § 3 vs § 4). At cap 31 the artwork cannot settle this by
+    # measurement: candidate faces differ by less than the antialiasing noise
+    # floor. It follows the design system, not a fit.
+    put(
+        "ADULT ADHD - TOLD STRAIGHT",
+        "mono",
+        31,
+        PAL["ink"],
+        831,
+        (140, 820, 1460, 870),
+        centre=801.5,
+    )
+    # Field values get their own ink boxes so their tracking is fitted too. The
+    # measured-element table only covers keys, and a value inheriting a key's
+    # tracking is a guess wearing a measurement's clothes.
+    for key, val, top, rule, vx, kbox, vbox in [
+        (
+            "MEMBER:",
+            "[ YOU ]",
+            938,
+            985,
+            600,
+            (150, 930, 460, 970),
+            (560, 930, 1440, 970),
+        ),
+        (
+            "STATUS:",
+            "DIAGNOSED - CONFIRMED",
+            1030,
+            1077,
+            590,
+            (150, 1024, 460, 1060),
+            (560, 1024, 1440, 1060),
+        ),
+        (
+            "ESTABLISHED:",
+            "1775 (older than the U.S.)",
+            1122,
+            1169,
+            593,
+            (150, 1114, 460, 1155),
+            (560, 1114, 1440, 1155),
+        ),
     ]:
-        put(key, MONO_TTF, 23, 22, PAL["grey"], top, left=160)
-        put(val, MONO_TTF, 23, 22, PAL["ink"], top, left=vx)
+        put(key, "mono", 23, PAL["grey"], top, kbox, left=160)
+        put(val, "mono", 23, PAL["ink"], top, vbox, left=vx)
         d.rectangle([160, rule, 1440, rule + 1], fill=PAL["hair"])
-    put("PODCAST", MONO_TTF, 18, -3, PAL["grey"], 1511, left=72)
-    put("TOLD STRAIGHT / EP.01", MONO_TTF, 18, 0, PAL["ink"], 1537, left=71)
+    put("PODCAST", "mono", 18, PAL["grey"], 1511, (62, 1505, 300, 1532), left=72)
+    put(
+        "TOLD STRAIGHT / EP.01",
+        "mono",
+        18,
+        PAL["ink"],
+        1537,
+        (66, 1536, 520, 1554),
+        left=71,
+    )
 
     np_ = out.load()
     inter = union = 0
@@ -319,12 +496,22 @@ def proof():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--identify", action="store_true")
+    ap.add_argument(
+        "--identify",
+        action="store_true",
+        help="rank the maintainer's library faces against the artwork (diagnostic only)",
+    )
+    ap.add_argument(
+        "--identify-all",
+        action="store_true",
+        help="same, but include macOS system fonts -- shows that the artwork "
+        "itself was exported with system-font substitutions (#202)",
+    )
     ap.add_argument("--proof", action="store_true")
     ap.add_argument("--save", metavar="PATH", help="write the proof render")
     a = ap.parse_args()
-    if a.identify:
-        identify()
+    if a.identify or a.identify_all:
+        identify(library_only=not a.identify_all)
     elif a.proof or a.save:
         img = proof()
         if a.save:

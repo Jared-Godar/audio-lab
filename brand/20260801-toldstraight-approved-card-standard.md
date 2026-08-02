@@ -1,12 +1,24 @@
 # Told Straight — the approved card standard, measured from the artwork
 
-**Status: IN FORCE.** This is the tracked, durable record of the design decisions carried by
-`episodes/ToldStraight-Ep01/cover.png`. Every number here was measured off that file on
-2026-08-01. Nothing is eyeballed, inferred, or recalled.
+**Status: IN FORCE.** The tracked record of the approved card system: **faces from the
+maintainer's 2026-07-27 type shootout, geometry measured off
+`episodes/ToldStraight-Ep01/cover.png` on 2026-08-01.**
 
-**The card is the specification.** No script ever produced it (see § Provenance), so there is no
-source to defer to. Where this document and any builder disagree, this document wins and the
-builder is wrong.
+**Those are two different kinds of claim and this document keeps them apart.** Geometry is
+measured and reproducible — run the script in § 7. Faces are a recorded decision and are **not**
+derivable from the artwork, because the artwork was itself exported with system-font
+substitutions (§ 1). An earlier version of this file conflated the two, claimed to have recovered
+the faces by measurement, and named two macOS system fonts as the approved standard. That is
+corrected here; see #202.
+
+**Where this document and any builder disagree, this document wins and the builder is wrong** —
+for geometry. For faces, the shootout decision wins over both.
+
+> **Corrected 2026-08-01.** Superseded by this revision: the face table naming Arial Narrow Bold
+> and Courier New Bold, the claim that 987 faces including 215 Adobe faces were tested (0 Adobe
+> faces were), the claim that Trade Gothic Next / Letter Gothic / Univers are absent from the
+> maintainer's library (all three are installed), every fitted point size and tracking value in
+> § 3, and the standing rule in § 7.
 
 ---
 
@@ -20,65 +32,90 @@ On 2026-07-27 a type shootout recorded, in its own words:
 > The type scale (sizes, tracking) below — **Eyeballed, not measured** — the pixel-measurement
 > script was refused by the lane guard
 
-That gap was never closed. Different faces were chosen instead, and every asset built afterwards
-inherited them — which is why only the Ep01 cover looks right. The lane guard that blocked the
-measurement was removed with the 2026-07-30 governance consolidation (#94), so the measurement
-was finally possible. **"Unknowable" was wrong.** The numbers below are the proof.
+The lane guard that blocked the measurement was removed with the 2026-07-30 governance
+consolidation (#94), so the measurement finally ran.
+
+**On the faces, the shootout was right and this document previously said it was wrong.** "Unknown,
+and unknowable from the PNGs" is correct: the cover was exported with system-font substitutions, so
+no amount of fitting recovers the intended faces from it — the best fit *is* the substitution. The
+revision this replaces declared "unknowable was wrong", named the two system fonts it had fitted,
+and marked them the approved standard. That inverted the truth twice: it treated a fallback
+artifact as evidence, and overruled a dated decision with it.
+
+**On the type scale, the shootout's self-assessment was right too** — "eyeballed, not measured" —
+and *that* gap is what this document closes. Cap heights, ink widths, rule positions and the
+palette are measured, reproducible, and face-independent. Everything in § 2, § 3 and § 4 is the
+measurement the shootout said it could not do.
 
 ---
 
-## 1. Faces — identified by measurement, not by metadata
+## 1. Faces — the maintainer's recorded decision, not a measurement
 
-PNGs carry no font metadata, so the faces were recovered by fitting glyph geometry.
+**The faces are given, not derived.** They come from the 2026-07-27 type shootout, run 2, chosen
+across all three plates:
 
-**Method.** For each letter, ink width ÷ cap height. That ratio is independent of point size
-**and of tracking** — tracking moves glyphs apart, it cannot change how wide a glyph is. The
-measured profile was compared against **987 font faces installed on the maintainer's machine**
-(all macOS system fonts plus all 215 Adobe CoreSync/Typekit synced faces), then confirmed by
-rendering each candidate at matched cap height and fitted tracking and computing pixel overlap
-(IoU) against the real ink.
+| Role | Face | PostScript |
+| --- | --- | --- |
+| **Title / display** | **Trade Gothic Next LT Pro — Bold Condensed** | `TradeGothicNextLTPro-BdCn` |
+| **Mono** | **Letter Gothic Std — Bold** | `LetterGothicStd-Bold` |
 
-### Title / display face
+**Standing constraint.** Every face in the final design is in the maintainer's `audio-lab` Adobe
+library (project `zol6gng`). A face absent from that library is **definitionally wrong**. Not
+every face in the library is in the design; nothing outside it is.
 
-| Candidate | per-glyph RMS error | pixel IoU | tracking needed |
-| --- | --- | --- | --- |
-| **Arial Narrow Bold** | **0.0179** | **0.777** | **−4.3 px** |
-| Helvetica Neue Condensed Bold | 0.0491 | 0.540 | +2.5 px |
-| Arial Bold | 0.1621 | 0.546 | −30.3 px |
-| Helvetica Bold | 0.1588 | 0.556 | −29.0 px |
+### Why the artwork cannot decide this
 
-**The title face is a CONDENSED bold grotesque; on this machine it renders as Arial Narrow Bold**
-(PostScript `ArialNarrow-Bold`). Every wide candidate is 15–20% too wide on *every single glyph*
-and only reaches the right line width with roughly −145/1000 em of tracking, which visibly
-collides the letters.
+An earlier version of this section claimed the faces had been *recovered by measurement* and named
+Arial Narrow Bold and Courier New Bold. That was wrong twice over (#202):
 
-> **The recurring error this corrects.** The Ep01 title has been read as a *wide* grotesque more
-> than once, by eye, from the PNG. It is not. Anything that sets these cards in Helvetica,
-> Helvetica Neue, or Arial at normal width is wrong, and the error is 15–20% per glyph — large,
-> systematic, and obvious once measured.
+1. **The measurement never tested a single Adobe font.** It globbed
+   `livetype/**/*.otf`; the synced faces live at `livetype/.w/.39691.otf`. Python's `glob` does not
+   descend into dot-directories and `*` does not match a leading dot, so it examined **0 of 211**
+   files while reporting *"987 faces tested … plus all 215 Adobe CoreSync synced faces."* Trade
+   Gothic Next (17 styles), Letter Gothic Std (4) and Univers Next Pro (57) were all installed and
+   all invisible to it.
+2. **The approved cover was itself exported with system-font substitutions.** With the glob fixed,
+   **all 11 elements still fit macOS system faces better than any library face** — title_1 scores
+   0.916 on Arial Narrow Bold against 0.689 on Trade Gothic Next Bold Condensed; every mono element
+   scores ~0.69–0.73 on Courier New Bold against ~0.35–0.43 on Letter Gothic Std.
 
-### Mono face
+The second point is the one that matters and no code fix repairs it: **measuring an artifact
+rendered in the wrong font recovers the wrong font.** The cover is evidence of a fallback, not of a
+decision. Reproduce it with `--identify-all`.
 
-| Candidate | pixel IoU |
-| --- | --- |
-| **Courier New Bold** | **0.587** |
-| Menlo Bold | 0.406 |
-| Courier New Regular | 0.358 |
-| Andale Mono | 0.229 |
+**So the artwork yields geometry only** — ink boxes, cap heights, widths, palette, rule positions.
+Those are face-independent and remain the primary record. Faces come from the shootout.
 
-**The mono face is Courier New Bold** (PostScript `CourierNewPS-BoldMT`). It has visible slab
-serifs on every stem — clearly readable at 4× zoom on `ESTABLISHED:` and `1775 (older than the
-U.S.)`. Letter Gothic Std is a *sans* mono and cannot produce them.
+### Where decision and measurement agree
 
-**Every mono element on the card is BOLD** — header, subtitle, field keys and field values. At
-the subtitle's +142 tracking the regular weight thins into hairlines.
+Ranked *within the library*, the shootout winner is also the closest fit:
 
-### What this means for the Adobe kit
+| Library candidate | pixel IoU vs `MEMBERSHIP` | tracking |
+| --- | --- | --- |
+| **Trade Gothic Next LT Pro / Bold Condensed** | **0.6961** | **+32** |
+| Trade Gothic Next SR Pro / Bold Condensed | 0.6942 | +32 |
+| Trade Gothic Next LT Pro / Heavy Condensed | 0.6303 | +7 |
+| Helvetica Neue LT Pro / Bold Condensed | 0.6173 | −1 |
+| Univers Next Pro / Bold Condensed | 0.5860 | — |
 
-Both faces are **macOS system fonts, not Adobe Fonts**. Neither Trade Gothic Next, nor Letter
-Gothic, nor Univers is present in the maintainer's 215 synced CoreSync faces — so a builder
-asking for `TradeGothicNextLTPro-BdCn` or `LetterGothicStd` resolves to **whatever the fallback
-chain reaches**, which is how a wide face entered the system in the first place.
+**The title is CONDENSED.** It has been read as a wide grotesque by eye more than once and it is
+not — wide faces are 15–20% too wide on every glyph and only reach the measured line width at
+about −145/1000 em, which collides the letters.
+
+**Letter Gothic Std is the only monospaced family in the library** — verified by reading
+`post.isFixedPitch` and PANOSE `bProportion` across all 211 synced faces. There is no alternative
+to weigh, and no legitimate second entry for a mono fallback chain.
+
+**Every mono element is BOLD** — header, subtitle, field keys and values. At the subtitle's
+tracking the regular weight thins into hairlines.
+
+### What measurement cannot settle, and this document will not claim
+
+**Pixel overlap cannot discriminate faces below roughly cap 40 px.** At the card's mono sizes
+(cap 18–23) candidate faces differ by less than the antialiasing noise floor — 0.30 versus 0.34.
+The previous version identified the mono from "visible slab serifs" at that size and asserted a
+resolution its own method does not have. Face assignment for small text follows the design system,
+not a fit.
 
 ---
 
@@ -102,22 +139,32 @@ All values in pixels at 1600 × 1600, which maps 1:1 to a 1600 × 1600 pt Illust
 `cap_top` is the y of the **cap-height top of the ink**, not a text-box top — box tops vary by
 font metrics, ink does not.
 
-| Element | face | cap | pt size | tracking | x | cap_top |
-| --- | --- | --- | --- | --- | --- | --- |
-| Frame | ink rect | — | — | — | inset 40, **6 px** stroke | — |
-| `FORM ADHD-01` | mono bold, ink | 21 | 35 | +108 | left 71 | 96 |
-| `DEPT. OF …` | mono bold, grey | 18 | 30 | 0 | left 900 | 99 |
-| Header rule | ink, 3 px | — | — | — | 62 → 1537 | 149 |
-| Title line 1 (MAJOR) | title | 147 | 204 | −13 | centre 801.5 | 293 |
-| Title line 2 (minor) | title | 111 | 154 | −21 | centre 801.5 | 463 |
-| Title line 3 (MAJOR) | title | 147 | 204 | −12 | centre 802 | 619 |
-| **Red rule** | red, **8 px** | — | — | — | 120 → 1480 | **776** |
-| Subtitle | mono bold, ink | 31 | 53 | **+142** | centre 801.5 | 831 |
-| Field key ×3 | mono bold, grey | 23 | 39 | +22 | left 160 | 938 / 1030 / 1122 |
-| Field value ×3 | mono bold, ink | 23 | 39 | +22 | left ≈590 | 938 / 1030 / 1122 |
-| Field hairline ×3 | hairline, 2 px | — | — | — | 160 → 1440 | 985 / 1077 / 1169 |
-| Footer line 1 | mono bold, grey | 18 | 29 | +37 | left 72 | 1511 |
-| Footer line 2 | mono bold, ink | 19 | 31 | −33 | left 71 | 1536 |
+**Point sizes and tracking below are for the faces in § 1.** They are *fitted* values — the size
+that reproduces the measured cap height in that face, and the tracking that reproduces the measured
+ink width in that face — so they change when the face changes. The values that stood here before
+were fitted to Arial Narrow and Courier New and are all superseded; the ink boxes are not, because
+ink boxes are face-independent.
+
+| Element | face | cap | ink width | pt size | tracking | x | cap_top |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Frame | ink rect | — | — | — | — | inset 40, **6 px** stroke | — |
+| `FORM ADHD-01` | mono bold, ink | 21 | 289 | 28 | **+300** | left 71 | 96 |
+| `DEPT. OF …` | mono bold, grey | 18 | 628 | 25 | **+126** | left 900 | 99 |
+| Header rule | ink, 3 px | — | — | — | — | 62 → 1537 | 149 |
+| Title line 1 (MAJOR) | title | 147 | 1093 | 204 | **+32** | centre 801.5 | 293 |
+| Title line 2 (minor) | title | 111 | 245 | 154 | **+67** | centre 801.5 | 463 |
+| Title line 3 (MAJOR) | title | 147 | 1302 | 204 | **+46** | centre 802 | 619 |
+| **Red rule** | red, **8 px** | — | — | — | — | 120 → 1480 | **776** |
+| Subtitle | mono bold, ink | 31 | 1019 | 43 | **+323** | centre 801.5 | 831 |
+| Field key ×3 | mono bold, grey | 23 | 160 / 156 / 278 | 31 | **+191 / +175 / +177** | left 160 | 938 / 1030 / 1122 |
+| Field value ×3 | mono bold, ink | 23 | fitted per value | 31 | fitted per value | left ≈590 | 938 / 1030 / 1122 |
+| Field hairline ×3 | hairline, 2 px | — | — | — | — | 160 → 1440 | 985 / 1077 / 1169 |
+| Footer line 1 | mono bold, grey | 18 | 123 | 25 | **+143** | left 72 | 1511 |
+| Footer line 2 | mono bold, ink | 19 | 375 | 26 | **+86** | left 71 | 1536 |
+
+Field **values** are fitted individually against their own measured ink boxes rather than
+inheriting the keys' tracking — a value carrying a key's number is a guess wearing a
+measurement's clothes.
 
 > Regenerate this whole table with
 > `uv run --with pillow --no-project python tools/brand/20260801-python-pillow-toldstraight-approved-card-measurement.py`.
@@ -144,6 +191,13 @@ Field row pitch is a uniform **92 px**; each hairline sits **47 px** below its r
 ## 4. Chapter-card geometry — 1600 × 1600
 
 Measured from `episodes/ToldStraight-Ep01/ch1.png`. Same frame, same header, same faces.
+
+> ⚠️ **This table cannot currently be regenerated — tracked as #203.** The committed script never
+> opens `ch1.png`; `COVER` is hardcoded and `ELEMENTS` covers the cover only. Spot-checks against
+> the PNG confirm the values are real (statement `cap 111 @ y537`, subtitle `cap 44 @ y830`, both
+> exact), so this is a lost-source problem rather than an invented-numbers one — but no `pt size`
+> or `tracking` column is given here, because those are face-dependent and re-deriving them
+> requires the measurement path that was never committed.
 
 | Element | face | cap | x | cap_top |
 | --- | --- | --- | --- | --- |
@@ -185,19 +239,51 @@ Set above 1.00 to bump. The measured values are the 1.00 reference and are never
 | The builder that claims these covers never ran | `545c0c8` — *"…and rebuild the Ep02/Ep03 covers"* — shipped **zero** episode covers; `output/artwork/ep01/` and `ep02/` do not exist |
 | Committed Ep02/Ep03 covers came from elsewhere | Ep02 `7ad83c7` (2026-07-27), Ep03 `1cbef30` (2026-07-30) |
 
-The card was made by hand, or by a tool outside the repo, and the faces it landed on are system
-fonts. **This document is the persistence that was reported as done and was not.**
+The card was made by hand, or by a tool outside the repo — and **the faces it landed on are macOS
+system fonts, not the ones chosen for it.** That is the finding, and it reframes the whole file:
+the approved cover is not a faithful rendering of the approved decision. It is what the decision
+looked like after an export silently substituted the faces.
+
+So "only the Ep01 cover looks right" was never because Ep01 had the correct faces. It is because
+Ep01 is internally consistent — one substitution applied uniformly — while everything built after
+it mixed the substituted look with genuine library faces. Rebuilding Ep01 from this standard will
+**not** reproduce that PNG pixel-for-pixel, and should not: matching it would mean reproducing the
+substitution.
+
+**This document is the persistence that was reported as done and was not** — twice.
 
 ---
 
 ## 7. How to re-verify, and the standing rule
 
-The measurement scripts are reproducible: identify faces by per-glyph width ÷ cap height across
-installed fonts, confirm by IoU at matched cap height, extract geometry from colour-classified
-row/column profiles. Rendering the table in § 3 back out and diffing against the original gives
-**IoU 0.80** on ink (excluding the rotated `MEMBER` stamp, which is not yet modelled).
+```fish
+cd ~/Code/audio-lab
+set S tools/brand/20260801-python-pillow-toldstraight-approved-card-measurement.py
+uv run --with pillow --no-project python $S                  # geometry — regenerates § 3
+uv run --with pillow --no-project python $S --identify       # rank library faces (diagnostic)
+uv run --with pillow --no-project python $S --identify-all   # + system fonts: shows the substitution
+uv run --with pillow --no-project python $S --proof          # render and diff
+```
 
-**Standing rule.** No asset in this system is set in a face that has not been checked against this
-document. A builder that cannot resolve `ArialNarrow-Bold` or `CourierNewPS-BoldMT` must **fail
-loudly**, never silently fall back to a wide face — that silent fallback is the entire reason this
-file had to be reconstructed.
+The script prints how many library faces resolved (**211**) before using any of them. That line
+exists because the version this replaces reported a face count it had never verified — it counted
+paths it had globbed, not fonts that loaded, and the true count was zero. A pool size printed next
+to the faces drawn from it makes that class of claim self-checking.
+
+**`--proof` returns IoU ≈ 0.62, and that is the correct result.** The render is in the maintainer's
+faces; the artwork is not. Agreement near 1.0 would mean the correction had *not* been applied. It
+is a geometry check, not an acceptance test — the previous 0.80 was a true number about the wrong
+faces.
+
+**Standing rule.** Every face in this system is in the maintainer's `audio-lab` Adobe library. A
+face absent from that library is **definitionally wrong**, and a macOS system font is never a valid
+substitute. A builder that cannot resolve `TradeGothicNextLTPro-BdCn` or `LetterGothicStd-Bold`
+must **fail loudly and draw nothing** — no fallback chain, no "closest available", no default. Two
+separate silent substitutions produced this file and then produced a wrong version of it; the third
+must not be possible.
+
+**How to check a builder against this rule without reading it:** its font chains must contain only
+families listed in the maintainer's library. Anything else — `arialnarrow`, `couriernew`, `menlo`,
+`helveticaneue` (as distinct from `helveticaneueltpro`), `ptsansnarrow`, `robotocondensed` — is a
+defect regardless of what the surrounding comment claims. #204 proposes making that a pre-commit
+gate rather than a thing to remember.

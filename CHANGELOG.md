@@ -440,6 +440,76 @@ visible in the diff and would otherwise evaporate.
   for small text follows the design system, not measurement, and saying otherwise claims a
   resolution the method does not have.
 
+### Fixed — #202, the approved card standard names the maintainer's faces again
+
+- **The standard on `main` named two macOS system fonts as approved, marked IN FORCE.**
+  `brand/20260801-toldstraight-approved-card-standard.md` gave **Arial Narrow Bold** and **Courier
+  New Bold** as the title and mono faces, with a standing rule requiring builders to resolve them.
+  Both are corrected to the maintainer's recorded 2026-07-27 shootout decision — **Trade Gothic
+  Next LT Pro Bold Condensed** and **Letter Gothic Std Bold** — and the standing rule is rewritten
+  library-only: a face absent from the `audio-lab` Adobe library is definitionally wrong and a
+  system font is never a valid substitute.
+
+- **`tools/brand/…-approved-card-system-builder.jsx` hardcoded the same two faces**, with search
+  chains listing `arialnarrow`, `helveticaneue`, `ptsansnarrow`, `robotocondensed`,
+  `firasanscondensed`, `couriernew`, `courier` and `menlo`. **One of those eight is in the
+  library.** Both pins and both chains are replaced with library faces; the mono chain has a single
+  entry because Letter Gothic Std is the only monospaced family the library contains.
+
+- **Every fitted point size and tracking value in § 3 was derived from the wrong faces** and is
+  re-derived: title lines now **+32 / +67 / +46** rather than −13 / −21 / −12, subtitle **+323**
+  rather than +142, and so on. Ink boxes are unchanged — they are face-independent, which is why
+  they survive. Field *values* are now fitted against their own measured boxes instead of
+  inheriting the keys' tracking.
+
+- **`--proof` returns 0.6244, not 0.8007, and that is the correct result.** The render is in the
+  maintainer's faces and the artwork is not, so agreement near 1.0 would mean the correction had
+  not been applied. The old 0.80 was a true number about the wrong faces.
+
+- **The measurement script no longer decides faces at all.** It reports geometry and ranks
+  candidates as a diagnostic; `--identify` is library-only by default and `--identify-all` exists
+  to demonstrate the substitution rather than to choose from it. Faces are resolved by family and
+  style read from the OpenType name table — never by path, because CoreSync filenames
+  (`.39691.otf`) are not stable across re-syncs.
+
+### Findings — a one-line glob excluded the entire Adobe library, and the artwork cannot arbitrate
+
+- **The face measurement never tested a single Adobe font.** It globbed
+  `~/Library/…/livetype/**/*.otf`; the synced faces live at `livetype/.w/.39691.otf`. Python's
+  `glob` does not descend into dot-directories and `*` does not match a leading dot — two
+  independent reasons to match nothing. It examined **0 of 211** files and reported *"987 faces
+  tested … plus all 215 Adobe CoreSync synced faces."* It counted paths it had assembled, never
+  checked that any resolved. The script now prints the resolved pool size before using it and
+  exits if that size is zero.
+
+- **Trade Gothic Next, Letter Gothic and Univers were never missing.** The superseded text stated
+  all three were absent from the maintainer's 215 synced faces. Installed: **Trade Gothic Next LT
+  Pro** (17 styles incl. Bold Condensed), **Letter Gothic Std** (4), **Univers Next Pro** (57). The
+  causation was backwards too — a builder asking for `TradeGothicNextLTPro-BdCn` did render a
+  fallback, not because the face was missing but because the list being searched never held it.
+
+- **The approved Ep01 cover was itself exported with system-font substitutions.** With the glob
+  fixed, **all 11 elements still fit macOS system faces better than any library face** —
+  `MEMBERSHIP` scores 0.916 on Arial Narrow Bold against 0.689 on Trade Gothic Next Bold Condensed.
+  Measuring an artifact rendered in the wrong font recovers the wrong font, so **the artwork cannot
+  identify the intended faces in either direction.** It yields geometry only. This is why
+  rebuilding Ep01 from the standard will not reproduce that PNG, and should not.
+
+- **Ranked within the library, the shootout decision is also the best fit** — Trade Gothic Next LT
+  Pro Bold Condensed at IoU **0.6961** (+32 tracking), ahead of Heavy Condensed 0.6303 and
+  Helvetica Neue LT Pro Bold Condensed 0.6173. The decision needed no re-deriving; it was right on
+  2026-07-27 and is right now.
+
+- **Letter Gothic Std is the only monospaced family in the library**, verified by reading
+  `post.isFixedPitch` and PANOSE `bProportion` across all 211 synced faces. Any mono fallback chain
+  with a second entry is reaching outside the library by construction.
+
+- **Pixel overlap cannot discriminate faces below roughly cap 40 px.** At the card's mono sizes
+  (cap 18–23) candidates differ by less than the antialiasing noise floor — 0.30 versus 0.34. The
+  superseded text identified the mono from "visible slab serifs" at that size, claiming a
+  resolution the method does not have. Small-text face assignment now follows the design system and
+  says so.
+
 ## 2026-07-31
 
 ### Added
