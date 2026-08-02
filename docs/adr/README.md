@@ -35,6 +35,7 @@ that trip.
 | [0018](0018-cast-card-portrait-standard.md) | The colour cartoon portrait is the cast-card image standard, across all episodes | accepted (amended by 0019) | 2026-07-30 | M4, M7 |
 | [0019](0019-coming-soon-design-and-human-machine-register.md) | Real cast are photographed, synthetic cast stay cartoons; the Coming Soon page is a field-notice with a declassify countdown | accepted | 2026-07-31 | M5, M7 |
 | [0020](0020-post-merge-site-deploy-is-pre-authorised.md) | Publishing `site/` after a confirmed merge is pre-authorised, and CI performs it | accepted | 2026-08-01 | M5, M10 |
+| [0021](0021-timestamp-prefix-is-mandatory-and-second-granular.md) | Generated documents, scripts and walkthroughs carry a mandatory `YYYYMMDDHHmmss` prefix | accepted | 2026-08-01 | M10 |
 
 Dates marked *not recorded* were never dated in the migrated `ROADMAP.md` entries;
 inventing one after the fact would be worse than the gap.

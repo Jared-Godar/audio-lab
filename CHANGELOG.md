@@ -71,7 +71,40 @@ visible in the diff and would otherwise evaporate.
   the maintainer's sketch are argued rather than silently applied; ten open questions are carried to
   gate 1 (#181) rather than decided. Proposal only — nothing moved.
 
+- **D3 assessment report (#180) —
+  `docs/20260801225106-repo-file-structure-d3-assessment-report.md`.** The single document for
+  the D4 decision gate: current state, disconnects, ten ordered recommendations, D2's target tree,
+  **eleven** open questions, and the risks. Every D1 count was **re-derived with a different
+  command** rather than accepted — five findings hold, one does not (see § Findings). Each
+  recommendation carries a confidence level and a reversal condition, and each open question
+  carries options plus a recommendation, per #180's brief that gate 1 be a decision session rather
+  than a discovery session. The recommendations are inputs; all eleven decisions remain the
+  maintainer's. **Q11 is new**, found while verifying the episode inventory:
+  `episodes/epNN/build/` would hold Python audio-assembly code and Illustrator design sources
+  under one name, which is the pattern the reorg exists to remove. **Q12 was recovered and then
+  closed** — see below. Report only — nothing moved.
+
+- **[ADR 0021](docs/adr/0021-timestamp-prefix-is-mandatory-and-second-granular.md) — the date
+  token is `YYYYMMDDHHmmss` and it is mandatory.** Maintainer decision, 2026-08-01, made during
+  the D3 session. Fourteen digits, no separator, no `T`, no `Z`; it supersedes both the bare
+  `YYYYMMDD-` and the `YYYYMMDDTHHMMSSZ-` used in `artifacts/walkthroughs/`. It applies to every
+  generated document, script, walkthrough and maintainer-requested document. **Exempt** are
+  filenames read by exact name, where a rename breaks behaviour rather than taste: `README.md`,
+  `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `CLAUDE.md`,
+  `.github/**`, `docs/adr/NNNN-*.md`, and `pipeline/**` Python sources (a digit-leading filename
+  is not a legal Python module name). The rule is go-forward; the **~84 historical renames ride
+  D7 (#184)**, which is already rewriting every inbound reference, so doing them now would touch
+  those references twice. `CLAUDE.md` § Artifact naming carries the operative rule. The D3 report
+  is the first file to use it.
+
 ### Changed
+
+- **`CLAUDE.md` § Artifact naming: the date token is now `YYYYMMDDHHmmss` and mandatory**
+  ([ADR 0021](docs/adr/0021-timestamp-prefix-is-mandatory-and-second-granular.md)). Carries the
+  format, the `date "+%Y%m%d%H%M%S"` command that produces it, the ten exempt filename classes,
+  and the note that the prefix stamps **creation** and does not change when a file is edited.
+  Records why second granularity is not decoration: D1, D2 and D3 were all authored on 2026-08-01
+  and would otherwise have shared the prefix `20260801-`, sorting arbitrarily against each other.
 
 - **`AGENTS.md`: website work now has exactly two manual gates — approve the preview, merge the
   PR (#187).** Four amendments: step 2 requires an approved rendered preview before the first
@@ -114,6 +147,52 @@ visible in the diff and would otherwise evaporate.
   the three options was "trust both forms."
 
 ### Findings
+
+- **Measuring the same path at two commits is what separates drift from error — and it caught a
+  wrong number in D1.** Re-deriving D1's finding F3 returned `site/assets/ tracked=21` against D1's
+  reported 10. Growth was the obvious explanation, so the same path was measured at D2's baseline
+  commit as well:
+
+  ```console
+  $ git ls-tree -r --name-only c9685af    -- site/assets | wc -l   # D2's baseline
+  21
+  $ git ls-tree -r --name-only origin/main -- site/assets | wc -l   # now
+  21
+  ```
+
+  It had never been 10. Two more surfaces in the same table were also wrong (`brand/` 18 vs the
+  actual 24, `tools/brand/` 10 vs 12) — and both **contradicted D1's own top-level table**, a signal
+  sitting in the document the whole time. The conclusion F3 drew (brand content is scattered across
+  six surfaces, the two largest untracked) survives and is understated; three of its six counts do
+  not. **A single measurement cannot tell you whether a number changed or was never right.** Where
+  a re-measurement disagrees, measure at both commits before deciding which it is.
+
+- **A decomposed epic can lose an open question between stages, and nothing catches it.** D1
+  closed with eight items for D2 to resolve. D2 resolved seven and carried ten questions to the
+  gate — but **D1's item 7 (timestamp convention) appears in neither.** D2's mapping preserves
+  every filename as-is and none of its ten questions mention naming. It was not decided and not
+  deferred; it stopped existing. Nothing in the workflow would have caught this: each stage's
+  deliverable was reviewed against its own issue, never against its predecessor's open list. D3
+  found it only because it re-read D1's Part 4 while re-deriving F8. **The cheap check is
+  mechanical** — before a stage's PR is opened, diff its predecessor's open-questions list against
+  the new document's, and account for every item as resolved, carried, or explicitly dropped.
+
+- **An aggregate percentage hid the actual naming pattern.** D1 reported date-prefix conformance
+  across `docs/`, `artifacts/specs/` and `tools/` as *"51 dated, 35 undated — about 59%,"* which
+  reads as general decay. Measured per directory (`docs/adr/` excluded — ADRs use a deliberate
+  `NNNN-` numbering) it is `artifacts/specs/` **40/40**, `tools/` **14/14**, `docs/` **5/22**. Not
+  decay: two directories adopted the convention completely and one never adopted it. **All 17
+  undated files sit in `docs/`**; the other 54 are already correct. That changes the remedy from
+  "rename files across three directories" to "give `docs/` a rule."
+
+- **The Git LFS premise in #185 is materially weaker than assumed, and D8 should re-test it.**
+  Measured across the whole working tree: **141 `.mp3` files, 163.1 MB total, largest single file
+  15.3 MB, and zero `.mp4`.** #185 was written assuming ~86 MB for a 60-minute episode at 192 kbps,
+  which put it in GitHub's 50 MB warning band. These episodes are roughly **10 minutes**, so a
+  master is 13–15 MB and sits under every GitHub threshold — plain git could track finished masters
+  with no LFS at all (≈ 140 MB at 10 episodes, ≈ 350 MB at 25). The open variable is video: none
+  exists yet and it will be far larger. Confirming this now avoids paying LFS bandwidth on every
+  clone and CI checkout for a problem that may not exist.
 
 - **GitHub issues immutable OIDC subject claims, and its own API will tell you it does not.**
   `/actions/oidc/customization/sub` returns `"use_immutable_subject": false` while
