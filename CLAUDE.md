@@ -9,9 +9,14 @@ wins.
 - `pipeline/` — uv-managed Python. `uv run voicelab` is the CLI.
 - `docs/` — durable findings (`elevenlabs.md` has rates, tiers, account limits),
   ADRs under `docs/adr/`, runbook.
-- `artifacts/` — **gitignored** working zone: handoffs, drafts, research notes.
-  It is scratch: anything load-bearing gets promoted to a tracked home, because
-  nothing here reaches a fresh clone or cloud session (#68).
+- `artifacts/` — **mostly gitignored, with two tracked exceptions.** Scratch by default
+  (handoffs, drafts, research notes) — that half reaches no fresh clone or cloud session
+  (#68), so anything load-bearing gets promoted. **But `.gitignore` carves out
+  `artifacts/specs/` and `artifacts/issues/`, and 42 files under `artifacts/` are tracked
+  and do reach every clone** (`git ls-tree -r --name-only origin/main -- artifacts | wc -l`).
+  Treat those two directories as durable homes, not scratch. This whole directory is
+  retired by D7 (#184): specs and issues become `docs/specs/`, scratch becomes
+  `.local/sessions/`.
 - `tools/brand/` — Adobe Illustrator/InDesign builder scripts for the visual system.
   Episode art is built by **authoring** a JSX builder the maintainer runs manually in
   Illustrator (the licensed faces live only on his machine); the agent never renders

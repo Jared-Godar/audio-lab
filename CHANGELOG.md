@@ -7,6 +7,67 @@ Grouped as **Added / Changed / Fixed / Findings**. *Findings* is the one that
 isn't standard: it records things learned about external services that aren't
 visible in the diff and would otherwise evaporate.
 
+## 2026-08-02
+
+### Added
+
+- **D4 gate-1 decisions recorded (#181) — `docs/20260802001735-repo-file-structure-d4-decision-record.md`.**
+  All eleven open questions from the D3 report settled in one instruction, by accepting the D3
+  recommendation as written for each. The maintainer's deciding text is quoted verbatim rather than
+  paraphrased. Also records the two actions that instruction authorised and that leave no trace in
+  any diff (below), and flags **19 lines across `AGENTS.md` and `CLAUDE.md` that name a path the
+  reorg retires** — measured with `grep -n`, not recalled.
+
+- **D5 revised structure (#182) — `docs/20260802001736-repo-file-structure-d5-revised-structure.md`.**
+  Supersedes D2 as the structure of record: nine tracked top-level directories, every one named, no
+  `TBD` and no `or`. Carries a **34-rule mapping table** that D7 applies at execution time instead
+  of replaying D2's rows, and a hard requirement that D7 **fail loudly on any tracked path matching
+  no rule** — D2's table was already eight files stale one day after it was written, and `main` has
+  since reached 338 tracked files.
+
+- **[ADR 0022](docs/adr/0022-approved-target-file-structure.md) — the approved target structure.**
+  Constrains M10 (all remaining deliverables) and M5 (the `site/` → `website/` rename touches the
+  live deploy and ships last, alone).
+
+### Changed
+
+- **`output/` pruned from 132 MB to 42 MB** — `output/episodes/ToldStraight-Ep01-v2/_post-experiments/`
+  deleted under the Q7 decision. Seven `.mp3` variants of the Ep01 tempo question settled on
+  2026-07-27; inspected before deletion and confirmed never committed (`git ls-files` over the
+  directory returned nothing), so nothing was lost from history and nothing is recoverable from it.
+  **Invisible in this diff** — the directory was gitignored.
+
+- **Stray worktree removed.** `.claude/worktrees/r1-claude-md-artifacts-truth`, created by a prior
+  session and never used: branch at `a15f075`, zero commits ahead of `main`, clean tree. Worktree
+  count 13 → 12. Also invisible in this diff.
+
+### Fixed
+
+- **`CLAUDE.md` no longer contradicts `.gitignore` about the repo's own contract (D3 R1).** It
+  described `artifacts/` as a gitignored working zone where "nothing here reaches a fresh clone",
+  while `.gitignore` carves out `!artifacts/specs/` and `!artifacts/issues/` and **42 tracked files
+  under it reach every clone**. An agent reading the old text treated a tracked spec as disposable;
+  an agent reading `.gitignore` treated scratch as durable. Both have happened. The paragraph now
+  states the split and names where each half goes at D7.
+
+- **The reorg's headline metric was wrong in both D2 and D3, and is corrected in D5.** Both
+  published *"14 → 7 non-dot top-level directories."* Counting the entries in D2's own target tree
+  gives **nine**, and no gate-1 decision reduces it further; the figure was published twice without
+  ever being derived from the tree beneath it. The honest number is **14 → 9 tracked (16 → 10 on
+  disk)**. Same failure shape as the D1 finding D3 caught — asserted once, carried forward, never
+  re-derived.
+
+### Findings
+
+- **Consolidating the cast portraits is a merge, not a de-duplication — and D7 cannot do it
+  unaided.** Q4 sends both cast surfaces to one home. Measured by git blob SHA, the per-episode
+  `cast/` files and the shared `episodes/cast/portraits/` files are **different images of the same
+  three people**: six files, six distinct hashes, no pair identical. Moving both sets into
+  `podcast/portraits/` would reproduce the problem under a new path with two files per person.
+  Which rendition is authoritative needs the maintainer's eye — the naming conventions differ and
+  neither marks one as superseded. A fourth file in those directories,
+  `studio_disclaimer.png`, is not a portrait at all.
+
 ## 2026-08-01
 
 ### Added
