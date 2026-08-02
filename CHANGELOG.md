@@ -108,6 +108,29 @@ visible in the diff and would otherwise evaporate.
 
 ### Findings
 
+- **Both episode video masters exist on disk and have never been committed — and
+  `.gitignore` is why.** `~/ToldStraight-Ep01/told-straight-ep01.mp4` (12.5 MiB, 9m34s) and
+  `~/ToldStraight-Ep02/told-straight-ep02.mp4` (15.7 MiB, 12m23s), both H.264 1920×1080 at
+  **2 fps** with AAC mono audio — chapter-card slideshows, the files uploaded to YouTube.
+  Ep03 has no master. `git rev-list --objects --all` filtered for video extensions returns
+  nothing: no video object has ever existed in this repository on any branch. The cause is
+  `.gitignore` lines 60–62, whose comment scopes the rule to "edge-tts / yt-dlp /
+  quick-cut byproducts" while the pattern also swallows the finished masters — `git add`
+  skips them without a word. Also never committed: `narration/` in both episodes,
+  `record-host-ep01.txt`, `record-guest-ep01.txt`, `transcript-markup.txt`,
+  `episode-copy.txt`, `youtube-description.txt`, and Ep02's `session-one-skills.mp3`.
+
+- **A repository-scoped search cannot answer a question about an uncommitted deliverable.**
+  This map's first revision reported "zero `.mp4` files" — true of the repository, and the
+  wrong scope for the question *"will episode video need large-file storage?"*. The figure
+  originated in D3 § 2.10, was carried into D4 § 5, and was re-measured here inside the
+  same narrow frame instead of being re-derived against the question it answered — the
+  exact pattern the same document criticises in D1 and D2. Corrected in § 10.1 and recorded
+  rather than quietly fixed. **The conclusion survives for a better reason:** the largest
+  master is 15.7 MiB, under GitHub's 50 MB warning and far under its 100 MB hard limit, so
+  large-file storage is unnecessary as a *measurement* rather than as an absence of
+  evidence. The `~86 MB` episode premise in #185 is wrong by a factor of five.
+
 - **`git branch --merged` cannot see this repo's merged branches.** Squash-merging
   rewrites the work into a new commit with a different parent, so ancestry is never
   joined — which is why step 8 already said `git branch -D`, not `-d`. `git cherry`

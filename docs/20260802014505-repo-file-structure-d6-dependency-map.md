@@ -137,6 +137,12 @@ Stated so the gate is not mistaken for a proof:
 
 - **Untracked working files.** `artifacts/walkthroughs/` (31), `brand-wip/`, and the four
   `.ai` sources are on disk only. They were counted, not grepped.
+- **Project files that live outside the repository.** This was an actual miss, not a
+  hypothetical one: the two episode video masters in `~/ToldStraight-Ep0{1,2}/` were
+  absent from every count in this document's first revision because the search was scoped
+  to the repository. Corrected in § 10.1. **A repo-scoped search cannot answer a question
+  about a deliverable that has never been committed** — and "it was never committed" is
+  precisely what makes a file worth finding.
 - **Anything outside this repository and the memory directory** — GitHub issue and PR
   bodies, Project board notes, and the maintainer's own notes. § 9.4.
 - **Line numbers age.** Proven: the closure command sits at `AGENTS.md` line **228** at
@@ -478,7 +484,7 @@ invites D6 to revise. **Two revisions are recommended**; the rest of the order s
 | 3 | Site → website | **S1**, S10, L4, L5, L11, L12; 10 workflow refs, 4 OIDC comments, `infra/site.yaml` | Ship last and alone (D5 § 6.3) — but see the revision below |
 | 4 | `infra/`, `pipeline/`, `scripts/`, `templates/` | **S2**, S3, S5, L3, L6, L7 | The font gate lives or dies here |
 | 5 | Podcast + cast | **L2**, L8; `.pre-commit` line 32; 3 portrait pairs (§ 10.2) | Needs the maintainer's decision first |
-| 6 | Episodes | L9 | **Reachability unresolved — § 10.1** |
+| 6 | Episodes | L9 | **Two uncommitted video masters found — § 10.1 / § 10.1.1** |
 | 7 | Orphan retirement | S9, S12; `.gitignore` rewrite (§ 4.5) | |
 | 8 | Governance rewrite | **S11**; 22 governance lines; 12 memory lines | |
 
@@ -645,37 +651,110 @@ where `docs/README.md` is written anyway. Flagged, not decided.
 
 ## 10. Open items for the maintainer
 
-Five. None is decided here.
+Six. None is decided here.
 
 ### 10.1 — Is stage 6 reachable, or deferred?
 
 Issue [#184](https://github.com/Jared-Godar/audio-lab/issues/184) makes stage 6 (episodes)
-conditional on D8's LFS work landing first. Measured at `08c537e`:
+conditional on D8's LFS work landing first.
+
+**CORRECTION, same session — the first measurement here was scoped wrongly.** It searched
+the repository only:
 
 ```text
-tracked .mp4 : 0        on-disk .mp4 : 0
-tracked .mp3 : 0        on-disk .mp3 : 134
-largest tracked blob : 1.8 MB  (a cast portrait)
+tracked .mp4 : 0     on-disk .mp4 *inside the repo* : 0
 ```
 
-**Nothing in git needs LFS.** No audio is tracked at all, and the largest tracked object is
-a 1.8 MB PNG. The LFS premise in #185 was written against an assumed ~86 MB episode; there
-is no exported video to measure, and D4 § 5 already escalated the blast-radius question
-rather than assuming it.
+That is literally true and useless for the question, which is *"will episode video need
+Git Large File Storage?"* — a question about video that exists whether or not the repo has
+seen it. Widened to the machine, on the maintainer's prompt:
 
-So stage 6 is blocked on a deliverable whose own first step is to measure a file that does
-not exist. **Three options, and this is yours:**
+```fish
+find ~ -maxdepth 6 \( -iname '*.mp4' -o -iname '*.mov' \) -not -path '*/Library/*'
+ffprobe -v error -show_entries format=duration,bit_rate -show_streams <file>
+```
 
-1. **Unblock stage 6 from D8.** The dependency was written for video that has not been
-   produced; episodes carry only art and text in git. Re-gate stage 6 on LFS only if and
-   when a `.mp4` is committed. *(Recommended — it is the only option that lets the reorg
-   finish, and it costs nothing to reverse.)*
-2. **Keep the block.** Stage 6 waits for D8, D8 waits for a video, and the reorg lands
-   incomplete with `episodes/ToldStraight-EpNN/` still in the tree.
-3. **Run D8 first on current numbers** and record "no LFS needed" as the decision.
+**Two episode masters exist and have never been committed:**
 
-**Reversal condition for option 1:** if a `.mp4` is committed before stage 6 merges,
-re-gate it.
+| File | Size | Duration | Video | Audio |
+| --- | ---: | --- | --- | --- |
+| `~/ToldStraight-Ep01/told-straight-ep01.mp4` | **12.5 MiB** | 9m34s | h264 1920×1080 @ 2 fps, 1110 frames | AAC mono 44.1 kHz |
+| `~/ToldStraight-Ep02/told-straight-ep02.mp4` | **15.7 MiB** | 12m23s | h264 1920×1080 @ 2 fps, 1395 frames | AAC mono 44.1 kHz |
+
+No `~/ToldStraight-Ep03/` directory exists, so Ep03 has no video master. The 2 fps frame
+rate confirms these are chapter-card slideshows over the episode audio — the files
+uploaded to YouTube.
+
+**This is the same failure this document spends § 1 and § 9.3 documenting in D1 and D2:**
+a figure asserted once (D3 § 2.10's "zero `.mp4` files"), carried into D4 § 5, and
+re-measured here inside the same too-narrow frame instead of being re-derived against the
+question it was answering. Recorded rather than quietly fixed.
+
+**The conclusion survives, for a better reason.** The largest master is **15.7 MiB** —
+below GitHub's 50 MB warning threshold and far below its 100 MB hard limit. Git Large File
+Storage is unnecessary at this size, which is now a measurement rather than an absence of
+evidence. The `~86 MB` premise in #185 is wrong by a factor of five.
+
+**Three options, and this is yours:**
+
+1. **Run D8 now on these numbers** and close it recording "no large-file storage needed at
+   15.7 MiB", then unblock stage 6. *(Recommended — it is option 2 plus the bookkeeping
+   that closes an issue honestly instead of leaving it open and assumed unresolved.)*
+2. **Unblock stage 6 from D8 immediately**, re-gating only if a master ever exceeds 50 MB.
+3. **Keep the block.** D8 now has real numbers, so the block no longer has anything to
+   learn.
+
+**Reversal condition:** if any episode master exceeds 50 MB, large-file storage returns to
+the table.
+
+### 10.1.1 — Two episode masters are uncommitted, and `.gitignore` hides them silently
+
+Separate from the sizing question, and the more urgent finding.
+
+```fish
+git rev-list --objects --all | grep -iE '\.(mp4|mov|m4v)$'   # (no output)
+```
+
+No video object has ever existed in this repository, on any branch. The cause is
+`.gitignore` lines 60–62:
+
+```text
+# Video (edge-tts / yt-dlp / quick-cut byproducts)
+*.mp4
+*.mov
+```
+
+The rule was written to exclude **throwaway tooling byproducts**; it also excludes the
+finished episode masters, and `git add` skips them without a word. That is the same defect
+class as § 4.1 — a rule whose stated purpose does not match what it actually catches.
+
+Also present only in `~/ToldStraight-Ep0{1,2}/` and never committed: `narration/` (both),
+`record-host-ep01.txt`, `record-guest-ep01.txt`, `transcript-markup.txt`,
+`episode-copy.txt`, `youtube-description.txt`, and Ep02's `session-one-skills.mp3`.
+`transcript.md` and `show-notes.md` **differ** between the home directory and the repo, so
+the home copy is not simply a superset — it is an older fork for text and the sole holder
+of the video.
+
+**Backup status: unverified.** `tmutil isexcluded` reports both masters `[Included]`, the
+Time Machine drive is mounted and hourly backups are running. The backup contents could
+not be read from an agent shell to confirm a copy exists, so this is **relayed, not
+verified**. Confirm through Finder → Time Machine menu → *Browse Time Machine Backups*.
+
+**Options, and this is yours** — `audio-lab` is public, so committing is outward-facing and
+permanent:
+
+1. **Leave the bytes out of git; make their absence detectable.** Add a tracked
+   `episodes/MASTERS.md` recording each master's SHA-256, size, duration, codec and
+   YouTube URL, and correct the `.gitignore` comment. *(Recommended — no public exposure,
+   no history weight, and a missing master becomes detectable instead of silent. Does not
+   foreclose the others.)*
+2. **Commit them normally** with a `.gitignore` negation. 28 MB permanent in public
+   history, removable only by rewriting history.
+3. **Commit via Git Large File Storage.** The intended mechanism, but still public, and it
+   adds a dependency to every clone for two files that fit comfortably without it.
+
+**Reversal condition for option 1:** if a master is ever lost, option 1 was insufficient
+and option 3 follows immediately.
 
 ### 10.2 — The three cast-portrait pairs
 
